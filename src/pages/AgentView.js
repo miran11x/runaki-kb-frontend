@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 
+/* eslint-disable no-unused-vars */
+
 const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
 const BG = '#f0f4ff';
@@ -46,8 +48,7 @@ const PANEL_LABELS = {
 };
 
 export default function AgentView() {
-  const { user } = useAuth();
-  const [faqs, setFaqs]       = useState([]);
+const { } = useAuth();  const [faqs, setFaqs]       = useState([]);
   const [tip, setTip]         = useState(null);
   const [loading, setLoading] = useState(true);
   const [panel, setPanel]     = useState('billing');
