@@ -163,7 +163,6 @@ export default function Login() {
 
 const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
-const BLUE = '#6366f1';
 
 const S = {
   page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: NAVY, fontFamily: "'Inter','Segoe UI',sans-serif", padding: '20px', position: 'relative', overflow: 'hidden' },

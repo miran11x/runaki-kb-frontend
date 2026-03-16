@@ -8,7 +8,6 @@ import toast from 'react-hot-toast';
 
 const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
-const BG = '#f0f4ff';
 const ROLE_COLORS = { team_lead:'#8b5cf6', qa_officer:'#10b981', agent:'#3b82f6' };
 const ROLE_LABELS = { team_lead:'Team Lead', qa_officer:'QA Officer', agent:'Agent' };
 
