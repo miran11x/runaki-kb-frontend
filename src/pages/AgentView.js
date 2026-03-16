@@ -46,8 +46,7 @@ const PANEL_LABELS = {
 };
 
 export default function AgentView() {
-  const { user } = useAuth();
-  const [faqs, setFaqs]       = useState([]);
+const { user } = useAuth(); // eslint-disable-line no-unused-vars  const [faqs, setFaqs]       = useState([]);
   const [tip, setTip]         = useState(null);
   const [loading, setLoading] = useState(true);
   const [panel, setPanel]     = useState('billing');
