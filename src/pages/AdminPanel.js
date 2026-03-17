@@ -71,16 +71,18 @@ export default function AdminPanel() {
   const [loading, setLoading]   = useState(false);
   const [uSearch, setUSearch]   = useState('');
   const [uFilter, setUFilter]   = useState('all');
+  const [leaderboard, setLeaderboard] = useState([]);
 
   const load = useCallback(async () => {
     try {
-      const [s,u,al,act,tf] = await Promise.all([
+      const [s,u,al,act,tf,lb] = await Promise.all([
         api.get('/users/stats'), api.get('/users'),
         api.get('/users/active-list'), api.get('/users/activity'),
         api.get('/faqs/top-viewed'),
+        api.get('/users/leaderboard').catch(() => ({ data: [] })),
       ]);
       setStats(s.data); setUsers(u.data); setActive(al.data);
-      setActivity(act.data); setTopFAQs(tf.data);
+      setActivity(act.data); setTopFAQs(tf.data); setLeaderboard(lb.data);
     } catch { toast.error('Failed to load'); }
   }, []);
 
@@ -155,7 +157,7 @@ export default function AdminPanel() {
     { icon:'🔐', label:'Total Logins', value:stats.totalLogins, color:'#8b5cf6', sub:'All time' },
   ] : [];
 
-  const TABS = [['dashboard','📊','Dashboard'],['users','👥','Users'],['active','🟢','Live'],['activity','📋','Activity']];
+  const TABS = [['dashboard','📊','Dashboard'],['users','👥','Users'],['active','🟢','Live'],['activity','📋','Activity'],['leaderboard','🏆','Leaderboard']];
 
   const CT = ({ active, payload, label }) => {
     if (active && payload?.length) return (
@@ -442,6 +444,47 @@ export default function AdminPanel() {
                   );
                 })}
                 {activity.length === 0 && <EmptyState text="No activity yet" />}
+              </div>
+            </div>
+          )}
+
+          {tab === 'leaderboard' && (
+            <div>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
+                <div style={{ fontSize:'18px', fontWeight:'800', color:NAVY }}>🏆 Agent Leaderboard</div>
+                <div style={{ fontSize:'12px', color:'#94a3b8', fontWeight:'600' }}>Top 20 by FAQ views</div>
+              </div>
+              <div style={{ background:'#fff', borderRadius:'18px', border:'1px solid #e2e8f0', overflow:'hidden', boxShadow:'0 4px 24px rgba(11,17,32,0.06)' }}>
+                {leaderboard.length === 0 ? <EmptyState text="No agent activity yet" /> : leaderboard.map((agent, i) => {
+                  const medals = ['🥇','🥈','🥉'];
+                  const rankColors = ['#f59e0b','#94a3b8','#cd7c2f'];
+                  return (
+                    <div key={agent.id} style={{ display:'flex', alignItems:'center', gap:'16px', padding:'14px 20px', borderBottom: i < leaderboard.length-1 ? '1px solid #f1f5f9':'none', background: i < 3 ? `${rankColors[i]}08`:'transparent' }}>
+                      <div style={{ width:'32px', textAlign:'center', fontSize: i < 3 ? '22px':'16px', fontWeight:'900', color: i < 3 ? rankColors[i]:'#94a3b8', flexShrink:0 }}>
+                        {i < 3 ? medals[i] : `#${i+1}`}
+                      </div>
+                      <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:ROLE_COLORS[agent.role]||'#6366f1', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'15px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{agent.name[0]}</div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:'14px', fontWeight:'700', color:NAVY }}>{agent.name}</div>
+                        <div style={{ fontSize:'11px', color:'#94a3b8' }}>{agent.title||'Agent'}</div>
+                      </div>
+                      <div style={{ display:'flex', gap:'20px', flexShrink:0 }}>
+                        <div style={{ textAlign:'center' }}>
+                          <div style={{ fontSize:'18px', fontWeight:'900', color:'#6366f1' }}>{agent.faqs_viewed||0}</div>
+                          <div style={{ fontSize:'10px', color:'#94a3b8', fontWeight:'600' }}>FAQs Viewed</div>
+                        </div>
+                        <div style={{ textAlign:'center' }}>
+                          <div style={{ fontSize:'18px', fontWeight:'900', color:'#f59e0b' }}>{agent.bookmarks||0}</div>
+                          <div style={{ fontSize:'10px', color:'#94a3b8', fontWeight:'600' }}>Bookmarks</div>
+                        </div>
+                        <div style={{ textAlign:'center' }}>
+                          <div style={{ fontSize:'18px', fontWeight:'900', color:'#10b981' }}>{agent.helpful_ratings||0}</div>
+                          <div style={{ fontSize:'10px', color:'#94a3b8', fontWeight:'600' }}>👍 Ratings</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
