@@ -12,25 +12,47 @@ const ORANGE = '#FF6B35';
 const ROLE_COLORS = { team_lead:'#8b5cf6', qa_officer:'#10b981', agent:'#3b82f6' };
 const ROLE_LABELS = { team_lead:'Team Lead', qa_officer:'QA Officer', agent:'Agent' };
 
-function GlowCard({ icon, label, value, color, sub, live }) {
+function GlowCard({ icon, label, value, color, sub, live, dark }) {
   const [hov, setHov] = useState(false);
+  if (dark) {
+    return (
+      <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{
+        background:'linear-gradient(145deg,#0f1623,#111827)', borderRadius:'22px', padding:'26px 24px',
+        border:`1px solid ${color}30`,
+        boxShadow: hov ? `0 0 0 1px ${color}50,0 8px 32px ${color}30,inset 0 1px 0 rgba(255,255,255,0.06)` : `0 0 0 1px ${color}20,0 4px 20px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04)`,
+        position:'relative', overflow:'hidden', transition:'all .25s cubic-bezier(0.4,0,0.2,1)',
+        transform: hov ? 'translateY(-2px)' : 'none', cursor:'default',
+      }}>
+        <div style={{ position:'absolute', top:'-30px', right:'-30px', width:'120px', height:'120px', background:`radial-gradient(circle,${color}25 0%,transparent 70%)`, borderRadius:'50%', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', top:'14px', right:'14px', width:'52px', height:'52px', borderRadius:'50%', border:`2px solid ${color}40`, boxShadow:`0 0 12px ${color}30,inset 0 0 12px ${color}15`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', background:`radial-gradient(circle,${color}15,transparent)` }}>{icon}</div>
+        {live && (<div style={{ position:'absolute', top:'68px', right:'18px', display:'flex', alignItems:'center', gap:'4px', fontSize:'9px', fontWeight:'800', color:'#22c55e', textTransform:'uppercase', letterSpacing:'0.08em' }}><span style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 6px #22c55e' }} />Live</div>)}
+        <div style={{ marginTop:'8px' }}>
+          <div style={{ fontSize:'38px', fontWeight:'900', color:'#fff', letterSpacing:'-0.03em', lineHeight:1, textShadow:`0 0 20px ${color}50` }}>{value ?? '—'}</div>
+          <div style={{ fontSize:'11px', fontWeight:'700', color:'rgba(255,255,255,0.4)', marginTop:'10px', textTransform:'uppercase', letterSpacing:'0.1em' }}>{label}</div>
+          {sub && <div style={{ fontSize:'11px', color:color, marginTop:'4px', fontWeight:'600' }}>{sub}</div>}
+        </div>
+        <div style={{ position:'absolute', bottom:0, left:'20%', right:'20%', height:'2px', background:`linear-gradient(90deg,transparent,${color}80,transparent)`, borderRadius:'2px' }} />
+      </div>
+    );
+  }
+  // Light mode card
   return (
     <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{
-      background:'linear-gradient(145deg,#0f1623,#111827)', borderRadius:'22px', padding:'26px 24px',
-      border:`1px solid ${color}30`,
-      boxShadow: hov ? `0 0 0 1px ${color}50,0 8px 32px ${color}30,inset 0 1px 0 rgba(255,255,255,0.06)` : `0 0 0 1px ${color}20,0 4px 20px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04)`,
+      background:'#fff', borderRadius:'22px', padding:'26px 24px',
+      border:`1px solid ${color}20`,
+      boxShadow: hov ? `0 8px 32px ${color}20, 0 0 0 1px ${color}30` : `0 4px 20px rgba(11,17,32,0.06), 0 0 0 1px ${color}15`,
       position:'relative', overflow:'hidden', transition:'all .25s cubic-bezier(0.4,0,0.2,1)',
       transform: hov ? 'translateY(-2px)' : 'none', cursor:'default',
     }}>
-      <div style={{ position:'absolute', top:'-30px', right:'-30px', width:'120px', height:'120px', background:`radial-gradient(circle,${color}25 0%,transparent 70%)`, borderRadius:'50%', pointerEvents:'none' }} />
-      <div style={{ position:'absolute', top:'14px', right:'14px', width:'52px', height:'52px', borderRadius:'50%', border:`2px solid ${color}40`, boxShadow:`0 0 12px ${color}30,inset 0 0 12px ${color}15`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', background:`radial-gradient(circle,${color}15,transparent)` }}>{icon}</div>
+      <div style={{ position:'absolute', top:'-20px', right:'-20px', width:'100px', height:'100px', background:`radial-gradient(circle,${color}12 0%,transparent 70%)`, borderRadius:'50%', pointerEvents:'none' }} />
+      <div style={{ position:'absolute', top:'14px', right:'14px', width:'52px', height:'52px', borderRadius:'50%', border:`2px solid ${color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', background:`${color}10` }}>{icon}</div>
       {live && (<div style={{ position:'absolute', top:'68px', right:'18px', display:'flex', alignItems:'center', gap:'4px', fontSize:'9px', fontWeight:'800', color:'#22c55e', textTransform:'uppercase', letterSpacing:'0.08em' }}><span style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 6px #22c55e' }} />Live</div>)}
       <div style={{ marginTop:'8px' }}>
-        <div style={{ fontSize:'38px', fontWeight:'900', color:'#fff', letterSpacing:'-0.03em', lineHeight:1, textShadow:`0 0 20px ${color}50` }}>{value ?? '—'}</div>
-        <div style={{ fontSize:'11px', fontWeight:'700', color:'rgba(255,255,255,0.4)', marginTop:'10px', textTransform:'uppercase', letterSpacing:'0.1em' }}>{label}</div>
+        <div style={{ fontSize:'38px', fontWeight:'900', color:'#0B1120', letterSpacing:'-0.03em', lineHeight:1 }}>{value ?? '—'}</div>
+        <div style={{ fontSize:'11px', fontWeight:'700', color:'#94a3b8', marginTop:'10px', textTransform:'uppercase', letterSpacing:'0.1em' }}>{label}</div>
         {sub && <div style={{ fontSize:'11px', color:color, marginTop:'4px', fontWeight:'600' }}>{sub}</div>}
       </div>
-      <div style={{ position:'absolute', bottom:0, left:'20%', right:'20%', height:'2px', background:`linear-gradient(90deg,transparent,${color}80,transparent)`, borderRadius:'2px' }} />
+      <div style={{ position:'absolute', bottom:0, left:'20%', right:'20%', height:'2px', background:`linear-gradient(90deg,transparent,${color}60,transparent)`, borderRadius:'2px' }} />
     </div>
   );
 }
@@ -199,7 +221,7 @@ export default function AdminPanel() {
           {tab === 'dashboard' && (
             <div>
               <div style={S.kpiGrid}>
-                {STAT_CARDS.map((sc,i) => <GlowCard key={i} {...sc} />)}
+                {STAT_CARDS.map((sc,i) => <GlowCard key={i} {...sc} dark={darkMode} />)}
               </div>
               <div style={S.row3}>
                 <ChartCard title="Login Activity" sub="Last 7 days" accent="#FF6B35" dark={darkMode}>
@@ -503,7 +525,7 @@ export default function AdminPanel() {
 }
 
 const S = {
-  // layout style is dynamic based on darkMode
+  layout:{ display:'flex', height:'100vh', overflow:'hidden', fontFamily:"'Inter','Segoe UI',sans-serif" },
   body:{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 },
   tabBar:{ display:'flex', gap:'4px', padding:'12px 28px 0', background:'#0d1526', borderBottom:'1px solid rgba(255,255,255,0.06)', flexShrink:0 },
   tab:{ display:'flex', alignItems:'center', gap:'7px', padding:'10px 18px', borderRadius:'12px 12px 0 0', border:'none', background:'transparent', fontSize:'13px', fontWeight:'600', color:'rgba(255,255,255,0.4)', cursor:'pointer', fontFamily:'inherit', position:'relative', transition:'all .15s' },
