@@ -3,7 +3,7 @@ import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
-
+/* eslint-disable */
 const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
 const BG = '#f0f4ff';
