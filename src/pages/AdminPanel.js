@@ -434,15 +434,15 @@ export default function AdminPanel() {
                   {activeList.map(u => (
                     <div key={u.id} style={{ background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', borderRadius:'16px', padding:'18px', display:'flex', alignItems:'center', gap:'14px', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 16px rgba(0,0,0,0.3)':'0 4px 16px rgba(11,17,32,0.06)', position:'relative', overflow:'hidden' }}>
                       <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg,#22c55e,transparent)' }} />
-                      <div style={{ width:'46px', height:'46px', borderRadius:'14px', background:`linear-gradient(135deg,${ROLE_COLORS[u.role]||'#6366f1'},${ROLE_COLORS[u.role]||'#6366f1'}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{u.name[0]}</div>
+                      <div style={{ width:'48px', height:'48px', borderRadius:'14px', background:`linear-gradient(135deg,${ROLE_COLORS[u.role]||'#6366f1'},${ROLE_COLORS[u.role]||'#6366f1'}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', fontWeight:'900', color:'#fff', flexShrink:0, boxShadow:`0 4px 12px ${ROLE_COLORS[u.role]||'#6366f1'}40` }}>{u.name?.[0]?.toUpperCase()}</div>
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:'14px', fontWeight:'700', color:NAVY }}>{u.name}</div>
-                        <div style={{ fontSize:'11px', color:'#94a3b8', marginTop:'2px' }}>{u.email}</div>
-                        <div style={{ fontSize:'11px', color:'#64748b', marginTop:'3px', fontWeight:'600' }}>{u.title||ROLE_LABELS[u.role]}</div>
+                        <div style={{ fontSize:'14px', fontWeight:'700', color: darkMode?'#f1f5f9':NAVY }}>{u.name}</div>
+                        <div style={{ fontSize:'11px', color: darkMode?'rgba(255,255,255,0.4)':'#94a3b8', marginTop:'2px' }}>{u.email}</div>
+                        <div style={{ fontSize:'11px', color: darkMode?'rgba(255,255,255,0.55)':'#64748b', marginTop:'3px', fontWeight:'600' }}>{u.title||ROLE_LABELS[u.role]}</div>
                       </div>
                       <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'4px' }}>
                         <div style={{ width:'10px', height:'10px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 10px #22c55e', animation:'pulse 2s infinite' }} />
-                        <div style={{ fontSize:'10px', color:'#94a3b8' }}>{new Date(u.last_ping).toLocaleTimeString()}</div>
+                        <div style={{ fontSize:'10px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8' }}>{new Date(u.last_ping).toLocaleTimeString()}</div>
                       </div>
                     </div>
                   ))}
