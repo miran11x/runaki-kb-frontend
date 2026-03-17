@@ -31,11 +31,14 @@ const FAQ_ITEMS = [
 ];
 
 const RESOURCE_ITEMS = [
-  { id:'_restree',  icon:'🌳', label:'Resolution Tree'     },
-  { id:'_scripts',  icon:'📞', label:'Scripts & Processes' },
-  { id:'_priority', icon:'🎯', label:'Case Priorities'     },
-  { id:'_updates',  icon:'🆕', label:'New Updates', badge:6, hot:true },
-  { id:'_bookmarks',icon:'⭐', label:'My Bookmarks'        },
+  { id:'_restree',   icon:'🌳', label:'Resolution Tree'     },
+  { id:'_scripts',   icon:'📞', label:'Scripts & Processes' },
+  { id:'_priority',  icon:'🎯', label:'Case Priorities'     },
+  { id:'_kyc',       icon:'📱', label:'KYC Platform'        },
+  { id:'_holdunhold',icon:'⏸️', label:'Hold & Unhold'       },
+  { id:'_traccess',  icon:'⚡', label:'TR Access'           },
+  { id:'_updates',   icon:'🆕', label:'New Updates', badge:6, hot:true },
+  { id:'_bookmarks', icon:'⭐', label:'My Bookmarks'        },
 ];
 
 export default function Sidebar({ panel, setPanel, search, setSearch }) {

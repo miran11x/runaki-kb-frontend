@@ -37,6 +37,9 @@ const PANEL_FILTER = {
   'feedback':    f => f.category === 'Feedback & Others',
   '_updates':    f => f.category === 'New Updates',
   '_bookmarks':  () => false,
+  '_kyc':        () => false,
+  '_holdunhold': () => false,
+  '_traccess':   () => false,
 };
 
 const PANEL_LABELS = {
@@ -47,6 +50,7 @@ const PANEL_LABELS = {
   'feedback':'Feedback & Others','_updates':'New Updates',
   '_restree':'Resolution Tree','_scripts':'Scripts & Processes','_priority':'Case Priorities',
   '_search':'Search Results','_bookmarks':'⭐ Bookmarks',
+  '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling',
 };
 
 export default function AgentView() {
@@ -167,7 +171,7 @@ export default function AgentView() {
 
   const items = panelFaqs();
   const groups = grouped(items);
-  const isSpecial = ['_restree','_scripts','_priority'].includes(panel);
+  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess'].includes(panel);
 
   if (loading) return (
     <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
@@ -251,6 +255,9 @@ export default function AgentView() {
           {panel === '_restree'  && <ResolutionTree darkMode={darkMode} DM={DM} />}
           {panel === '_scripts'  && <Scripts darkMode={darkMode} DM={DM} />}
           {panel === '_priority' && <Priority darkMode={darkMode} DM={DM} />}
+          {panel === '_kyc'       && <KYCPlatform darkMode={darkMode} DM={DM} />}
+          {panel === '_holdunhold'&& <HoldUnhold darkMode={darkMode} DM={DM} />}
+          {panel === '_traccess'  && <TRAccess darkMode={darkMode} DM={DM} />}
 
           {/* Bookmarks empty */}
           {panel === '_bookmarks' && items.length === 0 && (
@@ -464,6 +471,30 @@ function ResolutionTree({ darkMode, DM }) {
           📞 Call Center — Click to Expand
         </div>
       </div>
+      {/* Resolution Method Trees */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'12px', marginBottom:'24px' }}>
+        {[
+          { t:'Resolved with FAQ', icon:'📖', color:'#6366f1', steps:['Agent identifies customer issue','Matches to FAQ category','Reads approved answer','Confirms customer understood','Closes ticket as resolved'] },
+          { t:'Resolved with Process', icon:'⚙️', color:'#10b981', steps:['Agent identifies issue requiring action','Follows standard process steps','Creates/updates CRM ticket','Notifies relevant team if needed','Closes ticket once process done'] },
+          { t:'Resolved with CRM Access', icon:'💻', color:'#f59e0b', steps:['Agent checks CRM for customer data','Verifies account/meter details','Makes update or correction in CRM','Confirms change with customer','Closes ticket as resolved'] },
+        ].map((tree,i) => (
+          <div key={i} style={{ background: DM.cardBg, borderRadius:'16px', overflow:'hidden', border:`1.5px solid ${tree.color}30`, boxShadow:`0 4px 16px ${tree.color}12` }}>
+            <div style={{ background:`linear-gradient(135deg,${tree.color}20,${tree.color}08)`, padding:'14px 18px', borderBottom:`1px solid ${tree.color}20`, display:'flex', alignItems:'center', gap:'10px' }}>
+              <span style={{ fontSize:'20px' }}>{tree.icon}</span>
+              <span style={{ fontSize:'13px', fontWeight:'800', color:tree.color }}>{tree.t}</span>
+            </div>
+            <div style={{ padding:'14px 18px' }}>
+              {tree.steps.map((step,j) => (
+                <div key={j} style={{ display:'flex', gap:'10px', padding:'6px 0', borderBottom:j<tree.steps.length-1?`1px solid ${DM.border}`:'none', alignItems:'flex-start' }}>
+                  <span style={{ background:tree.color, color:'#fff', borderRadius:'50%', width:'18px', height:'18px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:'900', flexShrink:0, marginTop:'2px' }}>{j+1}</span>
+                  <span style={{ fontSize:'12.5px', color:DM.subText, lineHeight:'1.5' }}>{step}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize:'13px', fontWeight:'800', color:DM.subText, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'12px' }}>📞 Call Category Tree</div>
       <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'16px', alignItems:'flex-start' }}>
         {TREE.map(col => (
           <div key={col.n} style={{ flex:1, minWidth:'170px' }}>
@@ -512,25 +543,60 @@ function Scripts({ darkMode, DM }) {
   );
 }
 
-function Priority({ DM }) {
+function Priority({ DM, darkMode }) {
   const levels = [
-    { level:'🟢 Low', color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0', items:['Billing errors','KYC issues','Cap issues','High bill/debt'] },
-    { level:'🟡 Medium', color:'#d97706', bg:'#fffbeb', border:'#fde68a', items:['Ongoing non-critical complaints'] },
-    { level:'🟠 High', color:'#ea580c', bg:'#fff7ed', border:'#fed7aa', items:['Unplanned outage','Paid >12h still disconnected','SM issue','Private generators','Disconnection leaflet'] },
-    { level:'🔴 Urgent', color:'#dc2626', bg:'#fef2f2', border:'#fecaca', items:['Maintenance non-responsive','Maintenance visited but could not resolve'] },
+    {
+      level:'🟢 Low', color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0',
+      desc:'Minor issues — handle after higher priorities.',
+      items:[
+        'Billing Complaints: Bill not received (>3 months) – Pending',
+        'Billing Complaints: Wrong tariff applied – Pending',
+        'Billing Complaints: Other billing complaints – Pending',
+        'Customer-specific: Cap issue – Pending',
+        'General Complaints: Message not received / KYC – Pending',
+        'Billing Complaints: High Bill / High Debt – Pending',
+      ]
+    },
+    {
+      level:'🟡 Medium', color:'#d97706', bg:'#fffbeb', border:'#fde68a',
+      desc:"Important but not critical — doesn't yet affect service severely.",
+      items:['Ongoing non-critical complaints']
+    },
+    {
+      level:'🟠 High', color:'#ea580c', bg:'#fff7ed', border:'#fed7aa',
+      desc:'Serious issues affecting customers — prioritize.',
+      items:[
+        'Outage: Unplanned outage – Pending',
+        'Customer-specific: Non-payment (paid >12h) – Pending',
+        'Customer-specific: SM meter issue – Pending',
+        'General Complaints: Private generators – Pending',
+        'Disconnection leaflet – Pending',
+        'Feedback & Others – Pending',
+      ]
+    },
+    {
+      level:'🔴 Urgent', color:'#dc2626', bg:'#fef2f2', border:'#fecaca',
+      desc:'Immediate action needed — escalations.',
+      items:[
+        'Customer specific (escalation 1): Maintenance non-responsive – Pending',
+        'Customer specific (escalation 1): Maintenance could not support – Pending',
+      ]
+    },
   ];
   return (
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:'14px' }}>
       {levels.map((lv,i) => (
-        <div key={i} style={{ background:DM.cardBg, borderRadius:'16px', overflow:'hidden', border:`1px solid ${DM.border}` }}>
-          <div style={{ background:lv.bg, padding:'16px 18px', borderBottom:`2px solid ${lv.border}` }}>
-            <div style={{ fontSize:'16px', fontWeight:'800', color:lv.color }}>{lv.level}</div>
+        <div key={i} style={{ background:DM.cardBg, borderRadius:'18px', overflow:'hidden', border:`1.5px solid ${lv.color}30`, boxShadow:`0 4px 20px ${lv.color}15` }}>
+          <div style={{ background:`linear-gradient(135deg,${lv.color}18,${lv.color}08)`, padding:'18px 20px', borderBottom:`1px solid ${lv.color}25`, position:'relative', overflow:'hidden' }}>
+            <div style={{ position:'absolute', top:'-10px', right:'-10px', width:'60px', height:'60px', background:`radial-gradient(circle,${lv.color}25,transparent)`, borderRadius:'50%' }} />
+            <div style={{ fontSize:'18px', fontWeight:'900', color:lv.color }}>{lv.level}</div>
+            <div style={{ fontSize:'12px', color:DM.subText, marginTop:'4px', lineHeight:'1.5' }}>{lv.desc}</div>
           </div>
-          <div style={{ padding:'14px 18px' }}>
+          <div style={{ padding:'14px 20px' }}>
             {lv.items.map((item,j) => (
-              <div key={j} style={{ display:'flex', gap:'10px', padding:'6px 0', borderBottom:j<lv.items.length-1?`1px solid ${DM.border}`:'none' }}>
-                <span style={{ color:lv.color, flexShrink:0, fontSize:'12px', marginTop:'2px' }}>●</span>
-                <span style={{ fontSize:'13.5px', color:DM.subText, lineHeight:'1.5' }}>{item}</span>
+              <div key={j} style={{ display:'flex', gap:'10px', padding:'8px 0', borderBottom:j<lv.items.length-1?`1px solid ${DM.border}`:'none' }}>
+                <span style={{ color:lv.color, flexShrink:0, fontSize:'10px', marginTop:'4px' }}>⬤</span>
+                <span style={{ fontSize:'13px', color:DM.text, lineHeight:'1.55' }}>{item}</span>
               </div>
             ))}
           </div>
@@ -539,6 +605,201 @@ function Priority({ DM }) {
     </div>
   );
 }
+
+function KYCPlatform({ darkMode, DM }) {
+  const statuses = [
+    { status:'✅ Validated', color:'#16a34a', bg:'#f0fdf4', action:'No issues from the KYC team. Be patient and wait.', badge:'Resolve the ticket.' },
+    { status:'🕐 KYC Not Started', color:'#6366f1', bg:'#eef2ff', action:'Still in process. Be patient and wait.', badge:'Resolve the ticket.' },
+    { status:'❌ Rejected', color:'#dc2626', bg:'#fef2f2', action:'Customer needs to re-submit their KYC.', badge:'Resolve the ticket.' },
+    { status:'🚩 Flagged', color:'#d97706', bg:'#fffbeb', action:'Still in process. Be patient and wait.', badge:'Resolve the ticket.' },
+    { status:'📋 KYC Not Submitted', color:'#8b5cf6', bg:'#f5f3ff', action:'Under validation process. Be patient and wait.', badge:'Resolve the ticket.' },
+    { status:'⚙️ Pending Mechanical Meter Update', color:'#ea580c', bg:'#fff7ed', action:'BNF submitted a Mechanical meter instead of a bill.', badge:'Escalate to BNF team.' },
+    { status:'🔍 Number Not Found in Sheet', color:'#64748b', bg:'#f8fafc', action:"BNF has not KYC'd with this phone number.", badge:'Verify with customer.' },
+  ];
+  return (
+    <div>
+      <div style={{ background: darkMode?'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))':'linear-gradient(135deg,#eef2ff,#f5f3ff)', border:'1px solid #6366f130', borderRadius:'18px', padding:'20px 24px', marginBottom:'24px' }}>
+        <div style={{ fontSize:'16px', fontWeight:'800', color:'#6366f1', marginBottom:'8px' }}>📱 KYC Platform — How to Handle</div>
+        <div style={{ fontSize:'13.5px', color:DM.subText, lineHeight:'1.75' }}>
+          Whenever a customer has a KYC-related issue, always check their phone number in the system first, verify the KYC status, and ensure all details match before taking any further steps. This helps identify whether the issue is with the system, the BNF submission, or another stage of the process.
+        </div>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:'14px' }}>
+        {statuses.map((s,i) => (
+          <div key={i} style={{ background:DM.cardBg, borderRadius:'16px', overflow:'hidden', border:`1.5px solid ${s.color}30`, boxShadow:`0 4px 16px ${s.color}12` }}>
+            <div style={{ background: darkMode?`${s.color}15`:s.bg, padding:'14px 18px', borderBottom:`1px solid ${s.color}20` }}>
+              <div style={{ fontSize:'15px', fontWeight:'800', color:s.color }}>{s.status}</div>
+            </div>
+            <div style={{ padding:'14px 18px' }}>
+              <div style={{ fontSize:'13.5px', color:DM.text, lineHeight:'1.6', marginBottom:'10px' }}>{s.action}</div>
+              <div style={{ display:'inline-block', background:`${s.color}15`, color:s.color, fontSize:'11px', fontWeight:'800', padding:'4px 12px', borderRadius:'100px', border:`1px solid ${s.color}30` }}>
+                {s.badge}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HoldUnhold({ darkMode, DM }) {
+  const steps = [
+    {
+      phase:'1 — Pre-Hold', icon:'🎙️', color:'#6366f1',
+      title:'Before placing on hold',
+      desc:'Before placing the customer on hold, clearly inform them and explain the reason using the approved pre-hold script.',
+      script:'"I need to place you on a brief hold while I look into this for you. It should take no more than 2 minutes. Is that okay?"',
+      rules:['Always inform the customer before holding','Explain the reason clearly','Get their agreement first'],
+    },
+    {
+      phase:'2 — During Hold', icon:'⏸️', color:'#f59e0b',
+      title:'While customer is on hold',
+      desc:'The call must be placed on hold — not muted — so that hold music plays for the customer.',
+      script:null,
+      rules:['Use the HOLD button — never mute the call','Hold music must play for the customer','Check back every 2 minutes if hold is longer'],
+    },
+    {
+      phase:'3 — Post-Hold', icon:'▶️', color:'#10b981',
+      title:'Returning from hold',
+      desc:'After returning, use the approved post-hold script, apologize for the wait, and continue assisting professionally.',
+      script:'"Thank you for holding, [customer name]. I have the information you need. I apologize for the wait."',
+      rules:['Always thank the customer for holding','Apologize for the wait time','Use their name when returning'],
+    },
+  ];
+  return (
+    <div>
+      <div style={{ background: darkMode?'rgba(99,102,241,0.1)':'#eef2ff', border:'1px solid #6366f130', borderRadius:'18px', padding:'18px 22px', marginBottom:'24px' }}>
+        <div style={{ fontSize:'15px', fontWeight:'800', color:'#6366f1', marginBottom:'6px' }}>📞 Hold & Unhold — Professional Standards</div>
+        <div style={{ fontSize:'13px', color:DM.subText, lineHeight:'1.7' }}>Placing a customer on hold should be done professionally by informing them first, ensuring hold music plays, and apologizing when returning to the call.</div>
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+        {steps.map((step,i) => (
+          <div key={i} style={{ background:DM.cardBg, borderRadius:'18px', overflow:'hidden', border:`1.5px solid ${step.color}30`, boxShadow:`0 4px 20px ${step.color}12` }}>
+            <div style={{ background:`linear-gradient(135deg,${step.color}20,${step.color}08)`, padding:'18px 22px', display:'flex', alignItems:'center', gap:'14px', borderBottom:`1px solid ${step.color}20` }}>
+              <div style={{ width:'48px', height:'48px', borderRadius:'14px', background:`linear-gradient(135deg,${step.color},${step.color}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0, boxShadow:`0 4px 12px ${step.color}40` }}>{step.icon}</div>
+              <div>
+                <div style={{ fontSize:'11px', fontWeight:'800', color:step.color, textTransform:'uppercase', letterSpacing:'0.1em' }}>{step.phase}</div>
+                <div style={{ fontSize:'16px', fontWeight:'800', color:DM.text, marginTop:'2px' }}>{step.title}</div>
+              </div>
+            </div>
+            <div style={{ padding:'18px 22px' }}>
+              <div style={{ fontSize:'13.5px', color:DM.subText, lineHeight:'1.7', marginBottom:'14px' }}>{step.desc}</div>
+              {step.script && (
+                <div style={{ background: darkMode?'rgba(255,255,255,0.04)':'#f8fafc', border:`2px solid ${step.color}30`, borderLeft:`4px solid ${step.color}`, borderRadius:'10px', padding:'12px 16px', fontSize:'13.5px', color:DM.text, fontStyle:'italic', lineHeight:'1.7', marginBottom:'14px' }}>
+                  {step.script}
+                </div>
+              )}
+              <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
+                {step.rules.map((r,j) => (
+                  <div key={j} style={{ display:'flex', alignItems:'center', gap:'6px', background:`${step.color}12`, border:`1px solid ${step.color}25`, borderRadius:'8px', padding:'5px 12px' }}>
+                    <span style={{ color:step.color, fontSize:'10px' }}>✓</span>
+                    <span style={{ fontSize:'12px', fontWeight:'600', color:DM.text }}>{r}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TRAccess({ darkMode, DM }) {
+  const [open, setOpen] = React.useState({});
+  const tog = k => setOpen(p => ({...p,[k]:!p[k]}));
+
+  const infoBoxes = [
+    { title:'📋 Info Required — Disconnection Leaflet', color:'#ef4444', items:['Mobile number','Leaflet ID','Customer name','Does the customer have a bill?','Is the customer registered at the CO?','Does the customer have proof of registration or physical bill?'] },
+    { title:'📋 Info Required — Warning / Inaccessible TR', color:'#f59e0b', items:['Full Name of Customer','Location (address or area)','Zone Number','Phone Number','Bill/Account Availability','Date on the leaflet'] },
+  ];
+
+  const sections = [
+    {
+      title:'Warning Leaflet FAQs', color:'#f59e0b', icon:'⚠️',
+      faqs:[
+        { q:'Why did I get this leaflet?', a:'Our Runaki team attempted to access your transformer site several times without success. The leaflet is a reminder that we need your cooperation to complete the required work.' },
+        { q:'What should I do?', a:"Thank you for calling. I'll take your details now and our team will call you to schedule a visit to complete the work at your location. Please be cooperative so the work can be completed." },
+        { q:'When will they be coming?', a:'The exact date is not fixed, but once you provide your availability, our team will schedule the next visit promptly.' },
+        { q:'Will my electricity be disconnected immediately?', a:'No. Electricity is only disconnected if we are unable to access your site after multiple attempts and no arrangement is made with you.' },
+        { q:'What information do you need from me?', a:"We'll need your full name, phone number, location details, and the leaflet code. This helps us match your case quickly. Our team will call you to confirm the appointment." },
+        { q:'Why is this work necessary?', a:'This work is part of the Runaki project. It improves electricity reliability and helps reduce outages in your area.' },
+        { q:'Do I need to be present during the work?', a:'Yes, either you or someone you authorize must be present to provide access.' },
+        { q:'What happens if I ignore the leaflet?', a:'If no action is taken, your electricity will be permanently disconnected.' },
+        { q:'Will I be charged for this visit or service?', a:'No, the work is carried out free of charge as part of the Runaki project.' },
+        { q:'How long will the work take?', a:'Typically ~20 minutes. Our team will inform you if more time is required.' },
+        { q:'Who will be visiting?', a:'The authorized Runaki vendor team will visit under official supervision, with proper ID and safety gear.' },
+      ]
+    },
+    {
+      title:'Disconnection Leaflet FAQs', color:'#ef4444', icon:'🔴',
+      faqs:[
+        { q:'Why was my electricity disconnected?', a:'Your electricity was disconnected because our team could not access your site after several visits, and no contact was made to schedule the required work.' },
+        { q:'How can I get my electricity back?', a:"Now that you've called, we'll arrange a visit to complete the refurbishment work. Once it's done, your electricity will be reconnected." },
+        { q:'What information do you need from me?', a:"We'll need your full name, phone number, location details, and the leaflet code. Our team will call you to confirm the appointment." },
+        { q:'When will the team come to restore my electricity?', a:'Our team will call you to arrange a visit, usually within the coming days, once scheduling is confirmed.' },
+        { q:'Will my electricity be disconnected again if I miss the visit?', a:'Yes, electricity will remain disconnected until the refurbishment work is completed.' },
+        { q:'Who will be visiting?', a:'The authorized Runaki vendor team will visit under official supervision, with proper ID and safety gear.' },
+        { q:'How long does it take to restore electricity?', a:'Typically ~20 minutes. Our team will inform you if more time is required.' },
+        { q:'Will I be charged for this visit?', a:'No, the work is carried out free of charge as part of the Runaki project.' },
+        { q:"I already contacted the team before, why did I get another leaflet?", a:'The leaflet you received now is a disconnection leaflet. After the first call, the team was still unable to access your site. Thus, the electricity was disconnected.' },
+      ]
+    },
+  ];
+
+  return (
+    <div>
+      <div style={{ background: darkMode?'rgba(239,68,68,0.1)':'#fef2f2', border:'1px solid #ef444430', borderRadius:'18px', padding:'18px 22px', marginBottom:'22px' }}>
+        <div style={{ fontSize:'15px', fontWeight:'800', color:'#ef4444', marginBottom:'6px' }}>⚡ TR Access Scheduling</div>
+        <div style={{ fontSize:'13px', color:DM.subText, lineHeight:'1.7' }}>Handle all TR-related calls by capturing required information first, then scheduling a team visit. Use the scripts below for each case type.</div>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:'14px', marginBottom:'22px' }}>
+        {infoBoxes.map((box,i) => (
+          <div key={i} style={{ background:DM.cardBg, borderRadius:'16px', border:`1.5px solid ${box.color}30`, overflow:'hidden' }}>
+            <div style={{ background:`${box.color}15`, padding:'14px 18px', borderBottom:`1px solid ${box.color}20`, fontSize:'13px', fontWeight:'800', color:box.color }}>{box.title}</div>
+            <div style={{ padding:'14px 18px' }}>
+              {box.items.map((item,j) => (
+                <div key={j} style={{ display:'flex', gap:'8px', padding:'5px 0', borderBottom:j<box.items.length-1?`1px solid ${DM.border}`:'none' }}>
+                  <span style={{ color:box.color, fontWeight:'800', fontSize:'11px', marginTop:'2px' }}>{j+1}.</span>
+                  <span style={{ fontSize:'13px', color:DM.text }}>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {sections.map((sec,si) => (
+        <div key={si} style={{ marginBottom:'20px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'12px' }}>
+            <span style={{ fontSize:'18px' }}>{sec.icon}</span>
+            <span style={{ fontSize:'14px', fontWeight:'800', color:sec.color, textTransform:'uppercase', letterSpacing:'0.06em' }}>{sec.title}</span>
+            <span style={{ background:`${sec.color}15`, color:sec.color, fontSize:'10px', fontWeight:'800', padding:'3px 10px', borderRadius:'100px' }}>{sec.faqs.length} FAQs</span>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+            {sec.faqs.map((faq,fi) => {
+              const key = `${si}-${fi}`;
+              const isOpen = open[key];
+              return (
+                <div key={fi} style={{ background:DM.cardBg, borderRadius:'14px', border:`1px solid ${isOpen?sec.color+'50':DM.border}`, overflow:'hidden', transition:'all .2s', boxShadow:isOpen?`0 4px 16px ${sec.color}15`:'none' }}>
+                  <button onClick={() => tog(key)} style={{ width:'100%', display:'flex', alignItems:'center', gap:'12px', padding:'14px 18px', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                    <div style={{ width:'4px', alignSelf:'stretch', background:`linear-gradient(180deg,${sec.color},${sec.color}60)`, borderRadius:'4px', flexShrink:0 }} />
+                    <div style={{ flex:1, fontSize:'13.5px', fontWeight:'700', color:DM.text, textAlign:'left', lineHeight:'1.4' }}>{faq.q}</div>
+                    <span style={{ fontSize:'11px', color:isOpen?sec.color:DM.subText, transition:'transform .2s', transform:isOpen?'rotate(180deg)':'none', flexShrink:0 }}>▼</span>
+                  </button>
+                  {isOpen && (
+                    <div style={{ padding:'0 18px 16px 34px', fontSize:'13.5px', color:DM.subText, lineHeight:'1.8', whiteSpace:'pre-line' }}>{faq.a}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 const S = {
   layout: { display:'flex', height:'100vh', overflow:'hidden', fontFamily:"'Inter','Segoe UI',sans-serif" },
