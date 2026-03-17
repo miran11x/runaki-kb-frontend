@@ -141,47 +141,47 @@ export default function EditorPanel() {
               {/* FAQ Edit Modal */}
               {editFaq && (
                 <div style={S.overlay}>
-                  <div style={S.modal}>
+                  <div style={{ ...S.modal, background: darkMode?'#0f1623':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.1)':'' }}>
                     <div style={S.mHead}>
-                      <h3 style={S.mTitle}>{isNew ? '➕ New FAQ' : '✏️ Edit FAQ'}</h3>
+                      <h3 style={{ ...S.mTitle, color: darkMode?'#f1f5f9':NAVY }}>{isNew ? '➕ New FAQ' : '✏️ Edit FAQ'}</h3>
                       <button style={S.mClose} onClick={() => { setEditFaq(null); setIsNew(false); }}>✕</button>
                     </div>
                     <form onSubmit={saveFaq} style={S.mForm}>
                       <div style={S.mRow}>
                         <div style={S.mField}>
-                          <label style={S.mLabel}>Category</label>
-                          <select value={editFaq.category} onChange={e => setEditFaq({...editFaq,category:e.target.value})} style={S.mInput}>
+                          <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Category</label>
+                          <select value={editFaq.category} onChange={e => setEditFaq({...editFaq,category:e.target.value})} style={{ ...S.mInput, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', color: darkMode?'#f1f5f9':'#0B1120' }}>
                             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                           </select>
                         </div>
                         <div style={S.mField}>
-                          <label style={S.mLabel}>Subcategory</label>
-                          <input value={editFaq.subcategory} onChange={e => setEditFaq({...editFaq,subcategory:e.target.value})} style={S.mInput} placeholder="e.g. Rollout, KYC, USSD..." />
+                          <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Subcategory</label>
+                          <input value={editFaq.subcategory} onChange={e => setEditFaq({...editFaq,subcategory:e.target.value})} style={{ ...S.mInput, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', color: darkMode?'#f1f5f9':'#0B1120' }} placeholder="e.g. Rollout, KYC, USSD..." />
                         </div>
                       </div>
                       <div style={S.mField}>
-                        <label style={S.mLabel}>Question (English) *</label>
-                        <input value={editFaq.question_en} onChange={e => setEditFaq({...editFaq,question_en:e.target.value})} style={S.mInput} placeholder="Enter question in English" required />
+                        <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Question (English) *</label>
+                        <input value={editFaq.question_en} onChange={e => setEditFaq({...editFaq,question_en:e.target.value})} style={{ ...S.mInput, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', color: darkMode?'#f1f5f9':'#0B1120' }} placeholder="Enter question in English" required />
                       </div>
                       <div style={S.mField}>
-                        <label style={S.mLabel}>Answer (English) *</label>
+                        <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Answer (English) *</label>
                         <textarea value={editFaq.answer_en} onChange={e => setEditFaq({...editFaq,answer_en:e.target.value})} style={{...S.mInput,height:'100px',resize:'vertical'}} placeholder="Enter answer in English" required />
                       </div>
                       <div style={S.mField}>
-                        <label style={S.mLabel}>Question (Kurdish)</label>
+                        <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Question (Kurdish)</label>
                         <input value={editFaq.question_ku} onChange={e => setEditFaq({...editFaq,question_ku:e.target.value})} style={{...S.mInput,direction:'rtl'}} placeholder="پرسیار بە کوردی" />
                       </div>
                       <div style={S.mField}>
-                        <label style={S.mLabel}>Answer (Kurdish)</label>
+                        <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Answer (Kurdish)</label>
                         <textarea value={editFaq.answer_ku} onChange={e => setEditFaq({...editFaq,answer_ku:e.target.value})} style={{...S.mInput,height:'100px',resize:'vertical',direction:'rtl'}} placeholder="وەڵام بە کوردی" />
                       </div>
                       <div style={S.mRow}>
                         <div style={S.mField}>
-                          <label style={S.mLabel}>Tags</label>
-                          <input value={editFaq.tags} onChange={e => setEditFaq({...editFaq,tags:e.target.value})} style={S.mInput} placeholder="billing, kyc, payment" />
+                          <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Tags</label>
+                          <input value={editFaq.tags} onChange={e => setEditFaq({...editFaq,tags:e.target.value})} style={{ ...S.mInput, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', color: darkMode?'#f1f5f9':'#0B1120' }} placeholder="billing, kyc, payment" />
                         </div>
                         <div style={S.mField}>
-                          <label style={S.mLabel}>Status</label>
+                          <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Status</label>
                           <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',marginTop:'8px'}}>
                             <input type="checkbox" checked={editFaq.is_published} onChange={e => setEditFaq({...editFaq,is_published:e.target.checked})} />
                             <span style={{fontSize:'13px',fontWeight:'600',color:NAVY}}>Published</span>
@@ -198,8 +198,8 @@ export default function EditorPanel() {
               )}
 
               {/* FAQs Table */}
-              <div style={S.table}>
-                <div style={S.tableHead}>
+              <div style={{ ...S.table, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 1px 4px rgba(0,0,0,0.04)' }}>
+                <div style={{ ...S.tableHead, background: darkMode?'rgba(255,255,255,0.04)':'#f8fafc', borderBottom: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8' }}>
                   <div style={{flex:3}}>Question</div>
                   <div style={{flex:1.5}}>Category</div>
                   <div style={{flex:1}}>Status</div>
@@ -216,10 +216,10 @@ export default function EditorPanel() {
                         {f.subcategory && <div style={{fontSize:'11px',color:'#94a3b8',marginTop:'2px'}}>{f.subcategory}</div>}
                       </div>
                       <div style={{flex:1.5}}>
-                        <span style={{background:'#eef2ff',color:'#4338ca',fontSize:'11px',fontWeight:'700',padding:'3px 9px',borderRadius:'6px'}}>{f.category}</span>
+                        <span style={{background: darkMode?'rgba(99,102,241,0.2)':'#eef2ff',color: darkMode?'#a5b4fc':'#4338ca',fontSize:'11px',fontWeight:'700',padding:'3px 9px',borderRadius:'6px'}}>{f.category}</span>
                       </div>
                       <div style={{flex:1}}>
-                        <span style={{padding:'3px 10px',borderRadius:'100px',fontSize:'11px',fontWeight:'700',background:f.is_published?'#f0fdf4':'#fef3c7',color:f.is_published?'#16a34a':'#92400e'}}>
+                        <span style={{padding:'3px 10px',borderRadius:'100px',fontSize:'11px',fontWeight:'700',background:f.is_published?(darkMode?'rgba(22,163,74,0.2)':'#f0fdf4'):(darkMode?'rgba(234,179,8,0.2)':'#fef3c7'),color:f.is_published?'#16a34a':'#92400e'}}>
                           {f.is_published?'Live':'Draft'}
                         </span>
                       </div>
@@ -248,19 +248,19 @@ export default function EditorPanel() {
                 </p>
                 <form onSubmit={createTip} style={{display:'flex',flexDirection:'column',gap:'14px'}}>
                   <div style={S.mField}>
-                    <label style={S.mLabel}>Tip Title</label>
+                    <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Tip Title</label>
                     <input value={tipForm.title} onChange={e=>setTipForm({...tipForm,title:e.target.value})}
-                      style={S.mInput} placeholder="e.g. Always verify KYC before billing complaints" required />
+                      style={{ ...S.mInput, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', color: darkMode?'#f1f5f9':'#0B1120' }} placeholder="e.g. Always verify KYC before billing complaints" required />
                   </div>
                   <div style={S.mField}>
-                    <label style={S.mLabel}>Tip Content</label>
+                    <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Tip Content</label>
                     <textarea value={tipForm.content} onChange={e=>setTipForm({...tipForm,content:e.target.value})}
                       style={{...S.mInput,height:'100px',resize:'vertical'}}
                       placeholder="Write the tip details here..." required />
                   </div>
                   <div style={S.mField}>
-                    <label style={S.mLabel}>Category</label>
-                    <select value={tipForm.category} onChange={e=>setTipForm({...tipForm,category:e.target.value})} style={S.mInput}>
+                    <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Category</label>
+                    <select value={tipForm.category} onChange={e=>setTipForm({...tipForm,category:e.target.value})} style={{ ...S.mInput, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', color: darkMode?'#f1f5f9':'#0B1120' }}>
                       {TIP_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
@@ -308,12 +308,12 @@ export default function EditorPanel() {
                 </p>
                 <form onSubmit={sendNotif} style={{display:'flex',flexDirection:'column',gap:'14px'}}>
                   <div style={S.mField}>
-                    <label style={S.mLabel}>Title</label>
+                    <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Title</label>
                     <input value={notifForm.title} onChange={e=>setNotifForm({...notifForm,title:e.target.value})}
-                      style={S.mInput} placeholder="e.g. KB Updated — New e-Psûle FAQs" required />
+                      style={{ ...S.mInput, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', color: darkMode?'#f1f5f9':'#0B1120' }} placeholder="e.g. KB Updated — New e-Psûle FAQs" required />
                   </div>
                   <div style={S.mField}>
-                    <label style={S.mLabel}>Message</label>
+                    <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Message</label>
                     <textarea value={notifForm.message} onChange={e=>setNotifForm({...notifForm,message:e.target.value})}
                       style={{...S.mInput,height:'120px',resize:'vertical'}} required />
                   </div>
@@ -353,9 +353,9 @@ export default function EditorPanel() {
 }
 
 const S = {
-  layout:{display:'flex',height:'100vh',overflow:'hidden',background:BG,fontFamily:"'Inter','Segoe UI',sans-serif"},
+  layout:{display:'flex',height:'100vh',overflow:'hidden',fontFamily:"'Inter','Segoe UI',sans-serif"},
   body:{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minWidth:0},
-  tabs:{display:'flex',gap:'4px',padding:'12px 28px 0',background:'#fff',borderBottom:'1px solid #f1f5f9'},
+  tabs:{display:'flex',gap:'4px',padding:'12px 28px 0'},
   tab:{padding:'10px 18px',borderRadius:'10px 10px 0 0',border:'none',background:'transparent',fontSize:'13px',fontWeight:'600',color:'#94a3b8',cursor:'pointer',fontFamily:'inherit'},
   tabOn:{background:BG,color:NAVY,fontWeight:'800',borderBottom:'2px solid '+ORANGE},
   content:{flex:1,overflowY:'auto',padding:'24px 28px'},
@@ -365,8 +365,8 @@ const S = {
   select:{padding:'10px 14px',border:'1.5px solid #e2e8f0',borderRadius:'12px',fontSize:'13px',fontFamily:'inherit',outline:'none',background:'#fff'},
   addBtn:{background:NAVY,color:'#fff',border:'none',borderRadius:'12px',padding:'10px 20px',fontSize:'13px',fontWeight:'700',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'},
 
-  table:{background:'#fff',borderRadius:'16px',overflow:'hidden',border:'1px solid #e2e8f0',boxShadow:'0 1px 4px rgba(0,0,0,0.04)'},
-  tableHead:{display:'flex',padding:'12px 18px',background:'#f8fafc',borderBottom:'1px solid #e2e8f0',fontSize:'10.5px',fontWeight:'800',color:'#94a3b8',textTransform:'uppercase',letterSpacing:'0.08em'},
+  table:{borderRadius:'16px',overflow:'hidden'},
+  tableHead:{display:'flex',padding:'12px 18px',fontSize:'10.5px',fontWeight:'800',textTransform:'uppercase',letterSpacing:'0.08em'},
   tableRow:{display:'flex',alignItems:'center',padding:'12px 18px',borderBottom:'1px solid #f1f5f9',gap:'8px'},
   tBtn:{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px',padding:'5px 8px',cursor:'pointer',fontSize:'13px'},
 
@@ -374,12 +374,12 @@ const S = {
   cardTitle:{fontSize:'16px',fontWeight:'800',color:NAVY,margin:'0 0 4px',letterSpacing:'-0.01em'},
 
   tipItem:{padding:'12px 14px',border:'1px solid #e2e8f0',borderRadius:'12px',transition:'all .15s'},
-  tipItemActive:{border:`1px solid ${ORANGE}`,background:'#fff7ed'},
+  tipItemActive:{border:`1px solid ${ORANGE}`},
   tipItemHead:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'},
   activeBadge:{fontSize:'10px',fontWeight:'800',color:ORANGE,letterSpacing:'0.06em'},
 
   overlay:{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'},
-  modal:{background:'#fff',borderRadius:'20px',padding:'28px',width:'100%',maxWidth:'600px',maxHeight:'90vh',overflowY:'auto',boxShadow:'0 20px 60px rgba(0,0,0,0.2)'},
+  modal:{borderRadius:'20px',padding:'28px',width:'100%',maxWidth:'600px',maxHeight:'90vh',overflowY:'auto',boxShadow:'0 20px 60px rgba(0,0,0,0.2)'},
   mHead:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px'},
   mTitle:{fontSize:'20px',fontWeight:'800',color:NAVY,margin:0},
   mClose:{background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#94a3b8'},
@@ -387,7 +387,7 @@ const S = {
   mRow:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'},
   mField:{display:'flex',flexDirection:'column',gap:'5px'},
   mLabel:{fontSize:'11px',fontWeight:'800',color:NAVY,textTransform:'uppercase',letterSpacing:'0.08em'},
-  mInput:{padding:'10px 14px',border:'1.5px solid #e2e8f0',borderRadius:'10px',fontSize:'14px',fontFamily:'inherit',outline:'none',background:'#f8fafc',width:'100%',boxSizing:'border-box'},
+  mInput:{padding:'10px 14px',borderRadius:'10px',fontSize:'14px',fontFamily:'inherit',outline:'none',width:'100%',boxSizing:'border-box'},
   mBtn:{background:NAVY,color:'#fff',border:'none',borderRadius:'10px',padding:'12px',fontSize:'14px',fontWeight:'700',cursor:'pointer',fontFamily:'inherit'},
   mBtnSec:{background:'#f1f5f9',color:NAVY,border:'1px solid #e2e8f0',borderRadius:'10px',padding:'12px',fontSize:'14px',fontWeight:'700',cursor:'pointer',fontFamily:'inherit'},
 };
