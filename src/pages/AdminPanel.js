@@ -80,12 +80,13 @@ export default function AdminPanel() {
     const counts = {};
     users.forEach(u => {
       const label = u.role === 'agent' ? 'Agent'
+        : u.role === 'team_lead' && u.title && u.title.toLowerCase().includes('supervisor') ? 'Supervisor'
         : u.role === 'team_lead' ? 'Team Lead'
         : (u.title && u.title.toLowerCase().includes('coordinator')) ? 'Team Coordinator'
         : 'QA Officer';
       counts[label] = (counts[label] || 0) + 1;
     });
-    const colorMap = { 'Agent':'#3b82f6','Team Lead':'#8b5cf6','QA Officer':'#10b981','Team Coordinator':'#f59e0b' };
+    const colorMap = { 'Agent':'#3b82f6','Team Lead':'#8b5cf6','QA Officer':'#10b981','Team Coordinator':'#f59e0b','Supervisor':'#ec4899' };
     return Object.entries(counts).map(([name, value]) => ({ name, value, color: colorMap[name]||'#94a3b8' }));
   })();
 
