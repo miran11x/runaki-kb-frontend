@@ -353,39 +353,134 @@ function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRati
 }
 
 function ResolutionTree({ darkMode, DM }) {
-  const cols = [
-    { n:1, t:'Inquiries', g:'linear-gradient(135deg,#6366f1,#4f46e5)', items:['KYC','Runaki Project','→Rollout','→Smart Meters','→Private Generators','Billing Inquiries','→Tariff','→Discounts','→Bill Amount','→Consumption','→Payment Location','Dunning','→Process','→Amount/Date','E-psûle','USSD'] },
-    { n:2, t:'Billing Complaints', g:'linear-gradient(135deg,#ef4444,#dc2626)', items:['High Bill/High Debt','Bill Not Received','Wrong Tariff','Zero Bill','Other Billing'] },
-    { n:3, t:'General Complaints', g:'linear-gradient(135deg,#8b5cf6,#7c3aed)', items:['Outage','→Planned','→Unplanned','→Non-Payment','→SM Issue','Message Not Received','→Not KYCed','→No Readings','USSD Code','Fraud','Block Comms','Private Generators'] },
-    { n:4, t:'Service Requests', g:'linear-gradient(135deg,#10b981,#059669)', items:['Smart Meter','→Linking','→Installation','Data Amendment','Move In','Move Out','Temp Disconnection','Debt Clearance','Instalment Contract','Change Holder','TR Access'], note:'⚠️ Redirected to CO' },
-    { n:5, t:'Feedback & Others', g:'linear-gradient(135deg,#f59e0b,#d97706)', items:['Feedback','Others'] },
+  const [expanded, setExpanded] = React.useState({});
+  const tog = key => setExpanded(p => ({ ...p, [key]: !p[key] }));
+
+  const TREE = [
+    {
+      n:1, t:'Inquiries', g:'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#6366f1',
+      children: [
+        { label:'KYC' },
+        { label:'Runaki Project', children:[{label:'Rollout'},{label:'Smart Meters'},{label:'Private Generators'}] },
+        { label:'Billing Inquiries', children:[{label:'Tariff'},{label:'Discounts'},{label:'Bill Amount'},{label:'Consumption'},{label:'Payment Location'}] },
+        { label:'Dunning', children:[{label:'Process'},{label:'Amount/Date'}] },
+        { label:'E-Psûle' },
+        { label:'USSD' },
+      ]
+    },
+    {
+      n:2, t:'Billing Complaints', g:'linear-gradient(135deg,#ef4444,#dc2626)', color:'#ef4444',
+      children: [
+        { label:'High Bill/High Debt' },
+        { label:'Bill Not Received' },
+        { label:'Wrong Tariff' },
+        { label:'Zero Bill' },
+        { label:'Other Billing' },
+      ]
+    },
+    {
+      n:3, t:'General Complaints', g:'linear-gradient(135deg,#8b5cf6,#7c3aed)', color:'#8b5cf6',
+      children: [
+        { label:'Outage', children:[{label:'Planned'},{label:'Unplanned'},{label:'Non-Payment'},{label:'SM Issue'}] },
+        { label:'Message Not Received', children:[{label:'Not KYCed'},{label:'No Readings'}] },
+        { label:'USSD Code' },
+        { label:'Fraud' },
+        { label:'Block Comms' },
+        { label:'Private Generators' },
+      ]
+    },
+    {
+      n:4, t:'Service Requests', g:'linear-gradient(135deg,#10b981,#059669)', color:'#10b981',
+      note:'⚠️ Redirected to CO',
+      children: [
+        { label:'Smart Meter', children:[{label:'Linking'},{label:'Installation'}] },
+        { label:'Data Amendment' },
+        { label:'Move In' },
+        { label:'Move Out' },
+        { label:'Temp Disconnection' },
+        { label:'Debt Clearance' },
+        { label:'Instalment Contract' },
+        { label:'Change Holder' },
+        { label:'TR Access' },
+      ]
+    },
+    {
+      n:5, t:'Feedback & Others', g:'linear-gradient(135deg,#f59e0b,#d97706)', color:'#f59e0b',
+      children: [
+        { label:'Feedback' },
+        { label:'Others' },
+      ]
+    },
   ];
+
+  const TreeNode = ({ node, depth, parentKey, color }) => {
+    const key = `${parentKey}-${node.label}`;
+    const isOpen = expanded[key];
+    const hasChildren = node.children && node.children.length > 0;
+    const indent = depth * 14;
+    const bg = depth === 0
+      ? (darkMode ? 'rgba(255,255,255,0.1)' : '#0B1120')
+      : depth === 1
+        ? (darkMode ? 'rgba(255,255,255,0.06)' : `${color}12`)
+        : (darkMode ? 'rgba(255,255,255,0.03)' : `${color}08`);
+    const textColor = depth === 0 ? '#fff' : depth === 1 ? (darkMode?'#e2e8f0':color) : DM.subText;
+    const fontSize = depth === 0 ? '12px' : depth === 1 ? '11.5px' : '11px';
+    const fontWeight = depth === 0 ? '700' : depth === 1 ? '600' : '500';
+    const borderColor = depth === 0 ? 'transparent' : darkMode ? 'rgba(255,255,255,0.07)' : `${color}25`;
+
+    return (
+      <div style={{ marginLeft: `${indent}px` }}>
+        <button
+          onClick={() => hasChildren && tog(key)}
+          style={{
+            width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:'6px',
+            padding:'6px 10px', borderRadius:'9px', border:`1px solid ${borderColor}`,
+            background:bg, cursor: hasChildren ? 'pointer':'default',
+            fontFamily:'inherit', fontSize, fontWeight, color: textColor,
+            marginBottom:'3px', transition:'all .15s',
+          }}
+        >
+          {depth > 0 && <span style={{ opacity:0.3, fontSize:'10px' }}>{'└'}</span>}
+          <span style={{ flex:1 }}>{node.label}</span>
+          {hasChildren && (
+            <span style={{ fontSize:'10px', opacity:0.6, transition:'transform .2s', display:'inline-block', transform: isOpen?'rotate(90deg)':'none' }}>›</span>
+          )}
+        </button>
+        {isOpen && hasChildren && (
+          <div style={{ marginBottom:'3px' }}>
+            {node.children.map((child, i) => (
+              <TreeNode key={i} node={child} depth={depth+1} parentKey={key} color={color} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div>
       <div style={{ display:'flex', justifyContent:'center', marginBottom:'24px' }}>
         <div style={{ background:'linear-gradient(135deg,#0B1120,#1e293b)', color:'#fff', padding:'12px 36px', borderRadius:'16px', fontWeight:'800', fontSize:'15px', boxShadow:'0 8px 24px rgba(11,17,32,0.4)', display:'flex', alignItems:'center', gap:'10px' }}>
-          📞 Call Center
+          📞 Call Center — Click to Expand
         </div>
       </div>
-      <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'16px' }}>
-        {cols.map(col => (
-          <div key={col.n} style={{ flex:1, minWidth:'165px' }}>
+      <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'16px', alignItems:'flex-start' }}>
+        {TREE.map(col => (
+          <div key={col.n} style={{ flex:1, minWidth:'170px' }}>
             <div style={{ background:col.g, color:'#fff', padding:'10px 12px', borderRadius:'14px', fontWeight:'800', fontSize:'11.5px', marginBottom:'8px', display:'flex', alignItems:'center', gap:'8px', boxShadow:'0 4px 12px rgba(0,0,0,0.15)' }}>
               <span style={{ background:'rgba(255,255,255,0.2)', borderRadius:'50%', width:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'900', flexShrink:0 }}>{col.n}</span>
               {col.t}
             </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
-              {col.items.map((item,i) => {
-                const isSub = item.startsWith('→');
-                return (
-                  <div key={i} style={{ padding:isSub?'4px 8px 4px 18px':'7px 10px', borderRadius:'9px', fontSize:isSub?'10.5px':'11.5px', fontWeight:isSub?'500':'700', background:isSub?(darkMode?'rgba(255,255,255,0.06)':'#f8fafc'):(darkMode?'rgba(255,255,255,0.1)':'#0B1120'), color:isSub?DM.subText:'#fff', border:`1px solid ${isSub?(darkMode?'rgba(255,255,255,0.08)':'#e2e8f0'):'transparent'}` }}>
-                    {isSub && <span style={{ opacity:0.3, marginRight:'4px' }}>└</span>}
-                    {item.replace('→','')}
-                  </div>
-                );
-              })}
-              {col.note && <div style={{ fontSize:'11px', color:ORANGE, fontWeight:'700', padding:'6px 8px', background: darkMode?'rgba(255,107,53,0.1)':'#fff7ed', borderRadius:'9px', marginTop:'4px', border:'1px solid #fed7aa' }}>{col.note}</div>}
+            <div style={{ display:'flex', flexDirection:'column', gap:'0' }}>
+              {col.children.map((node, i) => (
+                <TreeNode key={i} node={node} depth={0} parentKey={`col${col.n}`} color={col.color} />
+              ))}
             </div>
+            {col.note && (
+              <div style={{ fontSize:'11px', color:ORANGE, fontWeight:'700', padding:'6px 10px', background: darkMode?'rgba(255,107,53,0.1)':'#fff7ed', borderRadius:'9px', marginTop:'6px', border:'1px solid #fed7aa' }}>
+                {col.note}
+              </div>
+            )}
           </div>
         ))}
       </div>
