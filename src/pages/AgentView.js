@@ -408,7 +408,7 @@ function ResolutionTree({ darkMode, DM }) {
         { label:'Debt Clearance' },
         { label:'Instalment Contract' },
         { label:'Change Holder' },
-        { label:'TR Access' },
+        { label:'TR Access', children:[{label:'Warning Leaflet'},{label:'Disconnection Leaflet'}] },
       ]
     },
     {
@@ -711,8 +711,8 @@ function TRAccess({ darkMode, DM }) {
   const tog = k => setOpen(p => ({...p,[k]:!p[k]}));
 
   const infoBoxes = [
-    { title:'📋 Info Required — Disconnection Leaflet', color:'#ef4444', items:['Mobile number','Leaflet ID','Customer name','Does the customer have a bill?','Is the customer registered at the CO?','Does the customer have proof of registration or physical bill?'] },
-    { title:'📋 Info Required — Warning / Inaccessible TR', color:'#f59e0b', items:['Full Name of Customer','Location (address or area)','Zone Number','Phone Number','Bill/Account Availability','Date on the leaflet'] },
+    { title:'📋 Info Required — Disconnection Leaflet', color:'#ef4444', items:['Mobile number','Leaflet ID','Customer name','Account Number & Block ID','Does the customer have a bill?','Is the customer registered at the CO?','Does the customer have proof of registration or physical bill?'] },
+    { title:'📋 Info Required — Warning / Inaccessible TR', color:'#f59e0b', items:['Full Name of Customer','Location (address or area)','Zone Number','Phone Number','Leaflet ID','Bill/Account Availability','Account Number & Block ID (if available)','Date on the leaflet'] },
   ];
 
   const sections = [
