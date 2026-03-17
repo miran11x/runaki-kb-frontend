@@ -79,6 +79,7 @@ export default function AdminPanel() {
     })) || [];
     const counts = {};
     users.forEach(u => {
+      if (u.title === 'Admin') return;
       const label = u.role === 'agent' ? 'Agent'
         : u.role === 'team_lead' && u.title && u.title.toLowerCase().includes('supervisor') ? 'Supervisor'
         : u.role === 'team_lead' ? 'Team Lead'
