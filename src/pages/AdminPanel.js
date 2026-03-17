@@ -38,11 +38,12 @@ function GlowCard({ icon, label, value, color, sub, live }) {
 function ChartCard({ title, sub, children, accent }) {
   accent = accent || ORANGE;
   return (
-    <div style={{ background:'#fff', borderRadius:'20px', padding:'22px', border:'1px solid #e2e8f0', boxShadow:'0 4px 24px rgba(11,17,32,0.06)', position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'absolute', top:0, left:0, right:0, height:'3px', background:`linear-gradient(90deg,${accent},${accent}80,transparent)`, borderRadius:'20px 20px 0 0' }} />
+    <div style={{ background:'linear-gradient(145deg,#0f1623,#111827)', borderRadius:'20px', padding:'22px', border:`1px solid ${accent}20`, boxShadow:`0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px ${accent}10`, position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'absolute', top:0, left:0, right:0, height:'3px', background:`linear-gradient(90deg,${accent},${accent}60,transparent)`, borderRadius:'20px 20px 0 0' }} />
+      <div style={{ position:'absolute', top:'-20px', right:'-20px', width:'80px', height:'80px', background:`radial-gradient(circle,${accent}15 0%,transparent 70%)`, borderRadius:'50%', pointerEvents:'none' }} />
       <div style={{ marginBottom:'18px' }}>
-        <div style={{ fontSize:'14px', fontWeight:'800', color:NAVY }}>{title}</div>
-        {sub && <div style={{ fontSize:'11px', color:'#94a3b8', marginTop:'2px' }}>{sub}</div>}
+        <div style={{ fontSize:'14px', fontWeight:'800', color:'#f1f5f9' }}>{title}</div>
+        {sub && <div style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)', marginTop:'2px' }}>{sub}</div>}
       </div>
       {children}
     </div>
@@ -52,7 +53,7 @@ function ChartCard({ title, sub, children, accent }) {
 function EmptyState({ text }) {
   text = text || 'No data yet';
   return (
-    <div style={{ height:'160px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'#94a3b8', fontSize:'13px', gap:'8px' }}>
+    <div style={{ height:'160px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.3)', fontSize:'13px', gap:'8px' }}>
       <div style={{ fontSize:'28px', opacity:0.4 }}>📭</div>{text}
     </div>
   );
@@ -221,16 +222,16 @@ export default function AdminPanel() {
                           </PieChart>
                         </ResponsiveContainer>
                         <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
-                          <div style={{ fontSize:'22px', fontWeight:'900', color:NAVY }}>{stats?.totalUsers||0}</div>
-                          <div style={{ fontSize:'9px', color:'#94a3b8', fontWeight:'700', textTransform:'uppercase' }}>Total</div>
+                          <div style={{ fontSize:'22px', fontWeight:'900', color:'#fff' }}>{stats?.totalUsers||0}</div>
+                          <div style={{ fontSize:'9px', color:'rgba(255,255,255,0.4)', fontWeight:'700', textTransform:'uppercase' }}>Total</div>
                         </div>
                       </div>
                       <div style={{ display:'flex', flexDirection:'column', gap:'9px', flex:1 }}>
                         {roleData.map((r,i) => (
                           <div key={i} style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                             <span style={{ width:'8px', height:'8px', borderRadius:'50%', background:r.color, boxShadow:`0 0 6px ${r.color}`, flexShrink:0 }} />
-                            <span style={{ fontSize:'12px', color:'#475569', fontWeight:'600', flex:1 }}>{r.name}</span>
-                            <span style={{ fontSize:'14px', fontWeight:'800', color:NAVY }}>{r.value}</span>
+                            <span style={{ fontSize:'12px', color:'rgba(255,255,255,0.6)', fontWeight:'600', flex:1 }}>{r.name}</span>
+                            <span style={{ fontSize:'14px', fontWeight:'800', color:'#fff' }}>{r.value}</span>
                           </div>
                         ))}
                       </div>
@@ -247,10 +248,10 @@ export default function AdminPanel() {
                         return (
                           <div key={i} style={{ marginBottom:'18px' }}>
                             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
-                              <span style={{ fontSize:'13px', fontWeight:'700', color:NAVY }}>{q.name}</span>
+                              <span style={{ fontSize:'13px', fontWeight:'700', color:'#f1f5f9' }}>{q.name}</span>
                               <span style={{ fontSize:'12px', fontWeight:'800', color:q.color }}>{q.value} <span style={{ color:'#94a3b8', fontWeight:'500' }}>({pct}%)</span></span>
                             </div>
-                            <div style={{ height:'8px', background:'#f1f5f9', borderRadius:'100px', overflow:'hidden' }}>
+                            <div style={{ height:'8px', background:'rgba(255,255,255,0.08)', borderRadius:'100px', overflow:'hidden' }}>
                               <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${q.color},${q.color}cc)`, borderRadius:'100px', boxShadow:`0 0 8px ${q.color}50` }} />
                             </div>
                           </div>
@@ -294,10 +295,10 @@ export default function AdminPanel() {
                 </ChartCard>
               </div>
 
-              <div style={{ background:'#fff', borderRadius:'20px', padding:'22px', border:'1px solid #e2e8f0', boxShadow:'0 4px 24px rgba(11,17,32,0.06)' }}>
+              <div style={{ background:'linear-gradient(145deg,#0f1623,#111827)', borderRadius:'20px', padding:'22px', border:'1px solid rgba(255,255,255,0.07)', boxShadow:'0 4px 24px rgba(0,0,0,0.3)' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
                   <div>
-                    <div style={{ fontSize:'15px', fontWeight:'800', color:NAVY }}>Currently Online</div>
+                    <div style={{ fontSize:'15px', fontWeight:'800', color:'#f1f5f9' }}>Currently Online</div>
                     <div style={{ fontSize:'11px', color:'#94a3b8', marginTop:'2px' }}>Updates every 30 seconds</div>
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
@@ -308,11 +309,11 @@ export default function AdminPanel() {
                 {activeList.length === 0 ? <EmptyState text="No agents online right now" /> : (
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:'10px' }}>
                     {activeList.map(u => (
-                      <div key={u.id} style={{ background:'#f8fafc', borderRadius:'14px', padding:'14px 16px', display:'flex', alignItems:'center', gap:'12px', border:'1px solid #e2e8f0' }}>
+                      <div key={u.id} style={{ background:'rgba(255,255,255,0.05)', borderRadius:'14px', padding:'14px 16px', display:'flex', alignItems:'center', gap:'12px', border:'1px solid rgba(255,255,255,0.08)' }}>
                         <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:ROLE_COLORS[u.role]||'#6366f1', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{u.name[0]}</div>
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontSize:'13.5px', fontWeight:'700', color:NAVY, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.name}</div>
-                          <div style={{ fontSize:'11px', color:'#94a3b8', marginTop:'2px' }}>{u.title||ROLE_LABELS[u.role]}</div>
+                          <div style={{ fontSize:'13.5px', fontWeight:'700', color:'#f1f5f9', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.name}</div>
+                          <div style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)', marginTop:'2px' }}>{u.title||ROLE_LABELS[u.role]}</div>
                         </div>
                         <div style={{ width:'10px', height:'10px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 8px #22c55e80', flexShrink:0, animation:'pulse 2s infinite' }} />
                       </div>
@@ -328,17 +329,17 @@ export default function AdminPanel() {
               <div style={{ display:'flex', gap:'12px', marginBottom:'14px' }}>
                 <div style={{ flex:1, position:'relative', display:'flex', alignItems:'center' }}>
                   <span style={{ position:'absolute', left:'12px', color:'#94a3b8', fontSize:'14px' }}>🔍</span>
-                  <input placeholder="Search users..." value={uSearch} onChange={e => setUSearch(e.target.value)} style={{ width:'100%', padding:'11px 16px 11px 36px', border:'1.5px solid #e2e8f0', borderRadius:'12px', fontSize:'13.5px', fontFamily:'inherit', outline:'none', background:'#fff', boxSizing:'border-box' }} />
+                  <input placeholder="Search users..." value={uSearch} onChange={e => setUSearch(e.target.value)} style={{ width:'100%', padding:'11px 16px 11px 36px', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:'12px', fontSize:'13.5px', fontFamily:'inherit', outline:'none', background:'rgba(255,255,255,0.05)', boxSizing:'border-box', color:'#f1f5f9' }} />
                 </div>
-                <select value={uFilter} onChange={e => setUFilter(e.target.value)} style={{ padding:'11px 14px', border:'1.5px solid #e2e8f0', borderRadius:'12px', fontSize:'13px', fontFamily:'inherit', outline:'none', background:'#fff', cursor:'pointer' }}>
+                <select value={uFilter} onChange={e => setUFilter(e.target.value)} style={{ padding:'11px 14px', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:'12px', fontSize:'13px', fontFamily:'inherit', outline:'none', background:'rgba(255,255,255,0.05)', cursor:'pointer', color:'#f1f5f9' }}>
                   <option value="all">All Roles</option>
                   <option value="agent">Agents</option>
                   <option value="qa_officer">QA Officers</option>
                   <option value="team_lead">Team Leads</option>
                 </select>
-                <button style={{ background:NAVY, color:'#fff', border:'none', borderRadius:'12px', padding:'11px 22px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => setShowAdd(true)}>+ Add User</button>
+                <button style={{ background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, color:'#fff', border:'none', borderRadius:'12px', padding:'11px 22px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', boxShadow:`0 4px 12px ${ORANGE}40` }} onClick={() => setShowAdd(true)}>+ Add User</button>
               </div>
-              <div style={{ fontSize:'12px', color:'#94a3b8', marginBottom:'12px', fontWeight:'600' }}>Showing {filtered.length} of {users.length} users</div>
+              <div style={{ fontSize:'12px', color:'rgba(255,255,255,0.35)', marginBottom:'12px', fontWeight:'600' }}>Showing {filtered.length} of {users.length} users</div>
               {showAdd && (
                 <div style={S.overlay}>
                   <div style={S.modal}>
@@ -370,17 +371,17 @@ export default function AdminPanel() {
                   <div key={u.id} style={S.trow}>
                     <div style={{ flex:2, display:'flex', alignItems:'center', gap:'10px' }}>
                       <div style={{ width:'34px', height:'34px', borderRadius:'10px', background:`linear-gradient(135deg,${ROLE_COLORS[u.role]||'#6366f1'},${ROLE_COLORS[u.role]||'#6366f1'}99)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{u.name[0]}</div>
-                      <span style={{ fontSize:'13.5px', fontWeight:'600', color:NAVY, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.name}</span>
+                      <span style={{ fontSize:'13.5px', fontWeight:'600', color:'#f1f5f9', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.name}</span>
                     </div>
-                    <div style={{ flex:2.5, fontSize:'12px', color:'#64748b', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.email}</div>
-                    <div style={{ flex:1.5, fontSize:'12px', color:'#94a3b8' }}>{u.title||'—'}</div>
+                    <div style={{ flex:2.5, fontSize:'12px', color:'rgba(255,255,255,0.4)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.email}</div>
+                    <div style={{ flex:1.5, fontSize:'12px', color:'rgba(255,255,255,0.35)' }}>{u.title||'—'}</div>
                     <div style={{ flex:1.2 }}>
                       <select value={u.role} onChange={e=>changeRole(u,e.target.value)} style={{ background:ROLE_COLORS[u.role]+'18', color:ROLE_COLORS[u.role], border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:'10px', fontWeight:'800', padding:'4px 10px', borderRadius:'100px', outline:'none' }}>
                         <option value="agent">Agent</option><option value="qa_officer">QA Officer</option><option value="team_lead">Team Lead</option>
                       </select>
                     </div>
                     <div style={{ flex:1 }}><span style={{ padding:'4px 10px', borderRadius:'100px', fontSize:'11px', fontWeight:'700', background:u.is_active?'#f0fdf4':'#fef2f2', color:u.is_active?'#16a34a':'#dc2626' }}>{u.is_active?'Active':'Inactive'}</span></div>
-                    <div style={{ flex:1.8, fontSize:'11px', color:'#94a3b8' }}>{u.last_seen?new Date(u.last_seen).toLocaleString():'Never'}</div>
+                    <div style={{ flex:1.8, fontSize:'11px', color:'rgba(255,255,255,0.3)' }}>{u.last_seen?new Date(u.last_seen).toLocaleString():'Never'}</div>
                     <div style={{ flex:1, display:'flex', gap:'5px' }}>
                       <button style={S.tBtn} onClick={() => toggleActive(u)}>{u.is_active?'🔒':'🔓'}</button>
                       <button style={{ ...S.tBtn, color:'#ef4444' }} onClick={() => deleteUser(u.id)}>🗑️</button>
@@ -395,14 +396,14 @@ export default function AdminPanel() {
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
                 <div>
-                  <div style={{ fontSize:'18px', fontWeight:'800', color:NAVY }}>Live — {activeList.length} Online</div>
-                  <div style={{ fontSize:'12px', color:'#94a3b8', marginTop:'2px' }}>Auto-refreshes every 30 seconds</div>
+                  <div style={{ fontSize:'18px', fontWeight:'800', color:'#f1f5f9' }}>Live — {activeList.length} Online</div>
+                  <div style={{ fontSize:'12px', color:'rgba(255,255,255,0.3)', marginTop:'2px' }}>Auto-refreshes every 30 seconds</div>
                 </div>
               </div>
               {activeList.length === 0 ? <EmptyState text="No agents online right now" /> : (
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:'12px' }}>
                   {activeList.map(u => (
-                    <div key={u.id} style={{ background:'#fff', borderRadius:'16px', padding:'18px', display:'flex', alignItems:'center', gap:'14px', border:'1px solid #e2e8f0', boxShadow:'0 4px 16px rgba(11,17,32,0.06)', position:'relative', overflow:'hidden' }}>
+                    <div key={u.id} style={{ background:'linear-gradient(145deg,#0f1623,#111827)', borderRadius:'16px', padding:'18px', display:'flex', alignItems:'center', gap:'14px', border:'1px solid rgba(255,255,255,0.07)', boxShadow:'0 4px 16px rgba(0,0,0,0.3)', position:'relative', overflow:'hidden' }}>
                       <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg,#22c55e,transparent)' }} />
                       <div style={{ width:'46px', height:'46px', borderRadius:'14px', background:`linear-gradient(135deg,${ROLE_COLORS[u.role]||'#6366f1'},${ROLE_COLORS[u.role]||'#6366f1'}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{u.name[0]}</div>
                       <div style={{ flex:1, minWidth:0 }}>
@@ -424,22 +425,22 @@ export default function AdminPanel() {
           {tab === 'activity' && (
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
-                <div style={{ fontSize:'18px', fontWeight:'800', color:NAVY }}>Activity Log</div>
-                <div style={{ fontSize:'12px', color:'#94a3b8', fontWeight:'600' }}>Last 100 actions</div>
+                <div style={{ fontSize:'18px', fontWeight:'800', color:'#f1f5f9' }}>Activity Log</div>
+                <div style={{ fontSize:'12px', color:'rgba(255,255,255,0.3)', fontWeight:'600' }}>Last 100 actions</div>
               </div>
-              <div style={{ background:'#fff', borderRadius:'18px', border:'1px solid #e2e8f0', overflow:'hidden', boxShadow:'0 4px 24px rgba(11,17,32,0.06)' }}>
+              <div style={{ background:'linear-gradient(145deg,#0f1623,#111827)', borderRadius:'18px', border:'1px solid rgba(255,255,255,0.07)', overflow:'hidden', boxShadow:'0 4px 24px rgba(0,0,0,0.3)' }}>
                 {activity.map((a,i) => {
                   const colors = { LOGIN:'#10b981',LOGOUT:'#94a3b8',CREATE_FAQ:'#6366f1',UPDATE_FAQ:'#f59e0b',DELETE_FAQ:'#ef4444',CREATE_TIP:'#f97316' };
                   const col = colors[a.action]||'#94a3b8';
                   return (
-                    <div key={a.id} style={{ display:'flex', alignItems:'center', gap:'14px', padding:'13px 20px', borderBottom: i < activity.length-1 ? '1px solid #f1f5f9':'none' }}>
+                    <div key={a.id} style={{ display:'flex', alignItems:'center', gap:'14px', padding:'13px 20px', borderBottom: i < activity.length-1 ? '1px solid rgba(255,255,255,0.05)':'none' }}>
                       <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:`${ROLE_COLORS[a.role]||'#6366f1'}18`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', fontWeight:'800', color:ROLE_COLORS[a.role]||'#6366f1', flexShrink:0 }}>{a.name[0]}</div>
                       <div style={{ flex:1 }}>
-                        <span style={{ fontWeight:'700', color:NAVY, fontSize:'13px' }}>{a.name}</span>
-                        <span style={{ color:'#64748b', fontSize:'13px' }}> — {a.details}</span>
+                        <span style={{ fontWeight:'700', color:'#f1f5f9', fontSize:'13px' }}>{a.name}</span>
+                        <span style={{ color:'rgba(255,255,255,0.4)', fontSize:'13px' }}> — {a.details}</span>
                       </div>
                       <span style={{ fontSize:'10px', fontWeight:'800', padding:'4px 12px', borderRadius:'100px', background:`${col}15`, color:col, flexShrink:0, border:`1px solid ${col}25` }}>{a.action?.replace('_',' ')}</span>
-                      <div style={{ fontSize:'11px', color:'#94a3b8', whiteSpace:'nowrap' }}>{new Date(a.created_at).toLocaleString()}</div>
+                      <div style={{ fontSize:'11px', color:'rgba(255,255,255,0.25)', whiteSpace:'nowrap' }}>{new Date(a.created_at).toLocaleString()}</div>
                     </div>
                   );
                 })}
@@ -451,35 +452,35 @@ export default function AdminPanel() {
           {tab === 'leaderboard' && (
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
-                <div style={{ fontSize:'18px', fontWeight:'800', color:NAVY }}>🏆 Agent Leaderboard</div>
-                <div style={{ fontSize:'12px', color:'#94a3b8', fontWeight:'600' }}>Top 20 by FAQ views</div>
+                <div style={{ fontSize:'18px', fontWeight:'800', color:'#f1f5f9' }}>🏆 Agent Leaderboard</div>
+                <div style={{ fontSize:'12px', color:'rgba(255,255,255,0.3)', fontWeight:'600' }}>Top 20 by FAQ views</div>
               </div>
-              <div style={{ background:'#fff', borderRadius:'18px', border:'1px solid #e2e8f0', overflow:'hidden', boxShadow:'0 4px 24px rgba(11,17,32,0.06)' }}>
+              <div style={{ background:'linear-gradient(145deg,#0f1623,#111827)', borderRadius:'18px', border:'1px solid rgba(255,255,255,0.07)', overflow:'hidden', boxShadow:'0 4px 24px rgba(0,0,0,0.3)' }}>
                 {leaderboard.length === 0 ? <EmptyState text="No agent activity yet" /> : leaderboard.map((agent, i) => {
                   const medals = ['🥇','🥈','🥉'];
                   const rankColors = ['#f59e0b','#94a3b8','#cd7c2f'];
                   return (
-                    <div key={agent.id} style={{ display:'flex', alignItems:'center', gap:'16px', padding:'14px 20px', borderBottom: i < leaderboard.length-1 ? '1px solid #f1f5f9':'none', background: i < 3 ? `${rankColors[i]}08`:'transparent' }}>
+                    <div key={agent.id} style={{ display:'flex', alignItems:'center', gap:'16px', padding:'14px 20px', borderBottom: i < leaderboard.length-1 ? '1px solid #f1f5f9':'none', background: i < 3 ? `${rankColors[i]}12`:'transparent' }}>
                       <div style={{ width:'32px', textAlign:'center', fontSize: i < 3 ? '22px':'16px', fontWeight:'900', color: i < 3 ? rankColors[i]:'#94a3b8', flexShrink:0 }}>
                         {i < 3 ? medals[i] : `#${i+1}`}
                       </div>
                       <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:ROLE_COLORS[agent.role]||'#6366f1', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'15px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{agent.name[0]}</div>
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:'14px', fontWeight:'700', color:NAVY }}>{agent.name}</div>
-                        <div style={{ fontSize:'11px', color:'#94a3b8' }}>{agent.title||'Agent'}</div>
+                        <div style={{ fontSize:'14px', fontWeight:'700', color:'#f1f5f9' }}>{agent.name}</div>
+                        <div style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)' }}>{agent.title||'Agent'}</div>
                       </div>
                       <div style={{ display:'flex', gap:'20px', flexShrink:0 }}>
                         <div style={{ textAlign:'center' }}>
                           <div style={{ fontSize:'18px', fontWeight:'900', color:'#6366f1' }}>{agent.faqs_viewed||0}</div>
-                          <div style={{ fontSize:'10px', color:'#94a3b8', fontWeight:'600' }}>FAQs Viewed</div>
+                          <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.35)', fontWeight:'600' }}>FAQs Viewed</div>
                         </div>
                         <div style={{ textAlign:'center' }}>
                           <div style={{ fontSize:'18px', fontWeight:'900', color:'#f59e0b' }}>{agent.bookmarks||0}</div>
-                          <div style={{ fontSize:'10px', color:'#94a3b8', fontWeight:'600' }}>Bookmarks</div>
+                          <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.35)', fontWeight:'600' }}>Bookmarks</div>
                         </div>
                         <div style={{ textAlign:'center' }}>
                           <div style={{ fontSize:'18px', fontWeight:'900', color:'#10b981' }}>{agent.helpful_ratings||0}</div>
-                          <div style={{ fontSize:'10px', color:'#94a3b8', fontWeight:'600' }}>👍 Ratings</div>
+                          <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.35)', fontWeight:'600' }}>👍 Ratings</div>
                         </div>
                       </div>
                     </div>
@@ -495,20 +496,20 @@ export default function AdminPanel() {
 }
 
 const S = {
-  layout:{ display:'flex', height:'100vh', overflow:'hidden', background:'#f0f4ff', fontFamily:"'Inter','Segoe UI',sans-serif" },
+  layout:{ display:'flex', height:'100vh', overflow:'hidden', background:'#080e18', fontFamily:"'Inter','Segoe UI',sans-serif" },
   body:{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 },
-  tabBar:{ display:'flex', gap:'4px', padding:'12px 28px 0', background:'#fff', borderBottom:'1px solid #f1f5f9', flexShrink:0 },
-  tab:{ display:'flex', alignItems:'center', gap:'7px', padding:'10px 18px', borderRadius:'12px 12px 0 0', border:'none', background:'transparent', fontSize:'13px', fontWeight:'600', color:'#94a3b8', cursor:'pointer', fontFamily:'inherit', position:'relative', transition:'all .15s' },
-  tabOn:{ background:'#f8faff', color:NAVY, fontWeight:'800' },
+  tabBar:{ display:'flex', gap:'4px', padding:'12px 28px 0', background:'#0d1526', borderBottom:'1px solid rgba(255,255,255,0.06)', flexShrink:0 },
+  tab:{ display:'flex', alignItems:'center', gap:'7px', padding:'10px 18px', borderRadius:'12px 12px 0 0', border:'none', background:'transparent', fontSize:'13px', fontWeight:'600', color:'rgba(255,255,255,0.4)', cursor:'pointer', fontFamily:'inherit', position:'relative', transition:'all .15s' },
+  tabOn:{ background:'rgba(255,107,53,0.08)', color:'#fff', fontWeight:'800' },
   tabUnderline:{ position:'absolute', bottom:0, left:'20%', right:'20%', height:'3px', background:ORANGE, borderRadius:'3px 3px 0 0' },
-  content:{ flex:1, overflowY:'auto', padding:'24px 28px', overflowX:'hidden' },
+  content:{ flex:1, overflowY:'auto', padding:'24px 28px', overflowX:'hidden', background:'#080e18' },
   kpiGrid:{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px', marginBottom:'20px' },
   row3:{ display:'grid', gridTemplateColumns:'1.2fr 1fr 1fr', gap:'16px', marginBottom:'16px' },
   row2:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginBottom:'16px' },
-  table:{ background:'#fff', borderRadius:'18px', overflow:'hidden', border:'1px solid #e2e8f0', boxShadow:'0 4px 24px rgba(11,17,32,0.06)' },
-  thead:{ display:'flex', padding:'12px 18px', background:'#f8fafc', borderBottom:'1px solid #e2e8f0', fontSize:'10px', fontWeight:'800', color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.08em', gap:'8px' },
-  trow:{ display:'flex', alignItems:'center', padding:'12px 18px', borderBottom:'1px solid #f1f5f9', gap:'8px' },
-  tBtn:{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:'8px', padding:'5px 8px', cursor:'pointer', fontSize:'13px' },
+  table:{ background:'linear-gradient(145deg,#0f1623,#111827)', borderRadius:'18px', overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)', boxShadow:'0 4px 24px rgba(0,0,0,0.3)' },
+  thead:{ display:'flex', padding:'12px 18px', background:'rgba(255,255,255,0.04)', borderBottom:'1px solid rgba(255,255,255,0.07)', fontSize:'10px', fontWeight:'800', color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:'0.08em', gap:'8px' },
+  trow:{ display:'flex', alignItems:'center', padding:'12px 18px', borderBottom:'1px solid rgba(255,255,255,0.05)', gap:'8px' },
+  tBtn:{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', padding:'5px 8px', cursor:'pointer', fontSize:'13px' },
   overlay:{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'20px' },
   modal:{ background:'#fff', borderRadius:'24px', padding:'32px', width:'100%', maxWidth:'420px', boxShadow:'0 32px 80px rgba(0,0,0,0.25)' },
   modalHead:{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' },
