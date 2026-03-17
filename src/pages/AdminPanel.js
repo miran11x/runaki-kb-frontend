@@ -71,11 +71,23 @@ export default function AdminPanel() {
     logins: parseInt(d.count),
   })) || [];
 
-  const roleData = stats?.byRole?.map(r => ({
-    name: ROLE_LABELS[r.role] || r.role,
-    value: parseInt(r.count),
-    color: ROLE_COLORS[r.role] || '#94a3b8',
-  })) || [];
+  const roleData = (() => {
+    if (!users.length) return stats?.byRole?.map(r => ({
+      name: ROLE_LABELS[r.role] || r.role,
+      value: parseInt(r.count),
+      color: ROLE_COLORS[r.role] || '#94a3b8',
+    })) || [];
+    const counts = {};
+    users.forEach(u => {
+      const label = u.role === 'agent' ? 'Agent'
+        : u.role === 'team_lead' ? 'Team Lead'
+        : (u.title && u.title.toLowerCase().includes('coordinator')) ? 'Team Coordinator'
+        : 'QA Officer';
+      counts[label] = (counts[label] || 0) + 1;
+    });
+    const colorMap = { 'Agent':'#3b82f6','Team Lead':'#8b5cf6','QA Officer':'#10b981','Team Coordinator':'#f59e0b' };
+    return Object.entries(counts).map(([name, value]) => ({ name, value, color: colorMap[name]||'#94a3b8' }));
+  })();
 
   const barData = topFAQs.slice(0,5).map(f => ({
     name: f.question_en.substring(0,18) + '...',
