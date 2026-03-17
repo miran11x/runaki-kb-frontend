@@ -27,6 +27,8 @@ export default function EditorPanel() {
   const [tipForm, setTipForm] = useState({ title:'', content:'', category:'General' });
   const [loading, setLoading] = useState(false);
   const [sideSearch, setSideSearch] = useState('');
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_editor_dark') === '1');
+  const toggleDark = () => { const n = !darkMode; setDarkMode(n); localStorage.setItem('rk_editor_dark', n?'1':'0'); };
 
   const loadFaqs = useCallback(async () => {
     const r = await api.get('/faqs/all').catch(() => null);
@@ -99,12 +101,13 @@ export default function EditorPanel() {
   });
 
   return (
-    <div style={S.layout}>
+    <div style={{ ...S.layout, background: darkMode ? '#080e18' : '#f0f4ff' }}>
       <Sidebar panel={null} setPanel={() => navigate('/')} search={sideSearch} setSearch={setSideSearch} />
       <div style={S.body}>
         <Topbar
           title="FAQ Editor"
           subtitle={`${faqs.filter(f=>f.is_published).length} published · ${faqs.filter(f=>!f.is_published).length} drafts`}
+          darkMode={darkMode} onToggleDark={toggleDark}
         />
 
         {/* Tabs */}
@@ -117,7 +120,7 @@ export default function EditorPanel() {
           ))}
         </div>
 
-        <div style={S.content}>
+        <div style={{ ...S.content, background: darkMode ? '#080e18' : '#f0f4ff' }}>
 
           {/* ── FAQs ── */}
           {tab === 'faqs' && (
@@ -223,8 +226,8 @@ export default function EditorPanel() {
                       <div style={{flex:1,fontSize:'13px',color:'#64748b',fontWeight:'600'}}>{f.views||0}</div>
                       <div style={{flex:1.5,fontSize:'12px',color:'#94a3b8'}}>{f.created_by_name||'—'}</div>
                       <div style={{flex:1,display:'flex',gap:'5px'}}>
-                        <button style={S.tBtn} onClick={()=>{setEditFaq({...f});setIsNew(false);}}>✏️</button>
-                        <button style={S.tBtn} onClick={()=>togglePublish(f)} title={f.is_published?'Unpublish':'Publish'}>{f.is_published?'👁️':'🚀'}</button>
+                        <button style={{ ...S.tBtn, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0' }} onClick={()=>{setEditFaq({...f});setIsNew(false);}}>✏️</button>
+                        <button style={{ ...S.tBtn, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0' }} onClick={()=>togglePublish(f)} title={f.is_published?'Unpublish':'Publish'}>{f.is_published?'👁️':'🚀'}</button>
                         <button style={{...S.tBtn,color:'#ef4444'}} onClick={()=>deleteFaq(f.id)}>🗑️</button>
                       </div>
                     </div>
@@ -238,7 +241,7 @@ export default function EditorPanel() {
           {tab === 'tips' && (
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'24px'}}>
               {/* Create tip */}
-              <div style={S.card}>
+              <div style={{ ...S.card, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 2px 8px rgba(0,0,0,0.04)' }}>
                 <h3 style={S.cardTitle}>💡 Post New Daily Tip</h3>
                 <p style={{fontSize:'13px',color:'#64748b',marginBottom:'20px',lineHeight:'1.6'}}>
                   Tips appear as a highlighted banner on the agent FAQ view. Only one tip is active at a time.
@@ -268,7 +271,7 @@ export default function EditorPanel() {
               </div>
 
               {/* Tips history */}
-              <div style={S.card}>
+              <div style={{ ...S.card, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 2px 8px rgba(0,0,0,0.04)' }}>
                 <h3 style={S.cardTitle}>📋 Recent Tips ({tips.length})</h3>
                 <div style={{display:'flex',flexDirection:'column',gap:'10px',marginTop:'8px',maxHeight:'480px',overflowY:'auto'}}>
                   {tips.length === 0
@@ -283,7 +286,7 @@ export default function EditorPanel() {
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                           <div style={{fontSize:'11px',color:'#94a3b8'}}>{t.category} · {t.author} · {new Date(t.created_at).toLocaleDateString()}</div>
                           <div style={{display:'flex',gap:'6px'}}>
-                            {!t.is_active && <button style={S.tBtn} onClick={()=>setActiveTip(t.id)} title="Set as active">✅</button>}
+                            {!t.is_active && <button style={{ ...S.tBtn, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0' }} onClick={()=>setActiveTip(t.id)} title="Set as active">✅</button>}
                             <button style={{...S.tBtn,color:'#ef4444'}} onClick={()=>deleteTip(t.id)}>🗑️</button>
                           </div>
                         </div>
@@ -298,7 +301,7 @@ export default function EditorPanel() {
           {/* ── NOTIFY ── */}
           {tab === 'notify' && (
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'24px'}}>
-              <div style={S.card}>
+              <div style={{ ...S.card, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 2px 8px rgba(0,0,0,0.04)' }}>
                 <h3 style={S.cardTitle}>🔔 Send Notification</h3>
                 <p style={{fontSize:'13px',color:'#64748b',marginBottom:'20px',lineHeight:'1.6'}}>
                   Agents will see this in the notification bell in the top bar.
@@ -326,7 +329,7 @@ export default function EditorPanel() {
                   </a>
                 </div>
               </div>
-              <div style={S.card}>
+              <div style={{ ...S.card, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 2px 8px rgba(0,0,0,0.04)' }}>
                 <h3 style={S.cardTitle}>📋 Tips for Effective Notifications</h3>
                 {[
                   { icon: '✅', tip: 'Keep titles short and clear — agents see them in the bell dropdown' },
