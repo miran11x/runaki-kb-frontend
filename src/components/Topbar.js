@@ -104,15 +104,33 @@ export default function Topbar({ title, subtitle, rkLogo, hpLogo, darkMode, onTo
   const rk = rkLogo || DEFAULT_RK;
   const hp = hpLogo || DEFAULT_HP;
 
+  const dm = darkMode;
+  const barStyle = dm ? {
+    display:'flex', alignItems:'center', justifyContent:'space-between',
+    padding:'12px 28px', background:'#0d1526',
+    borderBottom:'1px solid rgba(255,255,255,0.06)', flexShrink:0,
+    boxShadow:'0 2px 12px rgba(0,0,0,0.3)'
+  } : S.bar;
+  const titleStyle = dm ? { fontSize:'20px', fontWeight:'900', color:'#f1f5f9', letterSpacing:'-0.03em' } : S.title;
+  const subStyle = dm ? { fontSize:'12px', color:'rgba(255,255,255,0.35)', fontWeight:'600', marginLeft:'14px' } : S.sub;
+  const bellStyle = dm ? { background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'12px', width:'40px', height:'40px', cursor:'pointer', fontSize:'17px', position:'relative', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .15s' } : S.bellBtn;
+  const dropStyle = dm ? { position:'absolute', right:0, top:'48px', background:'#0d1526', borderRadius:'18px', boxShadow:'0 16px 48px rgba(0,0,0,0.5)', border:'1px solid rgba(255,255,255,0.1)', minWidth:'320px', zIndex:200, overflow:'hidden' } : S.drop;
+  const dropHeadStyle = dm ? { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 18px', borderBottom:'1px solid rgba(255,255,255,0.07)', fontSize:'13px', fontWeight:'800', color:'#f1f5f9' } : S.dropHead;
+  const dropItemStyle = dm ? { padding:'13px 18px', borderBottom:'1px solid rgba(255,255,255,0.05)' } : S.dropItem;
+  const dropTitleStyle = dm ? { fontSize:'13px', fontWeight:'700', color:'#f1f5f9', marginBottom:'4px' } : S.dropTitle;
+  const dropMsgStyle = dm ? { fontSize:'12px', color:'rgba(255,255,255,0.4)', lineHeight:1.5 } : S.dropMsg;
+  const logoBoxStyle = dm ? { background:'rgba(255,255,255,0.08)', borderRadius:'12px', padding:'6px 10px', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(255,255,255,0.12)' } : S.logoBox;
+  const dividerStyle = dm ? { width:'1px', height:'32px', background:'rgba(255,255,255,0.1)' } : S.logoDivider;
+
   return (
-    <div style={S.bar}>
+    <div style={barStyle}>
       <div style={S.left}>
         <div style={S.titleWrap}>
           <div style={S.titleRow}>
             <div style={S.titleAccent} />
-            <div style={S.title}>{title}</div>
+            <div style={titleStyle}>{title}</div>
           </div>
-          {subtitle && <div style={S.sub}>{subtitle}</div>}
+          {subtitle && <div style={subStyle}>{subtitle}</div>}
         </div>
       </div>
       <div style={S.right}>
@@ -138,15 +156,15 @@ export default function Topbar({ title, subtitle, rkLogo, hpLogo, darkMode, onTo
         )}
 
         <div style={{ position:'relative' }}>
-          <button style={S.bellBtn} onClick={handleBellClick}>
+          <button style={bellStyle} onClick={handleBellClick}>
             🔔
             {unreadCount > 0 && (
               <span style={S.badge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
             )}
           </button>
           {showNotifs && (
-            <div style={S.drop}>
-              <div style={S.dropHead}>
+            <div style={dropStyle}>
+              <div style={dropHeadStyle}>
                 <span>Notifications</span>
                 <button style={S.dropClose} onClick={() => setShowNotifs(false)}>✕</button>
               </div>
@@ -154,8 +172,8 @@ export default function Topbar({ title, subtitle, rkLogo, hpLogo, darkMode, onTo
                 ? <div style={S.dropEmpty}>No notifications yet</div>
                 : notifs.slice(0,8).map(n => (
                   <div key={n.id} style={S.dropItem}>
-                    <div style={S.dropTitle}>{n.title}</div>
-                    <div style={S.dropMsg}>{n.message}</div>
+                    <div style={dropTitleStyle}>{n.title}</div>
+                    <div style={dropMsgStyle}>{n.message}</div>
                     <div style={S.dropTime}>{new Date(n.created_at).toLocaleDateString()} · {n.sender_name}</div>
                   </div>
                 ))
@@ -169,7 +187,7 @@ export default function Topbar({ title, subtitle, rkLogo, hpLogo, darkMode, onTo
 }
 
 const S = {
-  bar: { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 28px', background:'#fff', borderBottom:'1px solid #f1f5f9', flexShrink:0, boxShadow:'0 2px 12px rgba(11,17,32,0.06)' },
+  bar: { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 28px', background:'#fff', borderBottom:'1px solid #f1f5f9', flexShrink:0, boxShadow:'0 2px 12px rgba(11,17,32,0.06)' }, // overridden dynamically
   left: { display:'flex', alignItems:'center', gap:'16px' },
   titleWrap: { display:'flex', flexDirection:'column', gap:'3px' },
   titleRow: { display:'flex', alignItems:'center', gap:'10px' },
