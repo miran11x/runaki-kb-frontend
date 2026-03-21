@@ -7,7 +7,7 @@ import Login from './pages/Login';
 import AgentView from './pages/AgentView';
 import AdminPanel from './pages/AdminPanel';
 import EditorPanel from './pages/EditorPanel';
-import ProfilePage from './pages/ProfilePage';
+import ProfilePage from './pages/Profilepage';
 
 export default function App() {
   return (
