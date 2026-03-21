@@ -100,19 +100,30 @@ export default function AdminPanel() {
   const [uSearch, setUSearch]   = useState('');
   const [uFilter, setUFilter]   = useState('all');
   const [leaderboard, setLeaderboard] = useState([]);
+  const [peakHours, setPeakHours] = useState([]);
+  const [weeklyTrends, setWeeklyTrends] = useState([]);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_admin_dark') === '1');
   const toggleDark = () => { const n = !darkMode; setDarkMode(n); localStorage.setItem('rk_admin_dark', n?'1':'0'); };
 
   const load = useCallback(async () => {
     try {
-      const [s,u,al,act,tf,lb] = await Promise.all([
+      const [s,u,al,act,tf,lb,ph,wt] = await Promise.all([
         api.get('/users/stats'), api.get('/users'),
         api.get('/users/active-list'), api.get('/users/activity'),
         api.get('/faqs/top-viewed'),
         api.get('/users/leaderboard').catch(() => ({ data: [] })),
+        api.get('/users/stats/peak-hours').catch(() => ({ data: [] })),
+        api.get('/users/stats/weekly').catch(() => ({ data: [] })),
       ]);
       setStats(s.data); setUsers(u.data); setActive(al.data);
       setActivity(act.data); setTopFAQs(tf.data); setLeaderboard(lb.data);
+      // Peak hours - fill all 24 hours
+      const phFull = Array.from({length:24},(_,i) => {
+        const found = ph.data.find(x => parseInt(x.hour) === i);
+        return { hour: i < 12 ? `${i||12}am` : `${i===12?12:i-12}pm`, logins: parseInt(found?.logins||0) };
+      });
+      setPeakHours(phFull);
+      setWeeklyTrends(wt.data.map(d => ({ day: new Date(d.day).toLocaleDateString('en',{month:'short',day:'numeric'}), logins: parseInt(d.logins) })));
     } catch { toast.error('Failed to load'); }
   }, []);
 
