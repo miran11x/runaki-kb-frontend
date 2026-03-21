@@ -194,7 +194,7 @@ export default function AdminPanel() {
   const STAT_CARDS = stats ? [
     { icon:'👥', label:'Total Users',  value:stats.totalUsers,  color:'#6366f1', sub:`${activeList.length} online now` },
     { icon:'🟢', label:'Active Now',   value:stats.activeNow,   color:'#22c55e', live:true, sub:'Right now' },
-    { icon:'📚', label:'Total FAQs',   value:stats.totalFAQs,   color:'#f59e0b', sub:'EN + Kurdish' },
+    { icon:'📚', label:'Total FAQs',   value:stats?.totalFaqs,   color:'#f59e0b', sub:'EN + Kurdish' },
     { icon:'🔐', label:'Total Logins', value:stats.totalLogins, color:'#8b5cf6', sub:'All time' },
   ] : [];
 
