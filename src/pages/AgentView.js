@@ -119,7 +119,14 @@ export default function AgentView() {
 
   useEffect(() => { load(); }, [load]);
 
-  const tog = id => setOpen(p => ({ ...p, [id]: !p[id] }));
+  const tog = (id) => {
+    const isOpening = !open[id];
+    setOpen(p => ({ ...p, [id]: !p[id] }));
+    // Track view when opening
+    if (isOpening) {
+      api.patch(`/faqs/${id}/view`).catch(() => {});
+    }
+  };
 
   const toggleBookmark = async (faqId) => {
     try {
