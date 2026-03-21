@@ -11,6 +11,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
+  const isMobile = window.innerWidth < 768;
   const [focused, setFocused] = useState('');
 
   const handleSubmit = async e => {
@@ -37,9 +38,9 @@ export default function Login() {
         ))}
       </div>
 
-      <div style={S.wrapper}>
+      <div style={{ ...S.wrapper, flexDirection: isMobile ? 'column' : 'row' }}>
         {/* Left — branding panel */}
-        <div style={S.left}>
+        <div style={{ ...S.left, display: isMobile ? 'none' : 'flex' }}>
           <div style={S.leftContent}>
             {/* Logos */}
             <div style={S.logosRow}>
@@ -165,7 +166,7 @@ const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
 
 const S = {
-  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: NAVY, fontFamily: "'Inter','Segoe UI',sans-serif", padding: '20px', position: 'relative', overflow: 'hidden' },
+  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: NAVY, fontFamily: "'Inter','Segoe UI',sans-serif", padding: '16px', position: 'relative', overflow: 'hidden' },
   bg: { position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' },
   orb1: { position: 'absolute', top: '-15%', right: '-5%', width: '700px', height: '700px', background: 'radial-gradient(circle,rgba(255,107,53,0.12),transparent 65%)', borderRadius: '50%' },
   orb2: { position: 'absolute', bottom: '-20%', left: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle,rgba(99,102,241,0.12),transparent 65%)', borderRadius: '50%' },
@@ -173,7 +174,8 @@ const S = {
   grid: { position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px)', backgroundSize: '50px 50px' },
   particle: { position: 'absolute', borderRadius: '50%', background: 'rgba(255,107,53,0.15)', animation: 'float 4s ease-in-out infinite alternate' },
 
-  wrapper: { display: 'flex', width: '100%', maxWidth: '1100px', minHeight: '620px', borderRadius: '28px', overflow: 'hidden', boxShadow: '0 50px 120px rgba(0,0,0,0.6)', position: 'relative', zIndex: 1 },
+  wrapper: { display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '1100px', minHeight: '620px', borderRadius: '28px', overflow: 'hidden', boxShadow: '0 50px 120px rgba(0,0,0,0.6)', position: 'relative', zIndex: 1 },
+  wrapperDesktop: { flexDirection: 'row' },
 
   left: { flex: '1.2', background: 'linear-gradient(145deg,#0d1a35 0%,#0B1120 60%,#0a1628 100%)', padding: '50px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.06)' },
   leftContent: { display: 'flex', flexDirection: 'column', gap: '28px' },
@@ -200,10 +202,10 @@ const S = {
   featureCheck: { width: '22px', height: '22px', background: 'rgba(255,107,53,0.15)', color: ORANGE, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', flexShrink: 0 },
   featureText: { fontSize: '13px', color: 'rgba(255,255,255,0.55)', fontWeight: '500' },
 
-  right: { flex: 1, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 44px' },
+  right: { flex: 1, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' },
   formCard: { width: '100%', maxWidth: '380px' },
 
-  formLogos: { display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '36px', justifyContent: 'center' },
+  formLogos: { display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px', justifyContent: 'center' },
   formLogo: { height: '38px', width: 'auto', objectFit: 'contain', maxWidth: '120px' },
   formLogoDivider: { width: '1px', height: '28px', background: '#e2e8f0' },
 
