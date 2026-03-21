@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import AgentView from './pages/AgentView';
 import AdminPanel from './pages/AdminPanel';
 import EditorPanel from './pages/EditorPanel';
+import ProfilePage from './pages/ProfilePage';
 
 export default function App() {
   return (
@@ -41,6 +42,9 @@ export default function App() {
             <PrivateRoute roles={['team_lead']}>
               <AdminPanel />
             </PrivateRoute>
+          } />
+          <Route path="/profile" element={
+            <PrivateRoute><ProfilePage /></PrivateRoute>
           } />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
