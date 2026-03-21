@@ -14,7 +14,7 @@ const ROLE_COLORS = {
   qa_officer: '#10b981', supervisor: '#ec4899',
 };
 
-export default function ProfilePage() {
+export default function Profile() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
