@@ -79,7 +79,7 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
       </div>
 
       {/* ── USER CARD ── */}
-      <div style={{ ...S.userCard, padding: collapsed ? '12px 0' : '12px 14px', justifyContent: collapsed ? 'center' : 'flex-start' }}>
+      <div onClick={() => navigate('/profile')} style={{ ...S.userCard, padding: collapsed ? '12px 0' : '12px 14px', justifyContent: collapsed ? 'center' : 'flex-start', cursor:'pointer' }} title="My Profile">
         <div style={S.avatar}>{user?.name?.[0]?.toUpperCase()}</div>
         {!collapsed && (
           <div style={{ flex:1, minWidth:0 }}>
