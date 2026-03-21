@@ -187,7 +187,7 @@ export default function Topbar({ title, subtitle, rkLogo, hpLogo, darkMode, onTo
 }
 
 const S = {
-  bar: { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 28px', background:'#fff', borderBottom:'1px solid #f1f5f9', flexShrink:0, boxShadow:'0 2px 12px rgba(11,17,32,0.06)' }, // overridden dynamically
+  bar: { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 28px', background:'#fff', borderBottom:'1px solid #f1f5f9', flexShrink:0, boxShadow:'0 2px 12px rgba(11,17,32,0.06)' },
   left: { display:'flex', alignItems:'center', gap:'16px' },
   titleWrap: { display:'flex', flexDirection:'column', gap:'3px' },
   titleRow: { display:'flex', alignItems:'center', gap:'10px' },

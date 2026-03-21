@@ -286,7 +286,7 @@ export default function AgentView() {
                     <span style={{ fontSize:'11px', fontWeight:'800', textTransform:'uppercase', letterSpacing:'0.1em', color:meta.color, flex:1 }}>{sub}</span>
                     <span style={{ fontSize:'10px', fontWeight:'800', padding:'3px 10px', borderRadius:'100px', background: darkMode?`${meta.color}20`:meta.bg, color:meta.color }}>{subItems.length}</span>
                   </div>
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:'12px' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(min(340px,100%),1fr))', gap:'12px' }}>
                     {subItems.map(f => (
                       <FAQCard key={f.id} faq={f} lang={lang} isOpen={open[f.id]} onToggle={() => tog(f.id)}
                         isBookmarked={bookmarks.includes(f.id)} onBookmark={() => toggleBookmark(f.id)}
@@ -811,5 +811,5 @@ function TRAccess({ darkMode, DM }) {
 const S = {
   layout: { display:'flex', height:'100vh', overflow:'hidden', fontFamily:"'Inter','Segoe UI',sans-serif" },
   body: { flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 },
-  content: { flex:1, overflowY:'auto', padding:'24px 28px' },
+  content: { flex:1, overflowY:'auto', padding:'16px', paddingLeft:'16px' },
 };

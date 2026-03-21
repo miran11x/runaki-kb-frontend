@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -44,6 +45,14 @@ const RESOURCE_ITEMS = [
 export default function Sidebar({ panel, setPanel, search, setSearch }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
   const location = useLocation();
   const [inqOpen, setInqOpen] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
@@ -62,7 +71,16 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
 
   return (
     <aside
-      style={{ ...S.aside, width: collapsed ? '68px' : '260px' }}
+      style={{
+      ...S.aside,
+      width: collapsed ? '68px' : '260px',
+      ...(isMobile ? {
+        position: 'fixed', top:0, left:0, bottom:0, zIndex:1000,
+        transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform .25s cubic-bezier(0.4,0,0.2,1)',
+        width: '260px', boxShadow: mobileOpen ? '4px 0 30px rgba(0,0,0,0.5)' : 'none',
+      } : {})
+    }}
       onMouseEnter={() => setCollapsed(false)}
       onMouseLeave={() => setCollapsed(true)}
     >
@@ -79,7 +97,7 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
       </div>
 
       {/* ── USER CARD ── */}
-      <div onClick={() => navigate('/profile')} style={{ ...S.userCard, padding: collapsed ? '12px 0' : '12px 14px', justifyContent: collapsed ? 'center' : 'flex-start', cursor:'pointer' }} title="My Profile">
+      <div onClick={() => { navigate('/profile'); if(isMobile) setMobileOpen(false); }} style={{ ...S.userCard, padding: collapsed ? '12px 0' : '12px 14px', justifyContent: collapsed ? 'center' : 'flex-start', cursor:'pointer' }} title="My Profile">
         <div style={S.avatar}>{user?.name?.[0]?.toUpperCase()}</div>
         {!collapsed && (
           <div style={{ flex:1, minWidth:0 }}>
@@ -142,11 +160,11 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
             {!collapsed && <div style={{ ...S.groupLabel, marginTop:'6px' }}>⚙️ Management</div>}
             <NI icon="✏️" label="FAQ Editor" collapsed={collapsed}
               active={location.pathname==='/editor'}
-              onClick={() => navigate('/editor')} />
+              onClick={() => { navigate('/editor'); if(isMobile) setMobileOpen(false); }} />
             {user?.role === 'team_lead' && (
               <NI icon="📊" label="Admin Panel" collapsed={collapsed}
                 active={location.pathname==='/admin'}
-                onClick={() => navigate('/admin')} />
+                onClick={() => { navigate('/admin'); if(isMobile) setMobileOpen(false); }} />
             )}
           </>
         )}
