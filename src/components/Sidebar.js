@@ -37,7 +37,7 @@ const RESOURCE_ITEMS = [
   { id:'_kyc',       icon:'📱', label:'KYC Platform'        },
   { id:'_holdunhold',icon:'⏸️', label:'Hold & Unhold'       },
   { id:'_traccess',  icon:'⚡', label:'TR Access'           },
-  { id:'_updates',   icon:'🆕', label:'New Updates', badge:6, hot:true },
+  { id:'_updates',   icon:'🆕', label:'New Updates' },
   { id:'_bookmarks', icon:'⭐', label:'My Bookmarks'        },
 ];
 
