@@ -40,6 +40,7 @@ const PANEL_FILTER = {
   '_kyc':        () => false,
   '_holdunhold': () => false,
   '_traccess':   () => false,
+  '_callflows':  () => false,
 };
 
 const PANEL_LABELS = {
@@ -178,7 +179,7 @@ export default function AgentView() {
 
   const items = panelFaqs();
   const groups = grouped(items);
-  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess'].includes(panel);
+  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows'].includes(panel);
 
   if (loading) return (
     <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
@@ -265,6 +266,7 @@ export default function AgentView() {
           {panel === '_kyc'       && <KYCPlatform darkMode={darkMode} DM={DM} />}
           {panel === '_holdunhold'&& <HoldUnhold darkMode={darkMode} DM={DM} />}
           {panel === '_traccess'  && <TRAccess darkMode={darkMode} DM={DM} />}
+          {panel === '_callflows' && <CallFlows darkMode={darkMode} DM={DM} />}
 
           {/* Bookmarks empty */}
           {panel === '_bookmarks' && items.length === 0 && (
@@ -342,7 +344,7 @@ function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRati
           {(lang === 'ku' || lang === 'both') && (
             faq.answer_ku
               ? <div style={{ marginTop: lang==='both'?'14px':'0', padding:'12px 14px', background: darkMode?'rgba(255,107,53,0.08)':'#fff7ed', borderLeft:`3px solid ${meta.color}`, borderRadius:'8px' }}>
-                  <div style={{ fontSize:'10px', fontWeight:'800', textTransform:'uppercase', letterSpacing:'0.1em', color:meta.color, marginBottom:'8px' }}>🇮🇶 Kurdish — کوردی</div>
+                  <div style={{ fontSize:'10px', fontWeight:'800', textTransform:'uppercase', letterSpacing:'0.1em', color:meta.color, marginBottom:'8px' }}>🇮🇶 Kurdish -- کوردی</div>
                   <div style={{ fontSize:'13.5px', color:DM.subText, lineHeight:'1.8', direction:'rtl', textAlign:'right', whiteSpace:'pre-line' }}>{faq.answer_ku}</div>
                 </div>
               : <div style={{ marginTop:'12px', padding:'8px 12px', background: darkMode?'rgba(255,255,255,0.05)':'#f8fafc', borderRadius:'8px', fontSize:'12px', color:DM.subText, fontStyle:'italic' }}>Kurdish translation coming soon</div>
@@ -475,7 +477,7 @@ function ResolutionTree({ darkMode, DM }) {
     <div>
       <div style={{ display:'flex', justifyContent:'center', marginBottom:'24px' }}>
         <div style={{ background:'linear-gradient(135deg,#0B1120,#1e293b)', color:'#fff', padding:'12px 36px', borderRadius:'16px', fontWeight:'800', fontSize:'15px', boxShadow:'0 8px 24px rgba(11,17,32,0.4)', display:'flex', alignItems:'center', gap:'10px' }}>
-          📞 Call Center — Click to Expand
+          📞 Call Center -- Click to Expand
         </div>
       </div>
       {/* Resolution Method Trees */}
@@ -554,39 +556,39 @@ function Priority({ DM, darkMode }) {
   const levels = [
     {
       level:'🟢 Low', color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0',
-      desc:'Minor issues — handle after higher priorities.',
+      desc:'Minor issues -- handle after higher priorities.',
       items:[
-        'Billing Complaints: Bill not received (>3 months) – Pending',
-        'Billing Complaints: Wrong tariff applied – Pending',
-        'Billing Complaints: Other billing complaints – Pending',
-        'Customer-specific: Cap issue – Pending',
-        'General Complaints: Message not received / KYC – Pending',
-        'Billing Complaints: High Bill / High Debt – Pending',
+        'Billing Complaints: Bill not received (>3 months) - Pending',
+        'Billing Complaints: Wrong tariff applied - Pending',
+        'Billing Complaints: Other billing complaints - Pending',
+        'Customer-specific: Cap issue - Pending',
+        'General Complaints: Message not received / KYC - Pending',
+        'Billing Complaints: High Bill / High Debt - Pending',
       ]
     },
     {
       level:'🟡 Medium', color:'#d97706', bg:'#fffbeb', border:'#fde68a',
-      desc:"Important but not critical — doesn't yet affect service severely.",
+      desc:"Important but not critical -- doesn't yet affect service severely.",
       items:['Ongoing non-critical complaints']
     },
     {
       level:'🟠 High', color:'#ea580c', bg:'#fff7ed', border:'#fed7aa',
-      desc:'Serious issues affecting customers — prioritize.',
+      desc:'Serious issues affecting customers -- prioritize.',
       items:[
-        'Outage: Unplanned outage – Pending',
-        'Customer-specific: Non-payment (paid >12h) – Pending',
-        'Customer-specific: SM meter issue – Pending',
-        'General Complaints: Private generators – Pending',
-        'Disconnection leaflet – Pending',
-        'Feedback & Others – Pending',
+        'Outage: Unplanned outage - Pending',
+        'Customer-specific: Non-payment (paid >12h) - Pending',
+        'Customer-specific: SM meter issue - Pending',
+        'General Complaints: Private generators - Pending',
+        'Disconnection leaflet - Pending',
+        'Feedback & Others - Pending',
       ]
     },
     {
       level:'🔴 Urgent', color:'#dc2626', bg:'#fef2f2', border:'#fecaca',
-      desc:'Immediate action needed — escalations.',
+      desc:'Immediate action needed -- escalations.',
       items:[
-        'Customer specific (escalation 1): Maintenance non-responsive – Pending',
-        'Customer specific (escalation 1): Maintenance could not support – Pending',
+        'Customer specific (escalation 1): Maintenance non-responsive - Pending',
+        'Customer specific (escalation 1): Maintenance could not support - Pending',
       ]
     },
   ];
@@ -626,7 +628,7 @@ function KYCPlatform({ darkMode, DM }) {
   return (
     <div>
       <div style={{ background: darkMode?'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))':'linear-gradient(135deg,#eef2ff,#f5f3ff)', border:'1px solid #6366f130', borderRadius:'18px', padding:'20px 24px', marginBottom:'24px' }}>
-        <div style={{ fontSize:'16px', fontWeight:'800', color:'#6366f1', marginBottom:'8px' }}>📱 KYC Platform — How to Handle</div>
+        <div style={{ fontSize:'16px', fontWeight:'800', color:'#6366f1', marginBottom:'8px' }}>📱 KYC Platform -- How to Handle</div>
         <div style={{ fontSize:'13.5px', color:DM.subText, lineHeight:'1.75' }}>
           Whenever a customer has a KYC-related issue, always check their phone number in the system first, verify the KYC status, and ensure all details match before taking any further steps. This helps identify whether the issue is with the system, the BNF submission, or another stage of the process.
         </div>
@@ -653,21 +655,21 @@ function KYCPlatform({ darkMode, DM }) {
 function HoldUnhold({ darkMode, DM }) {
   const steps = [
     {
-      phase:'1 — Pre-Hold', icon:'🎙️', color:'#6366f1',
+      phase:'1 -- Pre-Hold', icon:'🎙️', color:'#6366f1',
       title:'Before placing on hold',
       desc:'Before placing the customer on hold, clearly inform them and explain the reason using the approved pre-hold script.',
       script:'"I need to place you on a brief hold while I look into this for you. It should take no more than 2 minutes. Is that okay?"',
       rules:['Always inform the customer before holding','Explain the reason clearly','Get their agreement first'],
     },
     {
-      phase:'2 — During Hold', icon:'⏸️', color:'#f59e0b',
+      phase:'2 -- During Hold', icon:'⏸️', color:'#f59e0b',
       title:'While customer is on hold',
-      desc:'The call must be placed on hold — not muted — so that hold music plays for the customer.',
+      desc:'The call must be placed on hold -- not muted -- so that hold music plays for the customer.',
       script:null,
-      rules:['Use the HOLD button — never mute the call','Hold music must play for the customer','Check back every 2 minutes if hold is longer'],
+      rules:['Use the HOLD button -- never mute the call','Hold music must play for the customer','Check back every 2 minutes if hold is longer'],
     },
     {
-      phase:'3 — Post-Hold', icon:'▶️', color:'#10b981',
+      phase:'3 -- Post-Hold', icon:'▶️', color:'#10b981',
       title:'Returning from hold',
       desc:'After returning, use the approved post-hold script, apologize for the wait, and continue assisting professionally.',
       script:'"Thank you for holding, [customer name]. I have the information you need. I apologize for the wait."',
@@ -677,7 +679,7 @@ function HoldUnhold({ darkMode, DM }) {
   return (
     <div>
       <div style={{ background: darkMode?'rgba(99,102,241,0.1)':'#eef2ff', border:'1px solid #6366f130', borderRadius:'18px', padding:'18px 22px', marginBottom:'24px' }}>
-        <div style={{ fontSize:'15px', fontWeight:'800', color:'#6366f1', marginBottom:'6px' }}>📞 Hold & Unhold — Professional Standards</div>
+        <div style={{ fontSize:'15px', fontWeight:'800', color:'#6366f1', marginBottom:'6px' }}>📞 Hold & Unhold -- Professional Standards</div>
         <div style={{ fontSize:'13px', color:DM.subText, lineHeight:'1.7' }}>Placing a customer on hold should be done professionally by informing them first, ensuring hold music plays, and apologizing when returning to the call.</div>
       </div>
       <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
@@ -718,8 +720,8 @@ function TRAccess({ darkMode, DM }) {
   const tog = k => setOpen(p => ({...p,[k]:!p[k]}));
 
   const infoBoxes = [
-    { title:'📋 Info Required — Disconnection Leaflet', color:'#ef4444', items:['Mobile number','Leaflet ID','Customer name','Account Number & Block ID','Does the customer have a bill?','Is the customer registered at the CO?','Does the customer have proof of registration or physical bill?'] },
-    { title:'📋 Info Required — Warning / Inaccessible TR', color:'#f59e0b', items:['Full Name of Customer','Location (address or area)','Zone Number','Phone Number','Leaflet ID','Bill/Account Availability','Account Number & Block ID (if available)','Date on the leaflet'] },
+    { title:'📋 Info Required -- Disconnection Leaflet', color:'#ef4444', items:['Mobile number','Leaflet ID','Customer name','Account Number & Block ID','Does the customer have a bill?','Is the customer registered at the CO?','Does the customer have proof of registration or physical bill?'] },
+    { title:'📋 Info Required -- Warning / Inaccessible TR', color:'#f59e0b', items:['Full Name of Customer','Location (address or area)','Zone Number','Phone Number','Leaflet ID','Bill/Account Availability','Account Number & Block ID (if available)','Date on the leaflet'] },
   ];
 
   const sections = [
@@ -803,6 +805,186 @@ function TRAccess({ darkMode, DM }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+
+function CallFlows({ darkMode, DM }) {
+  const [openFlow, setOpenFlow] = React.useState(null);
+  const togFlow = i => setOpenFlow(openFlow === i ? null : i);
+
+  const AGENT_COLOR = '#3b82f6';
+  const CUST_COLOR = '#10b981';
+  const SYS_COLOR = '#f59e0b';
+  const BRANCH_COLOR = '#8b5cf6';
+
+  const flows = [
+    {
+      title: '1. E-Psule -- Discount Inquiry',
+      icon: '💰', color: '#10b981',
+      desc: 'Customer asking about the 20% E-Psule discount',
+      steps: [
+        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
+        { type: 'CUSTOMER', text: `Is the 20% discount still on? How do I pay, and how is it calculated?` },
+        { type: 'AGENT',    text: `May I kindly ask for your name and the area you are calling from?` },
+        { type: 'CUSTOMER', text: `[e.g., Ahmed Mohammed, calling from Erbil -- ZANKO 2]` },
+        { type: 'AGENT',    text: `Just to confirm -- you'd like to know about the E-Psule 20% discount, how to qualify, and how it's applied to your bill. Correct?` },
+        { type: 'CUSTOMER', text: `Yes, exactly.` },
+        { type: 'AGENT',    text: `The discount is still available until the 24th of March. To qualify, your payment must be processed through E-Psule. The 20% applies to both Legacy debts and Outstanding debts. Whatever you pay toward either or both -- you will get 20% of your total paid amount, and it will be discounted automatically from your next bill.` },
+        { type: 'CUSTOMER', text: `Got it -- thank you.` },
+        { type: 'AGENT',    text: `Is there anything else I can help you with today?` },
+        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
+        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
+      ]
+    },
+    {
+      title: '2. Outage -- Smart Meter / Individual Case',
+      icon: '⚡', color: '#f59e0b',
+      desc: 'Customer reporting electricity cut off -- individual premises only',
+      steps: [
+        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
+        { type: 'CUSTOMER', text: `My electricity has been cut off.` },
+        { type: 'AGENT',    text: `May I kindly ask for your name and the area you are calling from?` },
+        { type: 'CUSTOMER', text: `[e.g., Ahmed Mohammed, calling from Erbil -- ZANKO 2]` },
+        { type: 'AGENT',    text: `Thank you. Has the electricity been out for less than one hour, or more than one hour?` },
+        { type: 'BRANCH',   text: `► If LESS than one hour:` },
+        { type: 'AGENT',    text: `The electricity should be restored within the hour. Please wait, and if the issue persists after that, don't hesitate to contact us again -- we'll be happy to assist you further.` },
+        { type: 'BRANCH',   text: `► If MORE than one hour:` },
+        { type: 'CUSTOMER', text: `More than one hour.` },
+        { type: 'AGENT',    text: `Is the outage affecting your whole neighborhood, or just your premises?` },
+        { type: 'CUSTOMER', text: `Just my place.` },
+        { type: 'AGENT',    text: `Do you have a Smart Meter? Could you give me your account number so I can check?` },
+        { type: 'SYSTEM',   text: `Check CRM -- Work Orders. No due payments found on the account.` },
+        { type: 'AGENT',    text: `Thanks for the time you gave me. I'm sorry for the trouble. I'll give you the maintenance team's number so they can resolve your issue. Please contact 0751418----.` },
+        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
+        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
+      ]
+    },
+    {
+      title: '3. Outage -- Unplanned Neighborhood Outage',
+      icon: '🏘️', color: '#ef4444',
+      desc: 'Customer reporting outage affecting the whole neighborhood',
+      steps: [
+        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
+        { type: 'CUSTOMER', text: `My electricity has been cut off.` },
+        { type: 'AGENT',    text: `Thank you. Has the electricity been out for less than one hour, or more than one hour?` },
+        { type: 'BRANCH',   text: `► If LESS than one hour:` },
+        { type: 'AGENT',    text: `The electricity should be restored within the hour. Please wait, and if the issue persists, don't hesitate to contact us again.` },
+        { type: 'BRANCH',   text: `► If MORE than one hour:` },
+        { type: 'AGENT',    text: `Is this affecting just your place or the whole neighborhood?` },
+        { type: 'CUSTOMER', text: `The whole neighborhood.` },
+        { type: 'AGENT',    text: `Please could you give me one minute while I look into this for you?` },
+        { type: 'SYSTEM',   text: `Checks to confirm planned vs. unplanned. Confirmed: Unplanned outage.` },
+        { type: 'SYSTEM',   text: `⚠ Internal action: Create a pending case. Ask for the Account Number and the Block ID.` },
+        { type: 'AGENT',    text: `Thanks for the time you gave me. This outage is affecting the whole neighborhood -- our team is already aware of it. You can also reach the maintenance team directly on 0750418---- if needed.` },
+        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
+        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
+      ]
+    },
+    {
+      title: '4. Outage -- Non-Payment',
+      icon: '💳', color: '#8b5cf6',
+      desc: 'Customer cut off due to outstanding balance -- most nuanced flow',
+      note: `⚠️ Most nuanced flow. Always check the payment timestamp in CRM before responding.`,
+      steps: [
+        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
+        { type: 'CUSTOMER', text: `My electricity has been cut off.` },
+        { type: 'BRANCH',   text: `► If LESS than one hour:` },
+        { type: 'AGENT',    text: `The electricity should return within the hour. If it doesn't, please call us back.` },
+        { type: 'BRANCH',   text: `► If MORE than one hour -- just your place:` },
+        { type: 'SYSTEM',   text: `Check CRM -- Work Orders. Account has pending due payments.` },
+        { type: 'BRANCH',   text: `► If customer has NOT paid yet:` },
+        { type: 'AGENT',    text: `Thanks for the time you gave me. Looking at your account, the cutoff is because of an outstanding balance. Once the payment is made, service will be restored.` },
+        { type: 'BRANCH',   text: `► If payment was made LESS than 12 hours ago:` },
+        { type: 'AGENT',    text: `Thanks for the time you gave me. I can see you have already made the payment, but the electricity will be back within 24 hours from the time of payment. Please be patient.` },
+        { type: 'BRANCH',   text: `► If payment was made between 12-24 hours ago:` },
+        { type: 'AGENT',    text: `Thanks for the time you gave me. I can see you have already made the payment, but the electricity will be back within 24 hours from the time of payment. Please be patient.` },
+        { type: 'SYSTEM',   text: `⚠ Internal action: Create a pending case. Ask for Account Number and Block ID, or use CRM.` },
+        { type: 'BRANCH',   text: `► If payment was made MORE than 24 hours ago:` },
+        { type: 'AGENT',    text: `Thanks for the time you gave me. We sincerely apologize for this. Your payment is confirmed, and this should have been resolved by now. We will investigate and get this fixed as soon as possible.` },
+        { type: 'SYSTEM',   text: `⚠ Internal action: Create a pending case. Ask for Account Number and Block ID, or use CRM.` },
+        { type: 'CUSTOMER', text: `Alright, thank you.` },
+        { type: 'AGENT',    text: `Is there anything else I can help you with today?` },
+        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
+        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
+      ]
+    },
+    {
+      title: '5. Billing Inquiries -- Consumption',
+      icon: '📊', color: '#06b6d4',
+      desc: 'Customer asking about electricity usage or balance',
+      steps: [
+        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
+        { type: 'CUSTOMER', text: `How much electricity have I used? / What do I owe? / What's my current balance?` },
+        { type: 'AGENT',    text: `Just to confirm -- you'd like to check your electricity consumption or outstanding balance. Is that right?` },
+        { type: 'CUSTOMER', text: `Yes.` },
+        { type: 'AGENT',    text: `There are four ways you can check: (1) USSD Code -- dial *1992# from your phone, (2) SMS Bills -- your usage gets sent monthly, (3) E-Psule -- live balance updated in real time, or (4) your Monthly Physical Bill. USSD and SMS require KYC registration.` },
+        { type: 'AGENT',    text: `Could you provide me with your account number?` },
+        { type: 'CUSTOMER', text: `[e.g., 6318----------]` },
+        { type: 'SYSTEM',   text: `Open CRM and retrieve the latest consumption figure from their account.` },
+        { type: 'AGENT',    text: `Thanks for the time you gave me. Based on your latest records, your current electricity consumption stands at [72,000 IQD].` },
+        { type: 'CUSTOMER', text: `Perfect, thank you.` },
+        { type: 'AGENT',    text: `Is there anything else I can help you with today?` },
+        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
+        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
+      ]
+    },
+  ];
+
+  const typeStyle = (type) => {
+    if (type === 'AGENT')    return { bg: darkMode ? 'rgba(59,130,246,0.12)' : '#eff6ff', border: '#3b82f6', color: AGENT_COLOR };
+    if (type === 'CUSTOMER') return { bg: darkMode ? 'rgba(16,185,129,0.12)' : '#f0fdf4', border: '#10b981', color: CUST_COLOR };
+    if (type === 'SYSTEM')   return { bg: darkMode ? 'rgba(245,158,11,0.12)' : '#fffbeb', border: '#f59e0b', color: SYS_COLOR };
+    if (type === 'BRANCH')   return { bg: darkMode ? 'rgba(139,92,246,0.15)' : '#f5f3ff', border: '#8b5cf6', color: BRANCH_COLOR };
+    return { bg: DM.cardBg, border: DM.border, color: DM.text };
+  };
+
+  return (
+    <div>
+      <div style={{ background: darkMode ? 'rgba(59,130,246,0.1)' : '#eff6ff', border: '1px solid #3b82f630', borderRadius: '18px', padding: '18px 22px', marginBottom: '22px' }}>
+        <div style={{ fontSize: '15px', fontWeight: '800', color: '#3b82f6', marginBottom: '6px' }}>📞 Call Flow Scripts</div>
+        <div style={{ fontSize: '13px', color: DM.subText, lineHeight: '1.7' }}>5 complete call flow scripts. Follow each step in order during live calls. Stick to the script at branch points.</div>
+        <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
+          {[['🎙️ Agent', AGENT_COLOR], ['👤 Customer', CUST_COLOR], ['ℹ️ System/Action', SYS_COLOR], ['⑂ Branch', BRANCH_COLOR]].map(([label, color]) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '3px', background: color, flexShrink: 0 }} />
+              <span style={{ fontSize: '11px', fontWeight: '700', color: DM.subText }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {flows.map((flow, fi) => (
+          <div key={fi} style={{ background: DM.cardBg, borderRadius: '18px', overflow: 'hidden', border: `1.5px solid ${openFlow === fi ? flow.color + '60' : DM.border}`, transition: 'all .2s' }}>
+            <button onClick={() => togFlow(fi)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '14px', padding: '18px 22px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: `linear-gradient(135deg,${flow.color},${flow.color}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>{flow.icon}</div>
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ fontSize: '15px', fontWeight: '800', color: DM.text }}>{flow.title}</div>
+                <div style={{ fontSize: '12px', color: DM.subText, marginTop: '3px' }}>{flow.desc}</div>
+              </div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: flow.color, background: `${flow.color}15`, padding: '4px 12px', borderRadius: '100px', flexShrink: 0 }}>{flow.steps.length} steps</div>
+              <span style={{ fontSize: '12px', color: DM.subText, transition: 'transform .2s', transform: openFlow === fi ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>▼</span>
+            </button>
+            {openFlow === fi && (
+              <div style={{ borderTop: `1px solid ${DM.border}`, padding: '16px 22px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {flow.note && (
+                  <div style={{ background: darkMode ? 'rgba(245,158,11,0.1)' : '#fffbeb', border: '1px solid #f59e0b40', borderLeft: '4px solid #f59e0b', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: darkMode ? '#fcd34d' : '#92400e', fontWeight: '700', marginBottom: '8px' }}>{flow.note}</div>
+                )}
+                {flow.steps.map((step, si) => {
+                  const s = typeStyle(step.type);
+                  return (
+                    <div key={si} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <div style={{ background: s.color, color: '#fff', fontSize: '9px', fontWeight: '900', padding: '3px 8px', borderRadius: '6px', flexShrink: 0, marginTop: '2px', whiteSpace: 'nowrap' }}>{step.type}</div>
+                      <div style={{ background: s.bg, border: `1px solid ${s.border}25`, borderLeft: `3px solid ${s.border}`, borderRadius: '8px', padding: '10px 14px', flex: 1, fontSize: '13.5px', color: DM.text, lineHeight: '1.65' }}>{step.text}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
