@@ -184,7 +184,7 @@ export default function EditorPanel() {
                           <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Status</label>
                           <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',marginTop:'8px'}}>
                             <input type="checkbox" checked={editFaq.is_published} onChange={e => setEditFaq({...editFaq,is_published:e.target.checked})} />
-                            <span style={{fontSize:'13px',fontWeight:'600',color:NAVY}}>Published</span>
+                            <span style={{fontSize:'13px',fontWeight:'600',color:darkMode?'#e2e8f0':NAVY}}>Published</span>
                           </label>
                         </div>
                       </div>
@@ -212,7 +212,7 @@ export default function EditorPanel() {
                   : filtered.map(f => (
                     <div key={f.id} style={S.tableRow}>
                       <div style={{flex:3}}>
-                        <div style={{fontSize:'13.5px',fontWeight:'600',color:NAVY,lineHeight:'1.4'}}>{f.question_en}</div>
+                        <div style={{fontSize:'13.5px',fontWeight:'600',color:darkMode?'#e2e8f0':NAVY,lineHeight:'1.4'}}>{f.question_en}</div>
                         {f.subcategory && <div style={{fontSize:'11px',color:'#94a3b8',marginTop:'2px'}}>{f.subcategory}</div>}
                       </div>
                       <div style={{flex:1.5}}>
