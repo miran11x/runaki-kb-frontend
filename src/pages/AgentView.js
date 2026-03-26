@@ -811,6 +811,8 @@ function TRAccess({ darkMode, DM }) {
 
 
 function CallFlows({ darkMode, DM }) {
+  const [flows, setFlows] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
   const [openFlow, setOpenFlow] = React.useState(null);
   const togFlow = i => setOpenFlow(openFlow === i ? null : i);
 
@@ -819,118 +821,9 @@ function CallFlows({ darkMode, DM }) {
   const SYS_COLOR = '#f59e0b';
   const BRANCH_COLOR = '#8b5cf6';
 
-  const flows = [
-    {
-      title: '1. E-Psule -- Discount Inquiry',
-      icon: '💰', color: '#10b981',
-      desc: 'Customer asking about the 20% E-Psule discount',
-      steps: [
-        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
-        { type: 'CUSTOMER', text: `Is the 20% discount still on? How do I pay, and how is it calculated?` },
-        { type: 'AGENT',    text: `May I kindly ask for your name and the area you are calling from?` },
-        { type: 'CUSTOMER', text: `[e.g., Ahmed Mohammed, calling from Erbil -- ZANKO 2]` },
-        { type: 'AGENT',    text: `Just to confirm -- you'd like to know about the E-Psule 20% discount, how to qualify, and how it's applied to your bill. Correct?` },
-        { type: 'CUSTOMER', text: `Yes, exactly.` },
-        { type: 'AGENT',    text: `The discount is still available until the 24th of March. To qualify, your payment must be processed through E-Psule. The 20% applies to both Legacy debts and Outstanding debts. Whatever you pay toward either or both -- you will get 20% of your total paid amount, and it will be discounted automatically from your next bill.` },
-        { type: 'CUSTOMER', text: `Got it -- thank you.` },
-        { type: 'AGENT',    text: `Is there anything else I can help you with today?` },
-        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
-        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
-      ]
-    },
-    {
-      title: '2. Outage -- Smart Meter / Individual Case',
-      icon: '⚡', color: '#f59e0b',
-      desc: 'Customer reporting electricity cut off -- individual premises only',
-      steps: [
-        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
-        { type: 'CUSTOMER', text: `My electricity has been cut off.` },
-        { type: 'AGENT',    text: `May I kindly ask for your name and the area you are calling from?` },
-        { type: 'CUSTOMER', text: `[e.g., Ahmed Mohammed, calling from Erbil -- ZANKO 2]` },
-        { type: 'AGENT',    text: `Thank you. Has the electricity been out for less than one hour, or more than one hour?` },
-        { type: 'BRANCH',   text: `► If LESS than one hour:` },
-        { type: 'AGENT',    text: `The electricity should be restored within the hour. Please wait, and if the issue persists after that, don't hesitate to contact us again -- we'll be happy to assist you further.` },
-        { type: 'BRANCH',   text: `► If MORE than one hour:` },
-        { type: 'CUSTOMER', text: `More than one hour.` },
-        { type: 'AGENT',    text: `Is the outage affecting your whole neighborhood, or just your premises?` },
-        { type: 'CUSTOMER', text: `Just my place.` },
-        { type: 'AGENT',    text: `Do you have a Smart Meter? Could you give me your account number so I can check?` },
-        { type: 'SYSTEM',   text: `Check CRM -- Work Orders. No due payments found on the account.` },
-        { type: 'AGENT',    text: `Thanks for the time you gave me. I'm sorry for the trouble. I'll give you the maintenance team's number so they can resolve your issue. Please contact 0751418----.` },
-        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
-        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
-      ]
-    },
-    {
-      title: '3. Outage -- Unplanned Neighborhood Outage',
-      icon: '🏘️', color: '#ef4444',
-      desc: 'Customer reporting outage affecting the whole neighborhood',
-      steps: [
-        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
-        { type: 'CUSTOMER', text: `My electricity has been cut off.` },
-        { type: 'AGENT',    text: `Thank you. Has the electricity been out for less than one hour, or more than one hour?` },
-        { type: 'BRANCH',   text: `► If LESS than one hour:` },
-        { type: 'AGENT',    text: `The electricity should be restored within the hour. Please wait, and if the issue persists, don't hesitate to contact us again.` },
-        { type: 'BRANCH',   text: `► If MORE than one hour:` },
-        { type: 'AGENT',    text: `Is this affecting just your place or the whole neighborhood?` },
-        { type: 'CUSTOMER', text: `The whole neighborhood.` },
-        { type: 'AGENT',    text: `Please could you give me one minute while I look into this for you?` },
-        { type: 'SYSTEM',   text: `Checks to confirm planned vs. unplanned. Confirmed: Unplanned outage.` },
-        { type: 'SYSTEM',   text: `⚠ Internal action: Create a pending case. Ask for the Account Number and the Block ID.` },
-        { type: 'AGENT',    text: `Thanks for the time you gave me. This outage is affecting the whole neighborhood -- our team is already aware of it. You can also reach the maintenance team directly on 0750418---- if needed.` },
-        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
-        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
-      ]
-    },
-    {
-      title: '4. Outage -- Non-Payment',
-      icon: '💳', color: '#8b5cf6',
-      desc: 'Customer cut off due to outstanding balance -- most nuanced flow',
-      note: `⚠️ Most nuanced flow. Always check the payment timestamp in CRM before responding.`,
-      steps: [
-        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
-        { type: 'CUSTOMER', text: `My electricity has been cut off.` },
-        { type: 'BRANCH',   text: `► If LESS than one hour:` },
-        { type: 'AGENT',    text: `The electricity should return within the hour. If it doesn't, please call us back.` },
-        { type: 'BRANCH',   text: `► If MORE than one hour -- just your place:` },
-        { type: 'SYSTEM',   text: `Check CRM -- Work Orders. Account has pending due payments.` },
-        { type: 'BRANCH',   text: `► If customer has NOT paid yet:` },
-        { type: 'AGENT',    text: `Thanks for the time you gave me. Looking at your account, the cutoff is because of an outstanding balance. Once the payment is made, service will be restored.` },
-        { type: 'BRANCH',   text: `► If payment was made LESS than 12 hours ago:` },
-        { type: 'AGENT',    text: `Thanks for the time you gave me. I can see you have already made the payment, but the electricity will be back within 24 hours from the time of payment. Please be patient.` },
-        { type: 'BRANCH',   text: `► If payment was made between 12-24 hours ago:` },
-        { type: 'AGENT',    text: `Thanks for the time you gave me. I can see you have already made the payment, but the electricity will be back within 24 hours from the time of payment. Please be patient.` },
-        { type: 'SYSTEM',   text: `⚠ Internal action: Create a pending case. Ask for Account Number and Block ID, or use CRM.` },
-        { type: 'BRANCH',   text: `► If payment was made MORE than 24 hours ago:` },
-        { type: 'AGENT',    text: `Thanks for the time you gave me. We sincerely apologize for this. Your payment is confirmed, and this should have been resolved by now. We will investigate and get this fixed as soon as possible.` },
-        { type: 'SYSTEM',   text: `⚠ Internal action: Create a pending case. Ask for Account Number and Block ID, or use CRM.` },
-        { type: 'CUSTOMER', text: `Alright, thank you.` },
-        { type: 'AGENT',    text: `Is there anything else I can help you with today?` },
-        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
-        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
-      ]
-    },
-    {
-      title: '5. Billing Inquiries -- Consumption',
-      icon: '📊', color: '#06b6d4',
-      desc: 'Customer asking about electricity usage or balance',
-      steps: [
-        { type: 'AGENT',    text: `Good morning/evening -- Sir/Ma'am -- this is [Agent Name] from the Runaki Project. How may I assist you today?` },
-        { type: 'CUSTOMER', text: `How much electricity have I used? / What do I owe? / What's my current balance?` },
-        { type: 'AGENT',    text: `Just to confirm -- you'd like to check your electricity consumption or outstanding balance. Is that right?` },
-        { type: 'CUSTOMER', text: `Yes.` },
-        { type: 'AGENT',    text: `There are four ways you can check: (1) USSD Code -- dial *1992# from your phone, (2) SMS Bills -- your usage gets sent monthly, (3) E-Psule -- live balance updated in real time, or (4) your Monthly Physical Bill. USSD and SMS require KYC registration.` },
-        { type: 'AGENT',    text: `Could you provide me with your account number?` },
-        { type: 'CUSTOMER', text: `[e.g., 6318----------]` },
-        { type: 'SYSTEM',   text: `Open CRM and retrieve the latest consumption figure from their account.` },
-        { type: 'AGENT',    text: `Thanks for the time you gave me. Based on your latest records, your current electricity consumption stands at [72,000 IQD].` },
-        { type: 'CUSTOMER', text: `Perfect, thank you.` },
-        { type: 'AGENT',    text: `Is there anything else I can help you with today?` },
-        { type: 'CUSTOMER', text: `No, that's all. Thank you.` },
-        { type: 'AGENT',    text: `Thank you for calling. Please don't forget to rate our call. Have a great day!` },
-      ]
-    },
-  ];
+  React.useEffect(() => {
+    api.get('/callflows').then(r => { setFlows(r.data); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
 
   const typeStyle = (type) => {
     if (type === 'AGENT')    return { bg: darkMode ? 'rgba(59,130,246,0.12)' : '#eff6ff', border: '#3b82f6', color: AGENT_COLOR };
@@ -940,11 +833,14 @@ function CallFlows({ darkMode, DM }) {
     return { bg: DM.cardBg, border: DM.border, color: DM.text };
   };
 
+  if (loading) return <div style={{ textAlign:'center', padding:'40px', color:DM.subText }}>Loading call flows...</div>;
+  if (!flows.length) return <div style={{ textAlign:'center', padding:'40px', color:DM.subText }}>No call flows available yet.</div>;
+
   return (
     <div>
       <div style={{ background: darkMode ? 'rgba(59,130,246,0.1)' : '#eff6ff', border: '1px solid #3b82f630', borderRadius: '18px', padding: '18px 22px', marginBottom: '22px' }}>
         <div style={{ fontSize: '15px', fontWeight: '800', color: '#3b82f6', marginBottom: '6px' }}>📞 Call Flow Scripts</div>
-        <div style={{ fontSize: '13px', color: DM.subText, lineHeight: '1.7' }}>5 complete call flow scripts. Follow each step in order during live calls. Stick to the script at branch points.</div>
+        <div style={{ fontSize: '13px', color: DM.subText, lineHeight: '1.7' }}>{flows.length} call flow scripts. Follow each step in order during live calls.</div>
         <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
           {[['🎙️ Agent', AGENT_COLOR], ['👤 Customer', CUST_COLOR], ['ℹ️ System/Action', SYS_COLOR], ['⑂ Branch', BRANCH_COLOR]].map(([label, color]) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -955,35 +851,38 @@ function CallFlows({ darkMode, DM }) {
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {flows.map((flow, fi) => (
-          <div key={fi} style={{ background: DM.cardBg, borderRadius: '18px', overflow: 'hidden', border: `1.5px solid ${openFlow === fi ? flow.color + '60' : DM.border}`, transition: 'all .2s' }}>
-            <button onClick={() => togFlow(fi)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '14px', padding: '18px 22px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: `linear-gradient(135deg,${flow.color},${flow.color}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>{flow.icon}</div>
-              <div style={{ flex: 1, textAlign: 'left' }}>
-                <div style={{ fontSize: '15px', fontWeight: '800', color: DM.text }}>{flow.title}</div>
-                <div style={{ fontSize: '12px', color: DM.subText, marginTop: '3px' }}>{flow.desc}</div>
-              </div>
-              <div style={{ fontSize: '12px', fontWeight: '700', color: flow.color, background: `${flow.color}15`, padding: '4px 12px', borderRadius: '100px', flexShrink: 0 }}>{flow.steps.length} steps</div>
-              <span style={{ fontSize: '12px', color: DM.subText, transition: 'transform .2s', transform: openFlow === fi ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>▼</span>
-            </button>
-            {openFlow === fi && (
-              <div style={{ borderTop: `1px solid ${DM.border}`, padding: '16px 22px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {flow.note && (
-                  <div style={{ background: darkMode ? 'rgba(245,158,11,0.1)' : '#fffbeb', border: '1px solid #f59e0b40', borderLeft: '4px solid #f59e0b', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: darkMode ? '#fcd34d' : '#92400e', fontWeight: '700', marginBottom: '8px' }}>{flow.note}</div>
-                )}
-                {flow.steps.map((step, si) => {
-                  const s = typeStyle(step.type);
-                  return (
-                    <div key={si} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                      <div style={{ background: s.color, color: '#fff', fontSize: '9px', fontWeight: '900', padding: '3px 8px', borderRadius: '6px', flexShrink: 0, marginTop: '2px', whiteSpace: 'nowrap' }}>{step.type}</div>
-                      <div style={{ background: s.bg, border: `1px solid ${s.border}25`, borderLeft: `3px solid ${s.border}`, borderRadius: '8px', padding: '10px 14px', flex: 1, fontSize: '13.5px', color: DM.text, lineHeight: '1.65' }}>{step.text}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+        {flows.map((flow, fi) => {
+          const steps = typeof flow.steps === 'string' ? JSON.parse(flow.steps) : flow.steps;
+          return (
+            <div key={flow.id} style={{ background: DM.cardBg, borderRadius: '18px', overflow: 'hidden', border: `1.5px solid ${openFlow === fi ? flow.color + '60' : DM.border}`, transition: 'all .2s' }}>
+              <button onClick={() => togFlow(fi)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '14px', padding: '18px 22px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: `linear-gradient(135deg,${flow.color},${flow.color}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>{flow.icon}</div>
+                <div style={{ flex: 1, textAlign: 'left' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '800', color: DM.text }}>{flow.title}</div>
+                  <div style={{ fontSize: '12px', color: DM.subText, marginTop: '3px' }}>{flow.description}</div>
+                </div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: flow.color, background: `${flow.color}15`, padding: '4px 12px', borderRadius: '100px', flexShrink: 0 }}>{steps.length} steps</div>
+                <span style={{ fontSize: '12px', color: DM.subText, transition: 'transform .2s', transform: openFlow === fi ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>▼</span>
+              </button>
+              {openFlow === fi && (
+                <div style={{ borderTop: `1px solid ${DM.border}`, padding: '16px 22px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {flow.note && (
+                    <div style={{ background: darkMode ? 'rgba(245,158,11,0.1)' : '#fffbeb', borderLeft: '4px solid #f59e0b', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: darkMode ? '#fcd34d' : '#92400e', fontWeight: '700', marginBottom: '8px' }}>{flow.note}</div>
+                  )}
+                  {steps.map((step, si) => {
+                    const s = typeStyle(step.type);
+                    return (
+                      <div key={si} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <div style={{ background: s.color, color: '#fff', fontSize: '9px', fontWeight: '900', padding: '3px 8px', borderRadius: '6px', flexShrink: 0, marginTop: '2px', whiteSpace: 'nowrap' }}>{step.type}</div>
+                        <div style={{ background: s.bg, border: `1px solid ${s.border}25`, borderLeft: `3px solid ${s.border}`, borderRadius: '8px', padding: '10px 14px', flex: 1, fontSize: '13.5px', color: DM.text, lineHeight: '1.65' }}>{step.text}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
