@@ -506,14 +506,14 @@ export default function AdminPanel() {
                 </button>
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
-                {callFlows.length === 0 && <div style={{ textAlign:'center', padding:'40px', color:DM.subText }}>No call flows yet. Click Add to create one.</div>}
+                {callFlows.length === 0 && <div style={{ textAlign:'center', padding:'40px', color: darkMode?'rgba(255,255,255,0.5)':'#64748b' }}>No call flows yet. Click Add to create one.</div>}
                 {callFlows.map(flow => {
                   const steps = typeof flow.steps === 'string' ? JSON.parse(flow.steps) : flow.steps;
                   return (
                     <div key={flow.id} style={{ background: darkMode?'#1a2235':'#fff', borderRadius:'16px', padding:'18px 22px', border:`1px solid ${darkMode?'rgba(255,255,255,0.08)':'#e2e8f0'}`, display:'flex', alignItems:'center', gap:'16px' }}>
                       <div style={{ width:'48px', height:'48px', borderRadius:'14px', background:`linear-gradient(135deg,${flow.color},${flow.color}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0 }}>{flow.icon}</div>
                       <div style={{ flex:1 }}>
-                        <div style={{ fontSize:'14px', fontWeight:'800', color:DM.text }}>{flow.title}</div>
+                        <div style={{ fontSize:'14px', fontWeight:'800', color: darkMode?'#e2e8f0':'#0B1120' }}>{flow.title}</div>
                         <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.5)':'#64748b', marginTop:'3px' }}>{flow.description} &bull; {steps.length} steps</div>
                       </div>
                       <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
