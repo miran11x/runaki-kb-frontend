@@ -100,6 +100,11 @@ export default function AdminPanel() {
   const [uSearch, setUSearch]   = useState('');
   const [uFilter, setUFilter]   = useState('all');
   const [leaderboard, setLeaderboard] = useState([]);
+  const [callFlows, setCallFlows] = useState([]);
+  const [cfLoading, setCfLoading] = useState(false);
+  const [cfModal, setCfModal] = useState(null); // null | 'new' | flow object
+  const [cfEditSteps, setCfEditSteps] = useState([]);
+  const [cfForm, setCfForm] = useState({ title:'', icon:'📞', color:'#3b82f6', description:'', note:'' });
   const [peakHours, setPeakHours] = useState([]);
   const [weeklyTrends, setWeeklyTrends] = useState([]);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_admin_dark') === '1');
@@ -117,6 +122,7 @@ export default function AdminPanel() {
       ]);
       setStats(s.data); setUsers(u.data); setActive(al.data);
       setActivity(act.data); setTopFAQs(tf.data); setLeaderboard(lb.data);
+      api.get('/callflows/all').then(r => setCallFlows(r.data)).catch(() => {});
       // Peak hours - fill all 24 hours
       const phFull = Array.from({length:24},(_,i) => {
         const found = ph.data.find(x => parseInt(x.hour) === i);
@@ -198,7 +204,7 @@ export default function AdminPanel() {
     { icon:'🔐', label:'Total Logins', value:stats.totalLogins, color:'#8b5cf6', sub:'All time' },
   ] : [];
 
-  const TABS = [['dashboard','📊','Dashboard'],['users','👥','Users'],['active','🟢','Live'],['activity','📋','Activity'],['leaderboard','🏆','Leaderboard']];
+  const TABS = [['dashboard','📊','Dashboard'],['users','👥','Users'],['active','🟢','Live'],['activity','📋','Activity'],['leaderboard','🏆','Leaderboard'],['callflows','📞','Call Flows']];
 
   const CT = ({ active, payload, label }) => {
     if (active && payload?.length) return (
@@ -486,6 +492,138 @@ export default function AdminPanel() {
                 })}
                 {activity.length === 0 && <EmptyState text="No activity yet" />}
               </div>
+            </div>
+          )}
+
+
+          {tab === 'callflows' && (
+            <div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
+                <div style={{ fontSize:'18px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>📞 Call Flow Scripts</div>
+                <button onClick={() => { setCfForm({title:'',icon:'📞',color:'#3b82f6',description:'',note:''}); setCfEditSteps([{type:'AGENT',text:''}]); setCfModal('new'); }}
+                  style={{ background: '#3b82f6', color:'#fff', border:'none', borderRadius:'10px', padding:'8px 18px', fontWeight:'700', fontSize:'13px', cursor:'pointer', fontFamily:'inherit' }}>
+                  + Add Call Flow
+                </button>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+                {callFlows.length === 0 && <div style={{ textAlign:'center', padding:'40px', color:DM.subText }}>No call flows yet. Click Add to create one.</div>}
+                {callFlows.map(flow => {
+                  const steps = typeof flow.steps === 'string' ? JSON.parse(flow.steps) : flow.steps;
+                  return (
+                    <div key={flow.id} style={{ background:DM.cardBg, borderRadius:'16px', padding:'18px 22px', border:`1px solid ${DM.border}`, display:'flex', alignItems:'center', gap:'16px' }}>
+                      <div style={{ width:'48px', height:'48px', borderRadius:'14px', background:`linear-gradient(135deg,${flow.color},${flow.color}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0 }}>{flow.icon}</div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:'14px', fontWeight:'800', color:DM.text }}>{flow.title}</div>
+                        <div style={{ fontSize:'12px', color:DM.subText, marginTop:'3px' }}>{flow.description} &bull; {steps.length} steps</div>
+                      </div>
+                      <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+                        <button onClick={async () => {
+                          await api.patch(`/callflows/${flow.id}/toggle`);
+                          const r = await api.get('/callflows/all'); setCallFlows(r.data);
+                        }} style={{ background: flow.is_active ? '#dcfce7':'#fef2f2', color: flow.is_active?'#16a34a':'#dc2626', border:'none', borderRadius:'8px', padding:'4px 12px', fontWeight:'700', fontSize:'11px', cursor:'pointer', fontFamily:'inherit' }}>
+                          {flow.is_active ? 'Active' : 'Hidden'}
+                        </button>
+                        <button onClick={() => {
+                          const steps = typeof flow.steps === 'string' ? JSON.parse(flow.steps) : flow.steps;
+                          setCfForm({ title:flow.title, icon:flow.icon, color:flow.color, description:flow.description||'', note:flow.note||'' });
+                          setCfEditSteps(steps);
+                          setCfModal(flow);
+                        }} style={{ background:'#3b82f615', color:'#3b82f6', border:'none', borderRadius:'8px', padding:'6px 14px', fontWeight:'700', fontSize:'12px', cursor:'pointer', fontFamily:'inherit' }}>✏️ Edit</button>
+                        <button onClick={async () => {
+                          if(!window.confirm('Delete this call flow?')) return;
+                          await api.delete(`/callflows/${flow.id}`);
+                          const r = await api.get('/callflows/all'); setCallFlows(r.data);
+                        }} style={{ background:'#ef444415', color:'#ef4444', border:'none', borderRadius:'8px', padding:'6px 14px', fontWeight:'700', fontSize:'12px', cursor:'pointer', fontFamily:'inherit' }}>🗑️ Delete</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Call Flow Modal */}
+              {cfModal && (
+                <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+                  <div style={{ background:DM.cardBg, borderRadius:'20px', padding:'28px', width:'100%', maxWidth:'700px', maxHeight:'90vh', overflowY:'auto' }}>
+                    <div style={{ fontSize:'16px', fontWeight:'900', color:DM.text, marginBottom:'20px' }}>
+                      {cfModal === 'new' ? '+ Add Call Flow' : `✏️ Edit: ${cfModal.title}`}
+                    </div>
+
+                    {/* Basic info */}
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 80px 140px', gap:'10px', marginBottom:'14px' }}>
+                      <div>
+                        <div style={{ fontSize:'12px', fontWeight:'700', color:DM.subText, marginBottom:'4px' }}>Title</div>
+                        <input value={cfForm.title} onChange={e => setCfForm(p=>({...p,title:e.target.value}))}
+                          style={{ width:'100%', padding:'8px 12px', borderRadius:'8px', border:`1px solid ${DM.border}`, background:DM.bg, color:DM.text, fontFamily:'inherit', fontSize:'13px', boxSizing:'border-box' }} placeholder="e.g. 1. E-Psule -- Discount Inquiry" />
+                      </div>
+                      <div>
+                        <div style={{ fontSize:'12px', fontWeight:'700', color:DM.subText, marginBottom:'4px' }}>Icon</div>
+                        <input value={cfForm.icon} onChange={e => setCfForm(p=>({...p,icon:e.target.value}))}
+                          style={{ width:'100%', padding:'8px 12px', borderRadius:'8px', border:`1px solid ${DM.border}`, background:DM.bg, color:DM.text, fontFamily:'inherit', fontSize:'18px', textAlign:'center', boxSizing:'border-box' }} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize:'12px', fontWeight:'700', color:DM.subText, marginBottom:'4px' }}>Color</div>
+                        <input type="color" value={cfForm.color} onChange={e => setCfForm(p=>({...p,color:e.target.value}))}
+                          style={{ width:'100%', height:'38px', borderRadius:'8px', border:`1px solid ${DM.border}`, cursor:'pointer' }} />
+                      </div>
+                    </div>
+                    <div style={{ marginBottom:'14px' }}>
+                      <div style={{ fontSize:'12px', fontWeight:'700', color:DM.subText, marginBottom:'4px' }}>Description</div>
+                      <input value={cfForm.description} onChange={e => setCfForm(p=>({...p,description:e.target.value}))}
+                        style={{ width:'100%', padding:'8px 12px', borderRadius:'8px', border:`1px solid ${DM.border}`, background:DM.bg, color:DM.text, fontFamily:'inherit', fontSize:'13px', boxSizing:'border-box' }} placeholder="Short description" />
+                    </div>
+                    <div style={{ marginBottom:'20px' }}>
+                      <div style={{ fontSize:'12px', fontWeight:'700', color:DM.subText, marginBottom:'4px' }}>Warning Note (optional)</div>
+                      <input value={cfForm.note} onChange={e => setCfForm(p=>({...p,note:e.target.value}))}
+                        style={{ width:'100%', padding:'8px 12px', borderRadius:'8px', border:`1px solid ${DM.border}`, background:DM.bg, color:DM.text, fontFamily:'inherit', fontSize:'13px', boxSizing:'border-box' }} placeholder="e.g. Warning: Read carefully before proceeding" />
+                    </div>
+
+                    {/* Steps */}
+                    <div style={{ fontSize:'13px', fontWeight:'800', color:DM.text, marginBottom:'10px' }}>Steps ({cfEditSteps.length})</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'8px', marginBottom:'14px' }}>
+                      {cfEditSteps.map((step, si) => (
+                        <div key={si} style={{ display:'flex', gap:'8px', alignItems:'flex-start' }}>
+                          <select value={step.type} onChange={e => { const s=[...cfEditSteps]; s[si]={...s[si],type:e.target.value}; setCfEditSteps(s); }}
+                            style={{ padding:'7px 8px', borderRadius:'8px', border:`1px solid ${DM.border}`, background:DM.bg, color:DM.text, fontFamily:'inherit', fontSize:'12px', flexShrink:0 }}>
+                            <option value="AGENT">AGENT</option>
+                            <option value="CUSTOMER">CUSTOMER</option>
+                            <option value="SYSTEM">SYSTEM</option>
+                            <option value="BRANCH">BRANCH</option>
+                          </select>
+                          <textarea value={step.text} onChange={e => { const s=[...cfEditSteps]; s[si]={...s[si],text:e.target.value}; setCfEditSteps(s); }}
+                            rows={2} style={{ flex:1, padding:'7px 10px', borderRadius:'8px', border:`1px solid ${DM.border}`, background:DM.bg, color:DM.text, fontFamily:'inherit', fontSize:'12.5px', resize:'vertical' }} />
+                          <button onClick={() => setCfEditSteps(cfEditSteps.filter((_,i)=>i!==si))}
+                            style={{ background:'#ef444415', color:'#ef4444', border:'none', borderRadius:'8px', padding:'7px 10px', cursor:'pointer', fontSize:'14px', flexShrink:0 }}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display:'flex', gap:'8px', marginBottom:'24px' }}>
+                      {['AGENT','CUSTOMER','SYSTEM','BRANCH'].map(t => (
+                        <button key={t} onClick={() => setCfEditSteps([...cfEditSteps, {type:t,text:''}])}
+                          style={{ background:`${t==='AGENT'?'#3b82f6':t==='CUSTOMER'?'#10b981':t==='SYSTEM'?'#f59e0b':'#8b5cf6'}15`, color: t==='AGENT'?'#3b82f6':t==='CUSTOMER'?'#10b981':t==='SYSTEM'?'#f59e0b':'#8b5cf6', border:'none', borderRadius:'8px', padding:'6px 12px', fontSize:'11px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>
+                          + {t}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display:'flex', gap:'10px', justifyContent:'flex-end' }}>
+                      <button onClick={() => setCfModal(null)}
+                        style={{ background:DM.border, color:DM.text, border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+                      <button onClick={async () => {
+                        if(!cfForm.title || cfEditSteps.length === 0) return;
+                        setCfLoading(true);
+                        const payload = { ...cfForm, steps: cfEditSteps };
+                        if(cfModal === 'new') { await api.post('/callflows', payload).catch(()=>{}); }
+                        else { await api.put(`/callflows/${cfModal.id}`, payload).catch(()=>{}); }
+                        const r = await api.get('/callflows/all'); setCallFlows(r.data);
+                        setCfModal(null); setCfLoading(false);
+                      }} style={{ background:'#3b82f6', color:'#fff', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>
+                        {cfLoading ? 'Saving...' : (cfModal === 'new' ? '+ Add Flow' : '✓ Save Changes')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
