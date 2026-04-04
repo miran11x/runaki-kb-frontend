@@ -10,8 +10,8 @@ const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
 const BG = '#f0f4ff';
 
-// Auto logout after 30 minutes of inactivity
-const INACTIVITY_LIMIT = 30 * 60 * 1000;
+// Auto logout after 8 hours of inactivity
+const INACTIVITY_LIMIT = 8 * 60 * 60 * 1000;
 
 const CAT_META = {
   'Inquiries':          { color:'#6366f1', bg:'#eef2ff', grad:'linear-gradient(135deg,#6366f1,#4f46e5)' },
@@ -91,8 +91,29 @@ export default function AgentView() {
     const events = ['mousedown','mousemove','keypress','scroll','touchstart'];
     events.forEach(e => window.addEventListener(e, resetTimer));
     resetTimer();
+
+    // Logout when PC sleeps, screen locks, or browser closes
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        // Save the time when page became hidden
+        sessionStorage.setItem('rk_hidden_at', Date.now().toString());
+      } else if (document.visibilityState === 'visible') {
+        const hiddenAt = sessionStorage.getItem('rk_hidden_at');
+        if (hiddenAt) {
+          const elapsed = Date.now() - parseInt(hiddenAt);
+          if (elapsed >= INACTIVITY_LIMIT) {
+            logout();
+            toast('Logged out due to inactivity', { icon: '⏱️' });
+          }
+          sessionStorage.removeItem('rk_hidden_at');
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
       events.forEach(e => window.removeEventListener(e, resetTimer));
+      document.removeEventListener('visibilitychange', handleVisibility);
       clearTimeout(inactivityTimer.current);
     };
   }, [resetTimer]);
