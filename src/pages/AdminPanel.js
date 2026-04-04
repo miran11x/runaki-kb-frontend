@@ -319,17 +319,27 @@ export default function AdminPanel() {
 
               <div style={S.row2}>
                 <ChartCard title="Top Viewed FAQs" sub="By total views" accent="#6366f1" dark={darkMode}>
-                  {barData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={barData} layout="vertical" margin={{ top:0, right:16, bottom:0, left:0 }}>
-                        <defs><linearGradient id="bG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6366f1"/><stop offset="100%" stopColor="#8b5cf6"/></linearGradient></defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                        <XAxis type="number" tick={{ fontSize:10, fill:'#94a3b8' }} />
-                        <YAxis type="category" dataKey="name" tick={{ fontSize:10, fill:'#64748b' }} width={130} />
-                        <Tooltip content={<CT />} />
-                        <Bar dataKey="views" fill="url(#bG)" radius={[0,8,8,0]} maxBarSize={20} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  {topFAQs.length > 0 ? (
+                    <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+                      {topFAQs.slice(0,8).map((f,i) => {
+                        const maxViews = topFAQs[0]?.views || 1;
+                        const pct = Math.round((f.views/maxViews)*100);
+                        return (
+                          <div key={i}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'5px', gap:'8px' }}>
+                              <span style={{ fontSize:'12px', fontWeight:'600', color: darkMode?'#e2e8f0':NAVY, lineHeight:'1.4', flex:1 }}>
+                                <span style={{ color:'#6366f1', fontWeight:'800', marginRight:'6px' }}>#{i+1}</span>
+                                {f.question_en}
+                              </span>
+                              <span style={{ fontSize:'11px', fontWeight:'800', color:'#6366f1', whiteSpace:'nowrap', flexShrink:0 }}>{f.views} views</span>
+                            </div>
+                            <div style={{ height:'4px', background: darkMode?'rgba(255,255,255,0.06)':'#f1f5f9', borderRadius:'100px', overflow:'hidden' }}>
+                              <div style={{ height:'100%', width:`${pct}%`, background:'linear-gradient(90deg,#6366f1,#8b5cf6)', borderRadius:'100px' }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   ) : <EmptyState />}
                 </ChartCard>
 
