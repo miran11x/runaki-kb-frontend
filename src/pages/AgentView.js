@@ -30,7 +30,7 @@ const PANEL_FILTER = {
   'inq-dunning': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('dunning'),
   'inq-epsule':  f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('psule'),
   'inq-ussd':    f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('ussd'),
-  'inq-solar':   f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('solar'),
+  'inq-solar':   f => f.category === 'Inquiries' && ((f.subcategory||'').toLowerCase().includes('solar') || (f.subcategory||'').toLowerCase().includes('other') || (f.subcategory||'') === ''),
   'billing':     f => f.category === 'Billing Complaints',
   'general':     f => f.category === 'General Complaints',
   'service':     f => f.category === 'Service Requests',
