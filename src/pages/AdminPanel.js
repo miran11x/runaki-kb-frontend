@@ -105,6 +105,8 @@ export default function AdminPanel() {
   const [cfModal, setCfModal] = useState(null); // null | 'new' | flow object
   const [cfEditSteps, setCfEditSteps] = useState([]);
   const [cfForm, setCfForm] = useState({ title:'', icon:'📞', color:'#3b82f6', description:'', note:'' });
+  const [editUser, setEditUser] = useState(null); // null or user object
+  const [editForm, setEditForm] = useState({ name:'', email:'', role:'agent', title:'', newPassword:'' });
   const [peakHours, setPeakHours] = useState([]);
   const [weeklyTrends, setWeeklyTrends] = useState([]);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_admin_dark') === '1');
@@ -148,6 +150,13 @@ export default function AdminPanel() {
   };
   const toggleActive = async u => { await api.patch(`/users/${u.id}`, { is_active: !u.is_active }); toast.success(u.is_active?'Deactivated':'Activated'); load(); };
   const deleteUser = async id => { if (!window.confirm('Delete this user?')) return; await api.delete(`/users/${id}`); toast.success('Deleted'); load(); };
+  const saveEditUser = async () => {
+    if (!editUser) return;
+    const payload = { name: editForm.name, email: editForm.email, role: editForm.role, title: editForm.title };
+    if (editForm.newPassword) payload.password = editForm.newPassword;
+    await api.patch(`/users/${editUser.id}`, payload).catch(() => {});
+    toast.success('User updated!'); setEditUser(null); load();
+  };
   const changeRole = async (u, role) => { await api.patch(`/users/${u.id}`, { role }); toast.success('Role updated'); load(); };
 
   const loginData = stats?.loginsWeek?.map(d => ({ day: new Date(d.day).toLocaleDateString('en',{weekday:'short'}), logins: parseInt(d.count) })) || [];
@@ -430,6 +439,7 @@ export default function AdminPanel() {
                     <div style={{ flex:1.8, fontSize:'11px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8' }}>{u.last_seen?new Date(u.last_seen).toLocaleString():'Never'}</div>
                     <div style={{ flex:1, display:'flex', gap:'5px' }}>
                       <button style={{ ...S.tBtn, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0' }} onClick={() => toggleActive(u)}>{u.is_active?'🔒':'🔓'}</button>
+                      <button style={{ ...S.tBtn, background: darkMode?'rgba(59,130,246,0.12)':'#eff6ff', border: darkMode?'1px solid rgba(59,130,246,0.2)':'1px solid #bfdbfe', color:'#3b82f6' }} onClick={() => { setEditUser(u); setEditForm({ name:u.name, email:u.email, role:u.role, title:u.title||'', newPassword:'' }); }}>✏️</button>
                       <button style={{ ...S.tBtn, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', color:'#ef4444' }} onClick={() => deleteUser(u.id)}>🗑️</button>
                     </div>
                   </div>
@@ -437,6 +447,47 @@ export default function AdminPanel() {
               </div>
             </div>
           )}
+
+
+              {/* ── EDIT USER MODAL ── */}
+              {editUser && (
+                <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+                  <div style={{ background: darkMode?'#1a2235':'#fff', borderRadius:'20px', padding:'32px', width:'100%', maxWidth:'440px', boxShadow:'0 32px 80px rgba(0,0,0,0.3)' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
+                      <div style={{ fontSize:'18px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>✏️ Edit User</div>
+                      <button onClick={() => setEditUser(null)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'18px', color:'#94a3b8' }}>✕</button>
+                    </div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
+                      {[
+                        { label:'Full Name', key:'name', type:'text', placeholder:'Full name' },
+                        { label:'Email', key:'email', type:'email', placeholder:'email@highperformanceco.net' },
+                        { label:'Job Title', key:'title', type:'text', placeholder:'e.g. QA Officer, Team Lead...' },
+                        { label:'New Password (leave blank to keep)', key:'newPassword', type:'password', placeholder:'Enter new password or leave empty' },
+                      ].map(f => (
+                        <div key={f.key}>
+                          <div style={{ fontSize:'11px', fontWeight:'800', color: darkMode?'rgba(255,255,255,0.5)':NAVY, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'6px' }}>{f.label}</div>
+                          <input type={f.type} value={editForm[f.key]} onChange={e => setEditForm({...editForm,[f.key]:e.target.value})}
+                            placeholder={f.placeholder}
+                            style={{ width:'100%', padding:'10px 14px', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', borderRadius:'10px', fontSize:'14px', fontFamily:'inherit', outline:'none', background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, boxSizing:'border-box' }} />
+                        </div>
+                      ))}
+                      <div>
+                        <div style={{ fontSize:'11px', fontWeight:'800', color: darkMode?'rgba(255,255,255,0.5)':NAVY, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'6px' }}>Role</div>
+                        <select value={editForm.role} onChange={e => setEditForm({...editForm,role:e.target.value})}
+                          style={{ width:'100%', padding:'10px 14px', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', borderRadius:'10px', fontSize:'14px', fontFamily:'inherit', outline:'none', background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, boxSizing:'border-box' }}>
+                          <option value="agent">Agent</option>
+                          <option value="qa_officer">QA Officer</option>
+                          <option value="team_lead">Team Lead</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ display:'flex', gap:'10px', marginTop:'24px' }}>
+                      <button onClick={() => setEditUser(null)} style={{ flex:1, background: darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', color: darkMode?'#e2e8f0':NAVY, border:'none', borderRadius:'10px', padding:'12px', fontSize:'14px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+                      <button onClick={saveEditUser} style={{ flex:1, background:NAVY, color:'#fff', border:'none', borderRadius:'10px', padding:'12px', fontSize:'14px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>Save Changes</button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
           {tab === 'active' && (
             <div>
