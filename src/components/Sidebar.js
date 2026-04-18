@@ -32,6 +32,7 @@ const FAQ_ITEMS = [
 ];
 
 const RESOURCE_ITEMS = [
+  { id:'_maintenance', icon:'🔧', label:'Maintenance Lookup' },
   { id:'_restree',   icon:'🌳', label:'Resolution Tree'     },
   { id:'_scripts',   icon:'📞', label:'Scripts & Processes' },
   { id:'_priority',  icon:'🎯', label:'Case Priorities'     },

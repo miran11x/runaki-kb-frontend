@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
+import MaintenanceLookup from '../components/MaintenanceLookup';
 
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -41,12 +42,14 @@ const PANEL_FILTER = {
   '_holdunhold': () => false,
   '_traccess':   () => false,
   '_callflows':  () => false,
+  '_maintenance': () => false,
 };
 
 const PANEL_LABELS = {
   'inquiries':'Inquiries','inq-runaki':'Runaki Project','inq-kyc':'KYC',
   'inq-billing':'Billing Inquiries','inq-dunning':'Dunning','inq-epsule':'e-Psûle',
   'inq-ussd':'USSD','inq-solar':'Solar & Other','billing':'Billing Complaints',
+  '_maintenance':'🔧 Maintenance Lookup',
   'general':'General Complaints','service':'Service Requests',
   'feedback':'Feedback & Others','_updates':'New Updates',
   '_restree':'Resolution Tree','_scripts':'Scripts & Processes','_priority':'Case Priorities',
@@ -200,7 +203,7 @@ export default function AgentView() {
 
   const items = panelFaqs();
   const groups = grouped(items);
-  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows'].includes(panel);
+  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance'].includes(panel);
 
   if (loading) return (
     <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
@@ -288,6 +291,7 @@ export default function AgentView() {
           {panel === '_holdunhold'&& <HoldUnhold darkMode={darkMode} DM={DM} />}
           {panel === '_traccess'  && <TRAccess darkMode={darkMode} DM={DM} />}
           {panel === '_callflows' && <CallFlows darkMode={darkMode} DM={DM} />}
+          {panel === '_maintenance' && <MaintenanceLookup darkMode={darkMode} />}
 
           {/* Bookmarks empty */}
           {panel === '_bookmarks' && items.length === 0 && (
