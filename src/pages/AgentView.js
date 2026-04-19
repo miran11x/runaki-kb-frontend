@@ -205,7 +205,7 @@ export default function AgentView() {
 
   const items = panelFaqs();
   const groups = grouped(items);
-  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','inq-runakirapp'].includes(panel);
+  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance'].includes(panel);
 
   if (loading) return (
     <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
