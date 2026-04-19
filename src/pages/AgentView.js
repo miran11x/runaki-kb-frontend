@@ -43,6 +43,7 @@ const PANEL_FILTER = {
   '_traccess':   () => false,
   '_callflows':  () => false,
   '_maintenance': () => false,
+  'inq-runakirapp': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('runaki app'),
 };
 
 const PANEL_LABELS = {
@@ -50,6 +51,7 @@ const PANEL_LABELS = {
   'inq-billing':'Billing Inquiries','inq-dunning':'Dunning','inq-epsule':'e-Psûle',
   'inq-ussd':'USSD','inq-solar':'Solar & Other','billing':'Billing Complaints',
   '_maintenance':'🔧 Maintenance Lookup',
+  'inq-runakirapp':'📱 Runaki App',
   'general':'General Complaints','service':'Service Requests',
   'feedback':'Feedback & Others','_updates':'New Updates',
   '_restree':'Resolution Tree','_scripts':'Scripts & Processes','_priority':'Case Priorities',
@@ -203,7 +205,7 @@ export default function AgentView() {
 
   const items = panelFaqs();
   const groups = grouped(items);
-  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance'].includes(panel);
+  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','inq-runakirapp'].includes(panel);
 
   if (loading) return (
     <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
