@@ -15,6 +15,7 @@ const ROLE_META = {
 };
 
 const FAQ_CHILDREN = [
+  { id:'inq-runakirapp', icon:'📱', label:'Runaki App',       badge:11 },
   { id:'inq-runaki',  icon:'🏗️', label:'Runaki Project',    badge:24 },
   { id:'inq-kyc',     icon:'🪪',  label:'KYC',              badge:24 },
   { id:'inq-billing', icon:'💳', label:'Billing Inquiries',  badge:18 },
@@ -33,7 +34,6 @@ const FAQ_ITEMS = [
 
 const RESOURCE_ITEMS = [
   { id:'_maintenance', icon:'🔧', label:'Maintenance Lookup' },
-  { id:'inq-runakirapp', icon:'📱', label:'Runaki App' },
   { id:'_restree',   icon:'🌳', label:'Resolution Tree'     },
   { id:'_scripts',   icon:'📞', label:'Scripts & Processes' },
   { id:'_priority',  icon:'🎯', label:'Case Priorities'     },

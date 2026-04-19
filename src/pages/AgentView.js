@@ -43,7 +43,7 @@ const PANEL_FILTER = {
   '_traccess':   () => false,
   '_callflows':  () => false,
   '_maintenance': () => false,
-  'inq-runakirapp': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('runaki app'),
+  'inq-runakirapp': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase() === 'runaki app',
 };
 
 const PANEL_LABELS = {
