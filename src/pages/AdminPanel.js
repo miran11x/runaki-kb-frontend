@@ -6,6 +6,7 @@ import api from '../utils/api';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
+import EvaluationsUpload from '../components/EvaluationsUpload';
 
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
