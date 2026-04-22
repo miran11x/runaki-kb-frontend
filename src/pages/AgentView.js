@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
 import MaintenanceLookup from '../components/MaintenanceLookup';
+import MyEvaluations from '../components/MyEvaluations';
 
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -205,7 +206,7 @@ export default function AgentView() {
 
   const items = panelFaqs();
   const groups = grouped(items);
-  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance'].includes(panel);
+  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_evaluations'].includes(panel);
 
   if (loading) return (
     <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
@@ -294,6 +295,7 @@ export default function AgentView() {
           {panel === '_traccess'  && <TRAccess darkMode={darkMode} DM={DM} />}
           {panel === '_callflows' && <CallFlows darkMode={darkMode} DM={DM} />}
           {panel === '_maintenance' && <MaintenanceLookup darkMode={darkMode} />}
+          {panel === '_evaluations' && <MyEvaluations darkMode={darkMode} />}
 
           {/* Bookmarks empty */}
           {panel === '_bookmarks' && items.length === 0 && (
