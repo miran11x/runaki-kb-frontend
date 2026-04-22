@@ -8,6 +8,7 @@ import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
 import EvaluationsUpload from '../components/EvaluationsUpload';
 
+
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
 const ROLE_COLORS = { team_lead:'#8b5cf6', qa_officer:'#10b981', agent:'#3b82f6' };
@@ -214,7 +215,7 @@ export default function AdminPanel() {
     { icon:'🔐', label:'Total Logins', value:stats.totalLogins, color:'#8b5cf6', sub:'All time' },
   ] : [];
 
-  const TABS = [['dashboard','📊','Dashboard'],['users','👥','Users'],['active','🟢','Live'],['activity','📋','Activity'],['leaderboard','🏆','Leaderboard'],['callflows','📞','Call Flows']];
+  const TABS = [['dashboard','📊','Dashboard'],['users','👥','Users'],['active','🟢','Live'],['activity','📋','Activity'],['leaderboard','🏆','Leaderboard'],['callflows','📞','Call Flows'],['evaluations','📤','evaluations'],];
 
   const CT = ({ active, payload, label }) => {
     if (active && payload?.length) return (
@@ -688,7 +689,9 @@ export default function AdminPanel() {
               )}
             </div>
           )}
-
+{activeTab === 'evaluations' && (
+  <EvaluationsUpload token={token} darkMode={darkMode} />
+)}
           {tab === 'leaderboard' && (
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
