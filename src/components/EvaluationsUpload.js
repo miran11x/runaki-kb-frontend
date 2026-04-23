@@ -93,7 +93,10 @@ async function safeFetch(url, options) {
     if (res.status === 404) {
       throw new Error('API endpoint not found. Please make sure the backend is deployed with the latest code.');
     }
-    throw new Error(`Server error (${res.status}). Please make sure the backend is deployed.`);
+    if (res.status === 413) {
+      throw new Error('Payload too large. The batch size has been reduced automatically — please try again.');
+    }
+    throw new Error(`Server error (${res.status}). Please try again or contact support.`);
   }
 
   const data = await res.json();
@@ -183,7 +186,7 @@ export default function EvaluationsUpload({ token, darkMode }) {
       }
 
       // Send in batches of 150 to avoid Vercel 413 payload limit
-      const BATCH_SIZE = 150;
+      const BATCH_SIZE = 50;
       let totalInserted = 0;
       for (let i = 0; i < parsed.length; i += BATCH_SIZE) {
         const chunk = parsed.slice(i, i + BATCH_SIZE);
