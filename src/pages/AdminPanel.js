@@ -8,7 +8,6 @@ import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
 import EvaluationsUpload from '../components/EvaluationsUpload';
 
-
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
 const ROLE_COLORS = { team_lead:'#8b5cf6', qa_officer:'#10b981', agent:'#3b82f6' };
@@ -37,7 +36,6 @@ function GlowCard({ icon, label, value, color, sub, live, dark }) {
       </div>
     );
   }
-  // Light mode card
   return (
     <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{
       background:'#fff', borderRadius:'22px', padding:'26px 24px',
@@ -89,7 +87,6 @@ function EmptyState({ text }) {
 }
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState('dashboard');
   const navigate = useNavigate();
   const [tab, setTab]           = useState('dashboard');
   const [stats, setStats]       = useState(null);
@@ -105,15 +102,18 @@ export default function AdminPanel() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [callFlows, setCallFlows] = useState([]);
   const [cfLoading, setCfLoading] = useState(false);
-  const [cfModal, setCfModal] = useState(null); // null | 'new' | flow object
+  const [cfModal, setCfModal] = useState(null);
   const [cfEditSteps, setCfEditSteps] = useState([]);
   const [cfForm, setCfForm] = useState({ title:'', icon:'📞', color:'#3b82f6', description:'', note:'' });
-  const [editUser, setEditUser] = useState(null); // null or user object
+  const [editUser, setEditUser] = useState(null);
   const [editForm, setEditForm] = useState({ name:'', email:'', role:'agent', title:'', newPassword:'' });
   const [peakHours, setPeakHours] = useState([]);
   const [weeklyTrends, setWeeklyTrends] = useState([]);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_admin_dark') === '1');
   const toggleDark = () => { const n = !darkMode; setDarkMode(n); localStorage.setItem('rk_admin_dark', n?'1':'0'); };
+
+  // Get token for EvaluationsUpload
+  const token = localStorage.getItem('rk_token') || localStorage.getItem('token') || '';
 
   const load = useCallback(async () => {
     try {
@@ -128,7 +128,6 @@ export default function AdminPanel() {
       setStats(s.data); setUsers(u.data); setActive(al.data);
       setActivity(act.data); setTopFAQs(tf.data); setLeaderboard(lb.data);
       api.get('/callflows/all').then(r => setCallFlows(r.data)).catch(() => {});
-      // Peak hours - fill all 24 hours
       const phFull = Array.from({length:24},(_,i) => {
         const found = ph.data.find(x => parseInt(x.hour) === i);
         return { hour: i < 12 ? `${i||12}am` : `${i===12?12:i-12}pm`, logins: parseInt(found?.logins||0) };
@@ -163,7 +162,6 @@ export default function AdminPanel() {
   const changeRole = async (u, role) => { await api.patch(`/users/${u.id}`, { role }); toast.success('Role updated'); load(); };
 
   const loginData = stats?.loginsWeek?.map(d => ({ day: new Date(d.day).toLocaleDateString('en',{weekday:'short'}), logins: parseInt(d.count) })) || [];
-
   const colorMap = { 'Agent':'#3b82f6','Team Lead':'#8b5cf6','QA Officer':'#10b981','Team Coordinator':'#f59e0b','Supervisor':'#ec4899','Trainer':'#06b6d4' };
 
   const roleData = (() => {
@@ -212,11 +210,20 @@ export default function AdminPanel() {
   const STAT_CARDS = stats ? [
     { icon:'👥', label:'Total Users',  value:stats.totalUsers,  color:'#6366f1', sub:`${activeList.length} online now` },
     { icon:'🟢', label:'Active Now',   value:stats.activeNow,   color:'#22c55e', live:true, sub:'Right now' },
-    { icon:'📚', label:'Total FAQs',   value:stats?.totalFaqs,   color:'#f59e0b', sub:'EN + Kurdish' },
+    { icon:'📚', label:'Total FAQs',   value:stats?.totalFaqs,  color:'#f59e0b', sub:'EN + Kurdish' },
     { icon:'🔐', label:'Total Logins', value:stats.totalLogins, color:'#8b5cf6', sub:'All time' },
   ] : [];
 
-  const TABS = [['dashboard','📊','Dashboard'],['users','👥','Users'],['active','🟢','Live'],['activity','📋','Activity'],['leaderboard','🏆','Leaderboard'],['callflows','📞','Call Flows'],['evaluations','📤','evaluations'],];
+  // ✅ Fixed: all use 'tab' state, label capitalised, evaluations added
+  const TABS = [
+    ['dashboard','📊','Dashboard'],
+    ['users','👥','Users'],
+    ['active','🟢','Live'],
+    ['activity','📋','Activity'],
+    ['leaderboard','🏆','Leaderboard'],
+    ['callflows','📞','Call Flows'],
+    ['evaluations','📤','Evaluations'],
+  ];
 
   const CT = ({ active, payload, label }) => {
     if (active && payload?.length) return (
@@ -247,6 +254,7 @@ export default function AdminPanel() {
         </div>
         <div style={{ ...S.content, background: darkMode ? '#080e18' : '#f0f4ff' }}>
 
+          {/* ── DASHBOARD ── */}
           {tab === 'dashboard' && (
             <div>
               <div style={S.kpiGrid}>
@@ -392,6 +400,7 @@ export default function AdminPanel() {
             </div>
           )}
 
+          {/* ── USERS ── */}
           {tab === 'users' && (
             <div>
               <div style={{ display:'flex', gap:'12px', marginBottom:'14px' }}>
@@ -461,47 +470,47 @@ export default function AdminPanel() {
             </div>
           )}
 
-
-              {/* ── EDIT USER MODAL ── */}
-              {editUser && (
-                <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
-                  <div style={{ background: darkMode?'#1a2235':'#fff', borderRadius:'20px', padding:'32px', width:'100%', maxWidth:'440px', boxShadow:'0 32px 80px rgba(0,0,0,0.3)' }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
-                      <div style={{ fontSize:'18px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>✏️ Edit User</div>
-                      <button onClick={() => setEditUser(null)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'18px', color:'#94a3b8' }}>✕</button>
+          {/* ── EDIT USER MODAL ── */}
+          {editUser && (
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+              <div style={{ background: darkMode?'#1a2235':'#fff', borderRadius:'20px', padding:'32px', width:'100%', maxWidth:'440px', boxShadow:'0 32px 80px rgba(0,0,0,0.3)' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
+                  <div style={{ fontSize:'18px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>✏️ Edit User</div>
+                  <button onClick={() => setEditUser(null)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'18px', color:'#94a3b8' }}>✕</button>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
+                  {[
+                    { label:'Full Name', key:'name', type:'text', placeholder:'Full name' },
+                    { label:'Email', key:'email', type:'email', placeholder:'email@highperformanceco.net' },
+                    { label:'Job Title', key:'title', type:'text', placeholder:'e.g. QA Officer, Team Lead...' },
+                    { label:'New Password (leave blank to keep)', key:'newPassword', type:'password', placeholder:'Enter new password or leave empty' },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <div style={{ fontSize:'11px', fontWeight:'800', color: darkMode?'rgba(255,255,255,0.5)':NAVY, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'6px' }}>{f.label}</div>
+                      <input type={f.type} value={editForm[f.key]} onChange={e => setEditForm({...editForm,[f.key]:e.target.value})}
+                        placeholder={f.placeholder}
+                        style={{ width:'100%', padding:'10px 14px', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', borderRadius:'10px', fontSize:'14px', fontFamily:'inherit', outline:'none', background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, boxSizing:'border-box' }} />
                     </div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
-                      {[
-                        { label:'Full Name', key:'name', type:'text', placeholder:'Full name' },
-                        { label:'Email', key:'email', type:'email', placeholder:'email@highperformanceco.net' },
-                        { label:'Job Title', key:'title', type:'text', placeholder:'e.g. QA Officer, Team Lead...' },
-                        { label:'New Password (leave blank to keep)', key:'newPassword', type:'password', placeholder:'Enter new password or leave empty' },
-                      ].map(f => (
-                        <div key={f.key}>
-                          <div style={{ fontSize:'11px', fontWeight:'800', color: darkMode?'rgba(255,255,255,0.5)':NAVY, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'6px' }}>{f.label}</div>
-                          <input type={f.type} value={editForm[f.key]} onChange={e => setEditForm({...editForm,[f.key]:e.target.value})}
-                            placeholder={f.placeholder}
-                            style={{ width:'100%', padding:'10px 14px', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', borderRadius:'10px', fontSize:'14px', fontFamily:'inherit', outline:'none', background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, boxSizing:'border-box' }} />
-                        </div>
-                      ))}
-                      <div>
-                        <div style={{ fontSize:'11px', fontWeight:'800', color: darkMode?'rgba(255,255,255,0.5)':NAVY, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'6px' }}>Role</div>
-                        <select value={editForm.role} onChange={e => setEditForm({...editForm,role:e.target.value})}
-                          style={{ width:'100%', padding:'10px 14px', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', borderRadius:'10px', fontSize:'14px', fontFamily:'inherit', outline:'none', background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, boxSizing:'border-box' }}>
-                          <option value="agent">Agent</option>
-                          <option value="qa_officer">QA Officer</option>
-                          <option value="team_lead">Team Lead</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div style={{ display:'flex', gap:'10px', marginTop:'24px' }}>
-                      <button onClick={() => setEditUser(null)} style={{ flex:1, background: darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', color: darkMode?'#e2e8f0':NAVY, border:'none', borderRadius:'10px', padding:'12px', fontSize:'14px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
-                      <button onClick={saveEditUser} style={{ flex:1, background:NAVY, color:'#fff', border:'none', borderRadius:'10px', padding:'12px', fontSize:'14px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>Save Changes</button>
-                    </div>
+                  ))}
+                  <div>
+                    <div style={{ fontSize:'11px', fontWeight:'800', color: darkMode?'rgba(255,255,255,0.5)':NAVY, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'6px' }}>Role</div>
+                    <select value={editForm.role} onChange={e => setEditForm({...editForm,role:e.target.value})}
+                      style={{ width:'100%', padding:'10px 14px', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', borderRadius:'10px', fontSize:'14px', fontFamily:'inherit', outline:'none', background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, boxSizing:'border-box' }}>
+                      <option value="agent">Agent</option>
+                      <option value="qa_officer">QA Officer</option>
+                      <option value="team_lead">Team Lead</option>
+                    </select>
                   </div>
                 </div>
-              )}
+                <div style={{ display:'flex', gap:'10px', marginTop:'24px' }}>
+                  <button onClick={() => setEditUser(null)} style={{ flex:1, background: darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', color: darkMode?'#e2e8f0':NAVY, border:'none', borderRadius:'10px', padding:'12px', fontSize:'14px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+                  <button onClick={saveEditUser} style={{ flex:1, background:NAVY, color:'#fff', border:'none', borderRadius:'10px', padding:'12px', fontSize:'14px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>Save Changes</button>
+                </div>
+              </div>
+            </div>
+          )}
 
+          {/* ── LIVE ── */}
           {tab === 'active' && (
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
@@ -532,6 +541,7 @@ export default function AdminPanel() {
             </div>
           )}
 
+          {/* ── ACTIVITY ── */}
           {tab === 'activity' && (
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
@@ -559,7 +569,49 @@ export default function AdminPanel() {
             </div>
           )}
 
+          {/* ── LEADERBOARD ── */}
+          {tab === 'leaderboard' && (
+            <div>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
+                <div style={{ fontSize:'18px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>🏆 Agent Leaderboard</div>
+                <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8', fontWeight:'600' }}>Top 20 by FAQ views</div>
+              </div>
+              <div style={{ background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', borderRadius:'18px', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', overflow:'hidden', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 4px 24px rgba(11,17,32,0.06)' }}>
+                {leaderboard.length === 0 ? <EmptyState text="No agent activity yet" /> : leaderboard.map((agent, i) => {
+                  const medals = ['🥇','🥈','🥉'];
+                  const rankColors = ['#f59e0b','#94a3b8','#cd7c2f'];
+                  return (
+                    <div key={agent.id} style={{ display:'flex', alignItems:'center', gap:'16px', padding:'14px 20px', borderBottom: i < leaderboard.length-1 ? '1px solid #f1f5f9':'none', background: i < 3 ? `${rankColors[i]}12`:'transparent' }}>
+                      <div style={{ width:'32px', textAlign:'center', fontSize: i < 3 ? '22px':'16px', fontWeight:'900', color: i < 3 ? rankColors[i]:'#94a3b8', flexShrink:0 }}>
+                        {i < 3 ? medals[i] : `#${i+1}`}
+                      </div>
+                      <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:ROLE_COLORS[agent.role]||'#6366f1', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'15px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{agent.name[0]}</div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:'14px', fontWeight:'700', color: darkMode?'#f1f5f9':NAVY }}>{agent.name}</div>
+                        <div style={{ fontSize:'11px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8' }}>{agent.title||'Agent'}</div>
+                      </div>
+                      <div style={{ display:'flex', gap:'20px', flexShrink:0 }}>
+                        <div style={{ textAlign:'center' }}>
+                          <div style={{ fontSize:'18px', fontWeight:'900', color:'#6366f1' }}>{agent.faqs_viewed||0}</div>
+                          <div style={{ fontSize:'10px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8', fontWeight:'600' }}>FAQs Viewed</div>
+                        </div>
+                        <div style={{ textAlign:'center' }}>
+                          <div style={{ fontSize:'18px', fontWeight:'900', color:'#f59e0b' }}>{agent.bookmarks||0}</div>
+                          <div style={{ fontSize:'10px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8', fontWeight:'600' }}>Bookmarks</div>
+                        </div>
+                        <div style={{ textAlign:'center' }}>
+                          <div style={{ fontSize:'18px', fontWeight:'900', color:'#10b981' }}>{agent.helpful_ratings||0}</div>
+                          <div style={{ fontSize:'10px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8', fontWeight:'600' }}>👍 Ratings</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
+          {/* ── CALL FLOWS ── */}
           {tab === 'callflows' && (
             <div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
@@ -603,16 +655,12 @@ export default function AdminPanel() {
                   );
                 })}
               </div>
-
-              {/* Call Flow Modal */}
               {cfModal && (
                 <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
                   <div style={{ background: darkMode?'#1a2235':'#fff', borderRadius:'20px', padding:'28px', width:'100%', maxWidth:'700px', maxHeight:'90vh', overflowY:'auto' }}>
                     <div style={{ fontSize:'16px', fontWeight:'900', color: darkMode?'#e2e8f0':'#0B1120', marginBottom:'20px' }}>
                       {cfModal === 'new' ? '+ Add Call Flow' : `✏️ Edit: ${cfModal.title}`}
                     </div>
-
-                    {/* Basic info */}
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 80px 140px', gap:'10px', marginBottom:'14px' }}>
                       <div>
                         <div style={{ fontSize:'12px', fontWeight:'700', color: darkMode?'rgba(255,255,255,0.5)':'#64748b', marginBottom:'4px' }}>Title</div>
@@ -640,8 +688,6 @@ export default function AdminPanel() {
                       <input value={cfForm.note} onChange={e => setCfForm(p=>({...p,note:e.target.value}))}
                         style={{ width:'100%', padding:'8px 12px', borderRadius:'8px', border:`1px solid ${darkMode?'rgba(255,255,255,0.08)':'#e2e8f0'}`, background: darkMode?'#0f1623':'#f8fafc', color: darkMode?'#e2e8f0':'#0B1120', fontFamily:'inherit', fontSize:'13px', boxSizing:'border-box' }} placeholder="e.g. Warning: Read carefully before proceeding" />
                     </div>
-
-                    {/* Steps */}
                     <div style={{ fontSize:'13px', fontWeight:'800', color: darkMode?'#e2e8f0':'#0B1120', marginBottom:'10px' }}>Steps ({cfEditSteps.length})</div>
                     <div style={{ display:'flex', flexDirection:'column', gap:'8px', marginBottom:'14px' }}>
                       {cfEditSteps.map((step, si) => (
@@ -668,8 +714,6 @@ export default function AdminPanel() {
                         </button>
                       ))}
                     </div>
-
-                    {/* Actions */}
                     <div style={{ display:'flex', gap:'10px', justifyContent:'flex-end' }}>
                       <button onClick={() => setCfModal(null)}
                         style={{ background: darkMode?'rgba(255,255,255,0.08)':'#e2e8f0', color: darkMode?'#e2e8f0':'#0B1120', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
@@ -690,49 +734,12 @@ export default function AdminPanel() {
               )}
             </div>
           )}
-{activeTab === 'evaluations' && (
-  <EvaluationsUpload token={token} darkMode={darkMode} />
-)}
-          {tab === 'leaderboard' && (
-            <div>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
-                <div style={{ fontSize:'18px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>🏆 Agent Leaderboard</div>
-                <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8', fontWeight:'600' }}>Top 20 by FAQ views</div>
-              </div>
-              <div style={{ background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', borderRadius:'18px', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', overflow:'hidden', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 4px 24px rgba(11,17,32,0.06)' }}>
-                {leaderboard.length === 0 ? <EmptyState text="No agent activity yet" /> : leaderboard.map((agent, i) => {
-                  const medals = ['🥇','🥈','🥉'];
-                  const rankColors = ['#f59e0b','#94a3b8','#cd7c2f'];
-                  return (
-                    <div key={agent.id} style={{ display:'flex', alignItems:'center', gap:'16px', padding:'14px 20px', borderBottom: i < leaderboard.length-1 ? '1px solid #f1f5f9':'none', background: i < 3 ? `${rankColors[i]}12`:'transparent' }}>
-                      <div style={{ width:'32px', textAlign:'center', fontSize: i < 3 ? '22px':'16px', fontWeight:'900', color: i < 3 ? rankColors[i]:'#94a3b8', flexShrink:0 }}>
-                        {i < 3 ? medals[i] : `#${i+1}`}
-                      </div>
-                      <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:ROLE_COLORS[agent.role]||'#6366f1', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'15px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{agent.name[0]}</div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:'14px', fontWeight:'700', color: darkMode?'#f1f5f9':NAVY }}>{agent.name}</div>
-                        <div style={{ fontSize:'11px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8' }}>{agent.title||'Agent'}</div>
-                      </div>
-                      <div style={{ display:'flex', gap:'20px', flexShrink:0 }}>
-                        <div style={{ textAlign:'center' }}>
-                          <div style={{ fontSize:'18px', fontWeight:'900', color:'#6366f1' }}>{agent.faqs_viewed||0}</div>
-                          <div style={{ fontSize:'10px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8', fontWeight:'600' }}>FAQs Viewed</div>
-                        </div>
-                        <div style={{ textAlign:'center' }}>
-                          <div style={{ fontSize:'18px', fontWeight:'900', color:'#f59e0b' }}>{agent.bookmarks||0}</div>
-                          <div style={{ fontSize:'10px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8', fontWeight:'600' }}>Bookmarks</div>
-                        </div>
-                        <div style={{ textAlign:'center' }}>
-                          <div style={{ fontSize:'18px', fontWeight:'900', color:'#10b981' }}>{agent.helpful_ratings||0}</div>
-                          <div style={{ fontSize:'10px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8', fontWeight:'600' }}>👍 Ratings</div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+
+          {/* ── EVALUATIONS ✅ Fixed: uses `tab` not `activeTab`, token from localStorage ── */}
+          {tab === 'evaluations' && (
+            <EvaluationsUpload token={token} darkMode={darkMode} />
           )}
+
         </div>
       </div>
     </div>
