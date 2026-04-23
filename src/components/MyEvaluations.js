@@ -42,7 +42,8 @@ function fmtScore(s) {
 }
 
 export default function MyEvaluations({ darkMode }) {
-  const { token } = useAuth();
+  const { user } = useAuth();
+  const token = localStorage.getItem('rk_token') || localStorage.getItem('token') || '';
   const [evals,    setEvals]    = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
@@ -57,7 +58,7 @@ export default function MyEvaluations({ darkMode }) {
   const faint  = DM ? '#0f172a' : '#f8fafc';
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) { setLoading(false); setError('Not authenticated.'); return; }
     fetch(`${API}/api/evaluations/mine`, {
       headers: { Authorization: `Bearer ${token}` },
     })
