@@ -182,15 +182,21 @@ export default function EvaluationsUpload({ token, darkMode }) {
         });
       }
 
-      const data = await safeFetch(`${API}/api/evaluations/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rows: parsed }),
-      });
-
-      setResult(data);
+      // Send in batches of 150 to avoid Vercel 413 payload limit
+      const BATCH_SIZE = 150;
+      let totalInserted = 0;
+      for (let i = 0; i < parsed.length; i += BATCH_SIZE) {
+        const chunk = parsed.slice(i, i + BATCH_SIZE);
+        const data = await safeFetch(`${API}/api/evaluations/upload`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rows: chunk }),
+        });
+        totalInserted += data.inserted || 0;
+      }
+      setResult({ inserted: totalInserted });
       setStatus('done');
-      toast.success(`${data.inserted} evaluations uploaded successfully`);
+      toast.success(`${totalInserted} evaluations uploaded successfully`);
     } catch (err) {
       setErrorMsg(err.message);
       setStatus('error');
