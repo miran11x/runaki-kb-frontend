@@ -89,6 +89,7 @@ function EmptyState({ text }) {
 }
 
 export default function AdminPanel() {
+  const [activeTab, setActiveTab] = useState('dashboard');
   const navigate = useNavigate();
   const [tab, setTab]           = useState('dashboard');
   const [stats, setStats]       = useState(null);

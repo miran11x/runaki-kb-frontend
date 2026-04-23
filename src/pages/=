@@ -1,0 +1,126 @@
+"""
+patch_admin.py
+Run this script ONCE from your AdminPanel.js folder:
+  cd C:\Users\Miran\Runaki-KB-V2\frontend\src\pages
+  python patch_admin.py
+
+It will automatically:
+  1. Add EvaluationsUpload import
+  2. Add Evaluations tab to TABS array
+  3. Add Evaluations tab content
+"""
+
+import os
+import shutil
+from datetime import datetime
+
+FILE = 'AdminPanel.js'
+
+# ── Safety: make a backup first ──────────────────────────────────────────────
+backup = f'AdminPanel.backup.{datetime.now().strftime("%Y%m%d_%H%M%S")}.js'
+shutil.copy(FILE, backup)
+print(f'✅ Backup created: {backup}')
+
+with open(FILE, 'r', encoding='utf-8') as f:
+    code = f.read()
+
+changed = False
+
+# ── 1. Add EvaluationsUpload import (after the last import line) ─────────────
+IMPORT_LINE = "import EvaluationsUpload from '../components/EvaluationsUpload';"
+
+if IMPORT_LINE not in code:
+    # Insert after the last existing import
+    import_markers = [
+        "import toast from 'react-hot-toast';",
+        "import Topbar from '../components/Topbar';",
+        "import Sidebar from '../components/Sidebar';",
+        "import api from '../utils/api';",
+    ]
+    inserted = False
+    for marker in import_markers:
+        if marker in code:
+            code = code.replace(marker, marker + '\n' + IMPORT_LINE, 1)
+            inserted = True
+            break
+    if not inserted:
+        # Fallback: add after first import line
+        first_import = code.find('import ')
+        end_of_line = code.find('\n', first_import)
+        code = code[:end_of_line+1] + IMPORT_LINE + '\n' + code[end_of_line+1:]
+    print('✅ Added EvaluationsUpload import')
+    changed = True
+else:
+    print('ℹ️  EvaluationsUpload import already present')
+
+# ── 2. Add evaluations tab to TABS array ─────────────────────────────────────
+EVALS_TAB_ENTRY = "['evaluations','📤','Evaluations']"
+
+if EVALS_TAB_ENTRY not in code:
+    # Try known TABS endings
+    tab_endings = [
+        "['callflows','📞','Call Flows']];",
+        "['leaderboard','🏆','Leaderboard']];",
+        "['leaderboard',\"🏆\",'Leaderboard']];",
+    ]
+    replaced = False
+    for ending in tab_endings:
+        if ending in code:
+            code = code.replace(
+                ending,
+                ending.rstrip('];') + "," + EVALS_TAB_ENTRY + '];'
+            )
+            replaced = True
+            break
+
+    if not replaced:
+        print('⚠️  Could not find TABS array automatically.')
+        print('    Please manually add this to your TABS array in AdminPanel.js:')
+        print("    ['evaluations','📤','Evaluations']")
+    else:
+        print('✅ Added Evaluations tab entry to TABS array')
+        changed = True
+else:
+    print('ℹ️  Evaluations tab entry already present in TABS')
+
+# ── 3. Add Evaluations tab content ───────────────────────────────────────────
+EVALS_CONTENT_MARKER = "tab === 'evaluations'"
+
+if EVALS_CONTENT_MARKER not in code:
+    EVALS_JSX = """
+          {(tab === 'evaluations') && (
+            <EvaluationsUpload token={token} darkMode={darkMode} />
+          )}
+"""
+    # Insert before leaderboard tab content OR before closing of tab sections
+    insert_markers = [
+        "          {tab === 'leaderboard' && (",
+        "          {tab === 'callflows' && (",
+    ]
+    inserted = False
+    for marker in insert_markers:
+        if marker in code:
+            code = code.replace(marker, EVALS_JSX + marker, 1)
+            inserted = True
+            break
+
+    if not inserted:
+        print('⚠️  Could not auto-insert tab content.')
+        print('    Please manually add inside your tab content section:')
+        print("    {tab === 'evaluations' && (")
+        print("      <EvaluationsUpload token={token} darkMode={darkMode} />")
+        print("    )}")
+    else:
+        print('✅ Added Evaluations tab content')
+        changed = True
+else:
+    print('ℹ️  Evaluations tab content already present')
+
+# ── Save ─────────────────────────────────────────────────────────────────────
+if changed:
+    with open(FILE, 'w', encoding='utf-8') as f:
+        f.write(code)
+    print('\n🔥 AdminPanel.js patched successfully!')
+    print('   Now run: git add -A && git commit -m "Add evaluations tab" && git push')
+else:
+    print('\nℹ️  No changes needed — everything already in place.')
