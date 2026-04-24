@@ -324,8 +324,8 @@ export default function MyEvaluations({ darkMode }) {
               {/* Feedback blocks */}
               {[
                 { label:'💡 Improvement Areas', val: selected.improvement_areas, accent:'#f59e0b' },
-                { label:'👍 Positive Comments',  val: selected.positive_comments,  accent:'#22c55e' },
-                { label:'⚠️ Issues Noted',       val: selected.bad_comments,       accent:'#ef4444' },
+                { label:'👍 Good Comments',      val: selected.positive_comments,  accent:'#22c55e' },
+                { label:'👎 Bad Comments',        val: selected.bad_comments,       accent:'#ef4444' },
                 { label:'📝 Feedback',           val: selected.feedback,           accent:'#6366f1' },
               ]
                 .filter(b => b.val && b.val.trim() && b.val.trim().toLowerCase() !== 'n/a' && b.val.trim() !== '—')
