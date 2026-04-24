@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../utils/api';
 
 const NAVY   = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -42,8 +43,7 @@ function fmtScore(s) {
 }
 
 export default function MyEvaluations({ darkMode }) {
-  const { user } = useAuth();
-  const token = localStorage.getItem('rk_token') || localStorage.getItem('token') || '';
+  useAuth(); // keep auth context active
   const [evals,    setEvals]    = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
@@ -58,22 +58,22 @@ export default function MyEvaluations({ darkMode }) {
   const faint  = DM ? '#0f172a' : '#f8fafc';
 
   useEffect(() => {
-    if (!token) { setLoading(false); setError('Not authenticated.'); return; }
-    fetch(`${API}/api/evaluations/mine`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(data => {
+    api.get('/evaluations/mine')
+      .then(res => {
+        const data = res.data;
         if (Array.isArray(data)) {
           data.sort((a, b) => new Date(b.evaluation_date) - new Date(a.evaluation_date));
           setEvals(data);
         } else {
-          setError('Could not load evaluations.');
+          setEvals([]);
         }
-        setLoading(false);
       })
-      .catch(() => { setError('Network error. Please try again.'); setLoading(false); });
-  }, [token]);
+      .catch(err => {
+        const msg = err?.response?.data?.error || err?.message || 'Failed to load evaluations.';
+        setError(msg);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   /* ── Computed stats ─────────────────────────────────────────────────────── */
 
