@@ -131,13 +131,8 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
       {/* ── NAV ── */}
       <nav style={S.nav}>
 
-        {/* My Evaluations — top of sidebar, before all FAQs */}
-        {!collapsed && <div style={S.groupLabel}>⭐ My Performance</div>}
-        <NI icon="📋" label="My Evaluations" collapsed={collapsed}
-          active={panel==='_evaluations'} onClick={() => go('_evaluations')} />
-
         {/* Knowledge Base */}
-        {!collapsed && <div style={{ ...S.groupLabel, marginTop:'6px' }}>📋 Knowledge Base</div>}
+        {!collapsed && <div style={S.groupLabel}>📋 Knowledge Base</div>}
 
         <NI icon="💬" label="Inquiries" badge={103} collapsed={collapsed}
           active={panel==='inquiries'}
