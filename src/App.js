@@ -1,13 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import AgentView from './pages/AgentView';
 import AdminPanel from './pages/AdminPanel';
 import EditorPanel from './pages/EditorPanel';
 import Profile from './pages/profile';
+import MaintenanceScreen from './components/MaintenanceScreen';
+
+const API = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';
+
+// Wraps the app — shows maintenance screen for agents if active
+function MaintenanceGate({ children }) {
+  const { user } = useAuth();
+  const [maintenance, setMaintenance] = useState(null); // null = loading
+
+  useEffect(() => {
+    fetch(`${API}/api/maintenance`)
+      .then(r => r.json())
+      .then(d => setMaintenance(d))
+      .catch(() => setMaintenance({ active: false, message: '' }));
+  }, []);
+
+  // Still loading — show nothing (avoids flash)
+  if (maintenance === null) return null;
+
+  // Only show maintenance screen to agents (role === 'agent')
+  // QA officers, team leads, supervisors bypass it
+  const isAgent = !user || user.role === 'agent';
+  if (maintenance.active && isAgent) {
+    return <MaintenanceScreen message={maintenance.message} />;
+  }
+
+  return children;
+}
 
 export default function App() {
   const isMobile = window.innerWidth < 768;
@@ -48,6 +76,7 @@ export default function App() {
             error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
           }}
         />
+        <MaintenanceGate>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={
@@ -68,6 +97,7 @@ export default function App() {
           } />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </MaintenanceGate>
       </BrowserRouter>
     </AuthProvider>
   );

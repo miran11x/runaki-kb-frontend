@@ -112,6 +112,29 @@ export default function AdminPanel() {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_admin_dark') === '1');
   const toggleDark = () => { const n = !darkMode; setDarkMode(n); localStorage.setItem('rk_admin_dark', n?'1':'0'); };
 
+  // Maintenance mode
+  const [mActive,  setMActive]  = useState(false);
+  const [mMessage, setMMessage] = useState('We are currently performing scheduled updates to the Runaki Knowledge Base to bring you a better experience. The system will be back online shortly. Thank you for your patience.');
+  const [mSaving,  setMSaving]  = useState(false);
+  const [mLoaded,  setMLoaded]  = useState(false);
+
+  useEffect(() => {
+    fetch((process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app') + '/api/maintenance')
+      .then(r => r.json())
+      .then(d => { setMActive(!!d.active); if (d.message) setMMessage(d.message); setMLoaded(true); })
+      .catch(() => setMLoaded(true));
+  }, []);
+
+  const saveMaintenance = async (active) => {
+    setMSaving(true);
+    try {
+      await api.post('/maintenance', { active, message: mMessage });
+      setMActive(active);
+      toast.success(active ? '🔧 Maintenance mode ON — agents see the screen' : '✅ Maintenance mode OFF — agents can access the site');
+    } catch { toast.error('Failed to update maintenance mode'); }
+    finally { setMSaving(false); }
+  };
+
   // Get token for EvaluationsUpload
   const token = localStorage.getItem('rk_token') || localStorage.getItem('token') || '';
 
@@ -223,6 +246,7 @@ export default function AdminPanel() {
     ['leaderboard','🏆','Leaderboard'],
     ['callflows','📞','Call Flows'],
     ['evaluations','📤','Evaluations'],
+    ['maintenance','🔧','Maintenance'],
   ];
 
   const CT = ({ active, payload, label }) => {
@@ -735,9 +759,70 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {/* ── EVALUATIONS ✅ Fixed: uses `tab` not `activeTab`, token from localStorage ── */}
+          {/* ── EVALUATIONS ── */}
           {tab === 'evaluations' && (
             <EvaluationsUpload token={token} darkMode={darkMode} />
+          )}
+
+          {/* ── MAINTENANCE ── */}
+          {tab === 'maintenance' && (
+            <div style={{ maxWidth:640 }}>
+              <div style={{ fontSize:18, fontWeight:800, color:darkMode?'#f1f5f9':NAVY, marginBottom:6 }}>🔧 Maintenance Mode</div>
+              <div style={{ fontSize:13, color:darkMode?'rgba(255,255,255,0.4)':'#64748b', marginBottom:28, lineHeight:1.6 }}>
+                When turned ON, agents will see a maintenance screen instead of the KB. Your team (QA, Team Lead) can still access everything normally.
+              </div>
+
+              {/* Status card */}
+              <div style={{ background:darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border:`1px solid ${mActive?'rgba(255,107,53,0.4)':'rgba(34,197,94,0.3)'}`, borderRadius:20, padding:'24px 28px', marginBottom:24, position:'relative', overflow:'hidden', boxShadow: mActive?'0 0 0 1px rgba(255,107,53,0.2), 0 8px 32px rgba(255,107,53,0.15)':'0 4px 24px rgba(0,0,0,0.1)' }}>
+                <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:mActive?`linear-gradient(90deg,${ORANGE},${ORANGE}60,transparent)`:'linear-gradient(90deg,#22c55e,#22c55e60,transparent)', borderRadius:'20px 20px 0 0' }} />
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+                    <div style={{ width:52, height:52, borderRadius:'50%', background:mActive?`rgba(255,107,53,0.15)`:'rgba(34,197,94,0.15)', border:`2px solid ${mActive?ORANGE:'#22c55e'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>
+                      {mActive ? '🔧' : '✅'}
+                    </div>
+                    <div>
+                      <div style={{ fontSize:16, fontWeight:800, color:darkMode?'#f1f5f9':NAVY }}>
+                        Status: <span style={{ color:mActive?ORANGE:'#22c55e' }}>{mActive?'MAINTENANCE ON':'SYSTEM ONLINE'}</span>
+                      </div>
+                      <div style={{ fontSize:12, color:darkMode?'rgba(255,255,255,0.4)':'#94a3b8', marginTop:3 }}>
+                        {mActive ? 'Agents are seeing the maintenance screen right now' : 'Agents can access the Knowledge Base normally'}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display:'flex', gap:10 }}>
+                    {mActive ? (
+                      <button onClick={() => saveMaintenance(false)} disabled={mSaving}
+                        style={{ background:'linear-gradient(135deg,#22c55e,#16a34a)', color:'#fff', border:'none', borderRadius:12, padding:'11px 24px', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit', boxShadow:'0 4px 12px rgba(34,197,94,0.4)', opacity:mSaving?0.7:1 }}>
+                        {mSaving ? 'Saving...' : '✅ Turn OFF — Go Live'}
+                      </button>
+                    ) : (
+                      <button onClick={() => saveMaintenance(true)} disabled={mSaving}
+                        style={{ background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, color:'#fff', border:'none', borderRadius:12, padding:'11px 24px', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit', boxShadow:`0 4px 12px ${ORANGE}40`, opacity:mSaving?0.7:1 }}>
+                        {mSaving ? 'Saving...' : '🔧 Turn ON Maintenance'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Message editor */}
+              <div style={{ background:darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border:`1px solid ${darkMode?'rgba(255,255,255,0.08)':'#e2e8f0'}`, borderRadius:20, padding:'22px 24px', boxShadow:darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 4px 24px rgba(11,17,32,0.06)' }}>
+                <div style={{ fontSize:13, fontWeight:800, color:darkMode?'#f1f5f9':NAVY, marginBottom:4 }}>📝 Maintenance Message</div>
+                <div style={{ fontSize:12, color:darkMode?'rgba(255,255,255,0.35)':'#94a3b8', marginBottom:14 }}>This is what agents will read on the maintenance screen.</div>
+                <textarea
+                  value={mMessage}
+                  onChange={e => setMMessage(e.target.value)}
+                  rows={5}
+                  style={{ width:'100%', padding:'12px 16px', border:`1.5px solid ${darkMode?'rgba(255,255,255,0.1)':'#e2e8f0'}`, borderRadius:12, fontSize:13, fontFamily:'inherit', outline:'none', background:darkMode?'rgba(255,255,255,0.05)':'#f8fafc', color:darkMode?'#e2e8f0':NAVY, resize:'vertical', lineHeight:1.7, boxSizing:'border-box' }}
+                />
+                <div style={{ display:'flex', justifyContent:'flex-end', marginTop:12 }}>
+                  <button onClick={() => saveMaintenance(mActive)} disabled={mSaving}
+                    style={{ background:NAVY, color:'#fff', border:'none', borderRadius:10, padding:'10px 22px', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit', opacity:mSaving?0.7:1 }}>
+                    {mSaving ? 'Saving...' : '💾 Save Message'}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
         </div>
