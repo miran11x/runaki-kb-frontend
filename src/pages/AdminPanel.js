@@ -809,6 +809,100 @@ export default function AdminPanel() {
           )}
 
           {/* ── EVALUATIONS ── */}
+          
+          {/* ── UPDATE SCRIPTS ── */}
+          {tab === 'scripts' && (
+            <div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+                <div>
+                  <div style={{ fontSize:18, fontWeight:800, color:darkMode?'#f1f5f9':NAVY }}>📋 Update Scripts</div>
+                  <div style={{ fontSize:12, color:darkMode?'rgba(255,255,255,0.3)':'#94a3b8', marginTop:2 }}>Only one script can be published at a time. Agents see it with a red badge.</div>
+                </div>
+                <button onClick={() => { setScriptForm({topic:'',sorani:'',badini:'',arabic:'',english:''}); setScriptModal('new'); }}
+                  style={{ background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, color:'#fff', border:'none', borderRadius:12, padding:'11px 22px', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', boxShadow:`0 4px 12px ${ORANGE}40` }}>
+                  + New Script
+                </button>
+              </div>
+
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                {scripts.length === 0 && (
+                  <div style={{ textAlign:'center', padding:'48px', color:darkMode?'rgba(255,255,255,0.3)':'#94a3b8', background:darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', borderRadius:18, border:`1px solid ${darkMode?'rgba(255,255,255,0.07)':'#e2e8f0'}` }}>
+                    No scripts yet. Click "+ New Script" to create one.
+                  </div>
+                )}
+                {scripts.map(s => (
+                  <div key={s.id} style={{ background:darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', borderRadius:16, padding:'18px 22px', border:`1px solid ${s.is_published?`${ORANGE}40`:(darkMode?'rgba(255,255,255,0.08)':'#e2e8f0')}`, display:'flex', alignItems:'center', gap:16, boxShadow:s.is_published?`0 0 0 1px ${ORANGE}20,0 4px 20px ${ORANGE}15`:'none', position:'relative', overflow:'hidden' }}>
+                    {s.is_published && <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:`linear-gradient(90deg,${ORANGE},${ORANGE}60,transparent)` }} />}
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+                        <span style={{ fontSize:14, fontWeight:800, color:darkMode?'#f1f5f9':NAVY }}>{s.topic}</span>
+                        {s.is_published && <span style={{ fontSize:10, fontWeight:800, background:`${ORANGE}20`, color:ORANGE, border:`1px solid ${ORANGE}40`, borderRadius:20, padding:'2px 10px' }}>🔴 LIVE</span>}
+                      </div>
+                      <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                        {['sorani','badini','arabic','english'].map(l => (
+                          <span key={l} style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:s[l]?'rgba(34,197,94,0.1)':'rgba(255,255,255,0.05)', color:s[l]?'#22c55e':'#475569', border:`1px solid ${s[l]?'rgba(34,197,94,0.2)':'rgba(255,255,255,0.05)'}` }}>
+                            {l.charAt(0).toUpperCase()+l.slice(1)} {s[l]?'✓':'—'}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ display:'flex', gap:8, flexShrink:0 }}>
+                      {s.is_published ? (
+                        <button onClick={() => unpublishScript(s)} style={{ background:'rgba(255,255,255,0.08)', color:darkMode?'#e2e8f0':NAVY, border:`1px solid ${darkMode?'rgba(255,255,255,0.12)':'#e2e8f0'}`, borderRadius:8, padding:'6px 14px', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>📦 Archive</button>
+                      ) : (
+                        <button onClick={() => publishScript(s)} style={{ background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, color:'#fff', border:'none', borderRadius:8, padding:'6px 14px', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit', boxShadow:`0 4px 10px ${ORANGE}30` }}>🚀 Publish</button>
+                      )}
+                      <button onClick={() => { setScriptForm({topic:s.topic,sorani:s.sorani||'',badini:s.badini||'',arabic:s.arabic||'',english:s.english||''}); setScriptModal(s); }}
+                        style={{ background:'rgba(99,102,241,0.12)', color:'#6366f1', border:'1px solid rgba(99,102,241,0.2)', borderRadius:8, padding:'6px 14px', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>✏️ Edit</button>
+                      <button onClick={() => deleteScript(s.id)}
+                        style={{ background:'rgba(239,68,68,0.1)', color:'#ef4444', border:'1px solid rgba(239,68,68,0.2)', borderRadius:8, padding:'6px 14px', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>🗑️</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Script modal */}
+              {scriptModal && (
+                <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(8px)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+                  <div style={{ background:darkMode?'#1a2235':'#fff', borderRadius:24, padding:'32px', width:'100%', maxWidth:700, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 32px 80px rgba(0,0,0,0.4)' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+                      <div style={{ fontSize:18, fontWeight:800, color:darkMode?'#f1f5f9':NAVY }}>{scriptModal==='new'?'+ New Script':'✏️ Edit Script'}</div>
+                      <button onClick={() => setScriptModal(null)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#94a3b8' }}>✕</button>
+                    </div>
+                    <div style={{ marginBottom:18 }}>
+                      <div style={{ fontSize:11, fontWeight:800, color:darkMode?'rgba(255,255,255,0.5)':NAVY, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:7 }}>Topic / Title *</div>
+                      <input value={scriptForm.topic} onChange={e=>setScriptForm(p=>({...p,topic:e.target.value}))} placeholder="e.g. E-Psule & CRM System Down — 15/06/2026"
+                        style={{ width:'100%', padding:'11px 14px', border:`1.5px solid ${darkMode?'rgba(255,255,255,0.1)':'#e2e8f0'}`, borderRadius:12, fontSize:14, fontFamily:'inherit', outline:'none', background:darkMode?'rgba(255,255,255,0.05)':'#f8fafc', color:darkMode?'#f1f5f9':NAVY, boxSizing:'border-box' }} />
+                    </div>
+                    {[
+                      {key:'sorani', label:'🟢 کوردی سۆرانی', rtl:true,  placeholder:'دەقی کوردی سۆرانی لێرە بنووسە...'},
+                      {key:'badini', label:'🔵 کوردی بادینی', rtl:true,  placeholder:'دەقی کوردی بادینی لێرە بنووسە...'},
+                      {key:'arabic', label:'🟡 العربية',       rtl:true,  placeholder:'اكتب النص العربي هنا...'},
+                      {key:'english',label:'🔴 English',       rtl:false, placeholder:'Type the English script here...'},
+                    ].map(f => (
+                      <div key={f.key} style={{ marginBottom:18 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:7 }}>
+                          <span style={{ fontSize:11, fontWeight:800, color:darkMode?'rgba(255,255,255,0.5)':NAVY, textTransform:'uppercase', letterSpacing:'0.07em' }}>{f.label}</span>
+                          <span style={{ fontSize:10, color:'#64748b' }}>(optional)</span>
+                          {f.rtl && <span style={{ fontSize:10, background:'rgba(99,102,241,0.15)', color:'#6366f1', borderRadius:20, padding:'1px 8px', fontWeight:700 }}>RTL</span>}
+                        </div>
+                        <textarea value={scriptForm[f.key]} onChange={e=>setScriptForm(p=>({...p,[f.key]:e.target.value}))}
+                          placeholder={f.placeholder} rows={4}
+                          style={{ width:'100%', padding:'11px 14px', border:`1.5px solid ${darkMode?'rgba(255,255,255,0.1)':'#e2e8f0'}`, borderRadius:12, fontSize:14, fontFamily:'inherit', outline:'none', background:darkMode?'rgba(255,255,255,0.05)':'#f8fafc', color:darkMode?'#f1f5f9':NAVY, resize:'vertical', lineHeight:1.8, boxSizing:'border-box', direction:f.rtl?'rtl':'ltr', textAlign:f.rtl?'right':'left' }} />
+                      </div>
+                    ))}
+                    <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+                      <button onClick={() => setScriptModal(null)} style={{ background:darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', color:darkMode?'#e2e8f0':NAVY, border:'none', borderRadius:12, padding:'11px 22px', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+                      <button onClick={saveScript} disabled={scriptSaving} style={{ background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, color:'#fff', border:'none', borderRadius:12, padding:'11px 26px', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit', boxShadow:`0 4px 12px ${ORANGE}40`, opacity:scriptSaving?0.7:1 }}>
+                        {scriptSaving?'Saving…':'💾 Save Script'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {tab === 'evaluations' && (
             <EvaluationsUpload token={token} darkMode={darkMode} />
           )}
