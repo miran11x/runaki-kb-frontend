@@ -58,7 +58,21 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
   const location = useLocation();
   const [inqOpen, setInqOpen] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
+  const [hasActiveScript, setHasActiveScript] = useState(false);
   const rm = ROLE_META[user?.role] || ROLE_META.agent;
+
+  useEffect(() => {
+    const BASE = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';
+    fetch(`${BASE}/api/scripts/published`)
+      .then(r => r.json())
+      .then(d => {
+        if (!d) { setHasActiveScript(false); return; }
+        const lastSeen  = localStorage.getItem('rk_script_seen');
+        const updatedAt = new Date(d.updated_at).getTime();
+        setHasActiveScript(!lastSeen || parseInt(lastSeen) < updatedAt);
+      })
+      .catch(() => setHasActiveScript(false));
+  }, [panel]);
 
   const handleLogout = async () => {
     await logout();
