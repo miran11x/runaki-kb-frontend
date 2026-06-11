@@ -131,8 +131,18 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
       {/* ── NAV ── */}
       <nav style={S.nav}>
 
+        {/* Update Scripts — top of sidebar with red badge when active */}
+        {!collapsed && <div style={S.groupLabel}>📢 Notices</div>}
+        <div style={{ position:'relative', display:'inline-block', width:'100%' }}>
+          <NI icon="📋" label="Update Scripts" collapsed={collapsed}
+            active={panel==='_updatescripts'} onClick={() => go('_updatescripts')} />
+          {hasActiveScript && panel !== '_updatescripts' && (
+            <div style={{ position:'absolute', top:8, right: collapsed?6:12, width:8, height:8, borderRadius:'50%', background:'#ef4444', boxShadow:'0 0 6px #ef4444' }} />
+          )}
+        </div>
+
         {/* Knowledge Base */}
-        {!collapsed && <div style={S.groupLabel}>📋 Knowledge Base</div>}
+        {!collapsed && <div style={{ ...S.groupLabel, marginTop:'6px' }}>📋 Knowledge Base</div>}
 
         <NI icon="💬" label="Inquiries" badge={103} collapsed={collapsed}
           active={panel==='inquiries'}

@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
 import MaintenanceLookup from '../components/MaintenanceLookup';
+import UpdateScripts from '../components/UpdateScripts';
 import MyEvaluations from '../components/MyEvaluations';
 
 const NAVY  = '#0B1120';
@@ -206,7 +207,7 @@ export default function AgentView() {
 
   const items = panelFaqs();
   const groups = grouped(items);
-  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_evaluations'].includes(panel);
+  const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_evaluations','_updatescripts'].includes(panel);
 
   if (loading) return (
     <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
@@ -294,8 +295,9 @@ export default function AgentView() {
           {panel === '_holdunhold'&& <HoldUnhold darkMode={darkMode} DM={DM} />}
           {panel === '_traccess'  && <TRAccess darkMode={darkMode} DM={DM} />}
           {panel === '_callflows' && <CallFlows darkMode={darkMode} DM={DM} />}
-          {panel === '_maintenance' && <MaintenanceLookup darkMode={darkMode} />}
-          {panel === '_evaluations' && <MyEvaluations darkMode={darkMode} />}
+          {panel === '_maintenance'   && <MaintenanceLookup darkMode={darkMode} />}
+          {panel === '_evaluations'   && <MyEvaluations darkMode={darkMode} />}
+          {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
 
           {/* Bookmarks empty */}
           {panel === '_bookmarks' && items.length === 0 && (
@@ -561,7 +563,7 @@ function Scripts({ darkMode, DM }) {
   const scripts = [
     { t:'👋 Greeting', s:'Good [morning/afternoon/evening], thank you for calling Runaki. My name is [name], how may I assist you today?' },
     { t:'📋 Get User Info', s:'May I please have your name and account/meter number to look up your account?' },
-    { t:'⏸️ Requesting Hold', s:'I need to place you on a brief hold while I look into this. It should take no more than 1 minutes. Is that okay?' },
+    { t:'⏸️ Requesting Hold', s:'I need to place you on a brief hold while I look into this. It should take no more than 1 minute. Is that okay?' },
     { t:'⏰ Still on Hold', s:"Thank you for holding. I'm still looking into this for you, I appreciate your patience." },
     { t:'▶️ Returning from Hold', s:'Thank you for holding, [customer name]. I have the information you need.' },
     { t:'✅ Closing', s:'Is there anything else I can help you with today? Thank you for calling Runaki. Have a great day!' },
@@ -687,7 +689,7 @@ function HoldUnhold({ darkMode, DM }) {
       phase:'1 -- Pre-Hold', icon:'🎙️', color:'#6366f1',
       title:'Before placing on hold',
       desc:'Before placing the customer on hold, clearly inform them and explain the reason using the approved pre-hold script.',
-      script:'"I need to place you on a brief hold while I look into this for you. It should take no more than 1 minutes. Is that okay?"',
+      script:'"I need to place you on a brief hold while I look into this for you. It should take no more than 1 minute. Is that okay?"',
       rules:['Always inform the customer before holding','Explain the reason clearly','Get their agreement first'],
     },
     {
@@ -695,7 +697,7 @@ function HoldUnhold({ darkMode, DM }) {
       title:'While customer is on hold',
       desc:'The call must be placed on hold -- not muted -- so that hold music plays for the customer.',
       script:null,
-      rules:['Use the HOLD button -- never mute the call','Hold music must play for the customer','Check back every 1 minutes if hold is longer'],
+      rules:['Use the HOLD button -- never mute the call','Hold music must play for the customer','Check back every 1 minute if hold is longer'],
     },
     {
       phase:'3 -- Post-Hold', icon:'▶️', color:'#10b981',

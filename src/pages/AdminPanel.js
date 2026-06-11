@@ -112,6 +112,54 @@ export default function AdminPanel() {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_admin_dark') === '1');
   const toggleDark = () => { const n = !darkMode; setDarkMode(n); localStorage.setItem('rk_admin_dark', n?'1':'0'); };
 
+  // Update Scripts
+  const [scripts,    setScripts]    = useState([]);
+  const [scriptModal, setScriptModal] = useState(null); // null | 'new' | script obj
+  const [scriptForm,  setScriptForm]  = useState({ topic:'', sorani:'', badini:'', arabic:'', english:'' });
+  const [scriptSaving, setScriptSaving] = useState(false);
+
+  const loadScripts = useCallback(() => {
+    api.get('/scripts').then(r => setScripts(r.data)).catch(() => {});
+  }, []);
+
+  useEffect(() => { loadScripts(); }, [loadScripts]);
+
+  const saveScript = async () => {
+    if (!scriptForm.topic.trim()) { toast.error('Topic is required'); return; }
+    setScriptSaving(true);
+    try {
+      if (scriptModal === 'new') {
+        await api.post('/scripts', scriptForm);
+        toast.success('Script created!');
+      } else {
+        await api.put(`/scripts/${scriptModal.id}`, scriptForm);
+        toast.success('Script updated!');
+      }
+      setScriptModal(null);
+      loadScripts();
+    } catch { toast.error('Failed to save'); }
+    finally { setScriptSaving(false); }
+  };
+
+  const publishScript = async (s) => {
+    await api.patch(`/scripts/${s.id}/publish`).catch(() => {});
+    toast.success('✅ Script published — agents can see it now');
+    loadScripts();
+  };
+
+  const unpublishScript = async (s) => {
+    await api.patch(`/scripts/${s.id}/unpublish`).catch(() => {});
+    toast.success('📦 Script archived');
+    loadScripts();
+  };
+
+  const deleteScript = async (id) => {
+    if (!window.confirm('Delete this script?')) return;
+    await api.delete(`/scripts/${id}`).catch(() => {});
+    toast.success('Deleted');
+    loadScripts();
+  };
+
   // Maintenance mode
   const [mActive,  setMActive]  = useState(false);
   const [mMessage, setMMessage] = useState('We are currently performing scheduled updates to the Runaki Knowledge Base to bring you a better experience. The system will be back online shortly. Thank you for your patience.');
@@ -246,6 +294,7 @@ export default function AdminPanel() {
     ['leaderboard','🏆','Leaderboard'],
     ['callflows','📞','Call Flows'],
     ['evaluations','📤','Evaluations'],
+    ['scripts','📋','Update Scripts'],
     ['maintenance','🔧','Maintenance'],
   ];
 
