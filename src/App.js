@@ -15,22 +15,22 @@ const API = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';
 // Wraps the app — shows maintenance screen for agents if active
 function MaintenanceGate({ children }) {
   const { user } = useAuth();
-  const [maintenance, setMaintenance] = useState(null); // null = loading
+  const [maintenance, setMaintenance] = useState({ active: false, message: '' });
 
   useEffect(() => {
+    // Timeout after 3s so a slow API never blocks the whole app
+    const timer = setTimeout(() => setMaintenance({ active: false, message: '' }), 3000);
     fetch(`${API}/api/maintenance`)
       .then(r => r.json())
-      .then(d => setMaintenance(d))
-      .catch(() => setMaintenance({ active: false, message: '' }));
+      .then(d => { clearTimeout(timer); setMaintenance(d || { active: false, message: '' }); })
+      .catch(() => { clearTimeout(timer); setMaintenance({ active: false, message: '' }); });
+    return () => clearTimeout(timer);
   }, []);
 
-  // Still loading — show nothing (avoids flash)
-  if (maintenance === null) return null;
-
-  // Only show maintenance screen to agents (role === 'agent')
-  // QA officers, team leads, supervisors bypass it
+  // Never block login page or non-agents
+  const isLoginPage = window.location.pathname === '/login';
   const isAgent = !user || user.role === 'agent';
-  if (maintenance.active && isAgent) {
+  if (maintenance.active && isAgent && !isLoginPage) {
     return <MaintenanceScreen message={maintenance.message} />;
   }
 
