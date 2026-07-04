@@ -275,9 +275,9 @@ export default function AgentView() {
               <span style={{ fontSize:'12px', fontWeight:'700', color: DM.subText, marginRight:'4px' }}>🌐 Language</span>
               {[
   ['en','🇬🇧 English'],
-  ['ku','☀️ سۆرانی'],
-  ['ba','🏔️ بادینی'],
-  ['ar','🇮🇶 العربية']
+['ku','☀️ سۆرانی'],
+['ba','🏔️ بادینی'],
+['ar','🌙 العربية']
 ].map(([l,lbl]) => (
                 <button key={l} onClick={() => setLang(l)} style={{ padding:'7px 18px', borderRadius:'100px', border:`1.5px solid ${lang===l ? NAVY : DM.border}`, background: lang===l ? NAVY : DM.cardBg, fontSize:'12px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', color: lang===l ? '#fff' : DM.subText, transition:'all .15s' }}>
                   {lbl}
