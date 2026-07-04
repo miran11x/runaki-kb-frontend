@@ -426,35 +426,7 @@ function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRati
       : 'No translation available yet'
   )
 }
-  <div
-  style={{
-    fontSize:'13.5px',
-    color:DM.subText,
-    lineHeight:'1.8',
-    whiteSpace:'pre-line',
-    direction:
-      lang === 'ku' || lang === 'ba' || lang === 'ar'
-        ? 'rtl'
-        : 'ltr',
-    textAlign:
-      lang === 'ku' || lang === 'ba' || lang === 'ar'
-        ? 'right'
-        : 'left'
-  }}
->
-  {
-    answer ||
-    (
-      lang === 'ku'
-        ? 'هێشتا وەرگێڕانی سۆرانی زیاد نەکراوە'
-        : lang === 'ba'
-        ? 'هێشتا وەرگێرانا بادینی زیاد نەبوویە'
-        : lang === 'ar'
-        ? 'لا توجد ترجمة عربية حتى الآن'
-        : 'No translation available yet'
-    )
-  }
-</div>
+ 
 </div>
           {/* Footer: tags + rating */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'14px', flexWrap:'wrap', gap:'8px' }}>
