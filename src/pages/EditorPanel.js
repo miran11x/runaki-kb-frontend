@@ -58,6 +58,7 @@ export default function EditorPanel() {
 
   const saveFaq = async e => {
     e.preventDefault(); setLoading(true);
+    console.log('SAVING FAQ', editFaq);
     try {
       isNew ? await api.post('/faqs', editFaq) : await api.put(`/faqs/${editFaq.id}`, editFaq);
       toast.success(isNew ? 'FAQ created!' : 'FAQ updated!');
