@@ -373,11 +373,25 @@ function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRati
       ? 'right'
       : 'left'
 }}>
-  {lang === 'en' ? faq.question_en :
-   lang === 'ku' ? faq.question_ku :
-   lang === 'ba' ? faq.question_ba :
-   lang === 'ar' ? faq.question_ar :
-   faq.question_en}
+  {
+  (
+    lang === 'en' ? faq.question_en :
+    lang === 'ku' ? faq.question_ku :
+    lang === 'ba' ? faq.question_ba :
+    lang === 'ar' ? faq.question_ar :
+    faq.question_en
+  )
+  ||
+  (
+    lang === 'ku'
+      ? 'هێشتا وەرگێڕانی سۆرانی زیاد نەکراوە'
+      : lang === 'ba'
+      ? 'هێشتا وەرگێرانا بادینی زیاد نەبوویە'
+      : lang === 'ar'
+      ? 'لا توجد ترجمة عربية حتى الآن'
+      : 'No translation available yet'
+  )
+}
 </div>
          
         </div>
@@ -407,26 +421,7 @@ function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRati
         ? 'right'
         : 'left'
   }}
->{
-  (
-    lang === 'en' ? faq.answer_en :
-    lang === 'ku' ? faq.answer_ku :
-    lang === 'ba' ? faq.answer_ba :
-    lang === 'ar' ? faq.answer_ar :
-    faq.answer_en
-  )
-  ||
-  (
-    lang === 'ku'
-      ? 'هێشتا وەرگێڕانی سۆرانی زیاد نەکراوە'
-      : lang === 'ba'
-      ? 'هێشتا وەرگێرانا بادینی زیاد نەبوویە'
-      : lang === 'ar'
-      ? 'لا توجد ترجمة عربية حتى الآن'
-      : 'No translation available yet'
-  )
-}
- 
+>
 </div>
           {/* Footer: tags + rating */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'14px', flexWrap:'wrap', gap:'8px' }}>
