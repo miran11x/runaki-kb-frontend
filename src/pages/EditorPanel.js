@@ -159,11 +159,22 @@ export default function EditorPanel() {
   type="file"
   accept=".json"
   style={{ display: 'none' }}
-  onChange={(e) => {
+  onChange={async (e) => {
     const file = e.target.files[0];
 
-    if (file) {
-      toast.success(`Selected: ${file.name}`);
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const faqs = JSON.parse(text);
+
+      console.log('Imported FAQs:', faqs);
+
+      toast.success(
+        `${faqs.length} FAQs loaded successfully`
+      );
+    } catch (err) {
+      toast.error('Invalid JSON file');
     }
   }}
 />
