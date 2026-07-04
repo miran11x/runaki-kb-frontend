@@ -133,9 +133,26 @@ export default function EditorPanel() {
                   <option value="All">All Categories</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <button style={S.addBtn} onClick={() => { setEditFaq({...emptyFaq}); setIsNew(true); }}>
-                  + New FAQ
-                </button>
+               <div style={{ display: 'flex', gap: '10px' }}>
+  <button
+    style={S.addBtn}
+    onClick={() => {
+      setEditFaq({ ...emptyFaq });
+      setIsNew(true);
+    }}
+  >
+    + New FAQ
+  </button>
+
+  <button
+    style={{
+      ...S.addBtn,
+      background: '#16a34a'
+    }}
+  >
+    📥 Import FAQs
+  </button>
+</div>
               </div>
 
               {/* FAQ Edit Modal */}
