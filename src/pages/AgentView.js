@@ -357,6 +357,8 @@ if (tr.data) setTip(tr.data);
 
 function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRating, onRate, darkMode, DM }) {
 
+  console.log('CARD', faq.id, faq.question_en, faq.question_ba);
+
   console.log(
     'FAQ:',
     faq.id,
@@ -365,7 +367,11 @@ function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRati
     faq.question_ar
   );
 
-  const meta = CAT_META[faq.category] || { color:NAVY, bg:'#f1f5f9', grad:`linear-gradient(135deg,#0B1120,#1e293b)` };
+  const meta = CAT_META[faq.category] || {
+    color: NAVY,
+    bg: '#f1f5f9',
+    grad: `linear-gradient(135deg,#0B1120,#1e293b)`
+  };
   return (
     <div style={{ background:DM.cardBg, borderRadius:'16px', border:`1px solid ${isOpen ? '#cbd5e1' : DM.border}`, overflow:'hidden', transition:'all .2s', boxShadow: isOpen ? '0 12px 32px rgba(0,0,0,0.1)' : DM.shadow, transform: isOpen ? 'translateY(-2px)' : 'none' }}>
       <button style={{ display:'flex', alignItems:'flex-start', gap:'12px', padding:'16px', background:'none', border:'none', width:'100%', cursor:'pointer', fontFamily:'inherit' }} onClick={onToggle}>
