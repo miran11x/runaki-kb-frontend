@@ -358,16 +358,28 @@ function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRati
       <button style={{ display:'flex', alignItems:'flex-start', gap:'12px', padding:'16px', background:'none', border:'none', width:'100%', cursor:'pointer', fontFamily:'inherit' }} onClick={onToggle}>
         <div style={{ width:'4px', alignSelf:'stretch', borderRadius:'4px', background:meta.grad, flexShrink:0 }} />
         <div style={{ flex:1, textAlign:'left' }}>
-          <div style={{ fontSize:'14px', fontWeight:'700', color:DM.text, lineHeight:'1.45', letterSpacing:'-0.01em' }}>
+          <div style={{
+  fontSize:'14px',
+  fontWeight:'700',
+  color:DM.text,
+  lineHeight:'1.45',
+  letterSpacing:'-0.01em',
+  direction:
+    lang === 'ku' || lang === 'ba' || lang === 'ar'
+      ? 'rtl'
+      : 'ltr',
+  textAlign:
+    lang === 'ku' || lang === 'ba' || lang === 'ar'
+      ? 'right'
+      : 'left'
+}}>
   {lang === 'en' ? faq.question_en :
    lang === 'ku' ? faq.question_ku :
    lang === 'ba' ? faq.question_ba :
    lang === 'ar' ? faq.question_ar :
    faq.question_en}
 </div>
-          {(lang === 'ku' || lang === 'both') && faq.question_ku && (
-            <div style={{ fontSize:'12px', color:DM.subText, direction:'rtl', textAlign:'right', marginTop:'5px', fontWeight:'500' }}>{faq.question_ku}</div>
-          )}
+         
         </div>
         <div style={{ display:'flex', gap:'6px', alignItems:'center', flexShrink:0 }}>
           {/* Bookmark button */}
