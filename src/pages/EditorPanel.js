@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import Sidebar from '../components/Sidebar';
@@ -27,6 +27,7 @@ export default function EditorPanel() {
   const [tipForm, setTipForm] = useState({ title:'', content:'', category:'General' });
   const [loading, setLoading] = useState(false);
   const [sideSearch, setSideSearch] = useState('');
+  const fileInputRef = useRef(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_editor_dark') === '1');
   const toggleDark = () => { const n = !darkMode; setDarkMode(n); localStorage.setItem('rk_editor_dark', n?'1':'0'); };
 
@@ -145,13 +146,27 @@ export default function EditorPanel() {
   </button>
 
   <button
-    style={{
-      ...S.addBtn,
-      background: '#16a34a'
-    }}
-  >
-    📥 Import FAQs
-  </button>
+  style={{
+    ...S.addBtn,
+    background: '#16a34a'
+  }}
+  onClick={() => fileInputRef.current?.click()}
+>
+  📥 Import FAQs
+</button>
+<input
+  ref={fileInputRef}
+  type="file"
+  accept=".json"
+  style={{ display: 'none' }}
+  onChange={(e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      toast.success(`Selected: ${file.name}`);
+    }
+  }}
+/>
 </div>
               </div>
 
