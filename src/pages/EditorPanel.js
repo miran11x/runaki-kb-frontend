@@ -231,6 +231,53 @@ export default function EditorPanel() {
                         <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Answer (Kurdish)</label>
                         <textarea value={editFaq.answer_ku} onChange={e => setEditFaq({...editFaq,answer_ku:e.target.value})} style={{...S.mInput,height:'100px',resize:'vertical',direction:'rtl'}} placeholder="وەڵام بە کوردی" />
                       </div>
+                      <div style={S.mField}>
+  <label style={{ ...S.mLabel, color: darkMode ? 'rgba(255,255,255,0.6)' : NAVY }}>
+    Question (Badini)
+  </label>
+  <input
+    value={editFaq.question_ba || ''}
+    onChange={e => setEditFaq({ ...editFaq, question_ba: e.target.value })}
+    style={{ ...S.mInput }}
+    placeholder="Pirsiya bi Badinî"
+  />
+</div>
+
+<div style={S.mField}>
+  <label style={{ ...S.mLabel, color: darkMode ? 'rgba(255,255,255,0.6)' : NAVY }}>
+    Answer (Badini)
+  </label>
+  <textarea
+    value={editFaq.answer_ba || ''}
+    onChange={e => setEditFaq({ ...editFaq, answer_ba: e.target.value })}
+    style={{ ...S.mInput, height:'100px', resize:'vertical' }}
+    placeholder="Bersiva bi Badinî"
+  />
+</div>
+
+<div style={S.mField}>
+  <label style={{ ...S.mLabel, color: darkMode ? 'rgba(255,255,255,0.6)' : NAVY }}>
+    Question (Arabic)
+  </label>
+  <input
+    value={editFaq.question_ar || ''}
+    onChange={e => setEditFaq({ ...editFaq, question_ar: e.target.value })}
+    style={{ ...S.mInput, direction:'rtl' }}
+    placeholder="السؤال بالعربية"
+  />
+</div>
+
+<div style={S.mField}>
+  <label style={{ ...S.mLabel, color: darkMode ? 'rgba(255,255,255,0.6)' : NAVY }}>
+    Answer (Arabic)
+  </label>
+  <textarea
+    value={editFaq.answer_ar || ''}
+    onChange={e => setEditFaq({ ...editFaq, answer_ar: e.target.value })}
+    style={{ ...S.mInput, height:'100px', resize:'vertical', direction:'rtl' }}
+    placeholder="الإجابة بالعربية"
+  />
+</div>
                       <div style={S.mRow}>
                         <div style={S.mField}>
                           <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Tags</label>
