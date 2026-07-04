@@ -12,7 +12,20 @@ const BG = '#f8fafc';
 const CATEGORIES = ['Inquiries','Billing Complaints','General Complaints','Service Requests','Feedback & Others','New Updates'];
 const TIP_CATEGORIES = ['General','KYC','Billing','Outage','Dunning','e-Psûle','USSD','Service','Scripts'];
 
-const emptyFaq = { category:'Inquiries', subcategory:'', question_en:'', answer_en:'', question_ku:'', answer_ku:'', tags:'', is_published:true };
+const emptyFaq = {
+  category:'Inquiries',
+  subcategory:'',
+  question_en:'',
+  answer_en:'',
+  question_ku:'',
+  answer_ku:'',
+  question_ba:'',
+  answer_ba:'',
+  question_ar:'',
+  answer_ar:'',
+  tags:'',
+  is_published:true
+};
 
 export default function EditorPanel() {
   const navigate = useNavigate();
