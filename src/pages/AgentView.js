@@ -134,8 +134,11 @@ export default function AgentView() {
         api.get('/ratings/mine/all').catch(() => ({ data: [] })),
         api.get('/announcements').catch(() => ({ data: [] })),
       ]);
-      setFaqs(fr.data);
-      if (tr.data) setTip(tr.data);
+     setFaqs(fr.data);
+
+console.log('FAQ DATA:', fr.data.find(f => f.id === 174));
+
+if (tr.data) setTip(tr.data);
       setBookmarks(br.data);
       const rmap = {};
       rr.data.forEach(r => { rmap[r.faq_id] = r.helpful; });
