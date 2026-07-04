@@ -236,11 +236,14 @@ export default function EditorPanel() {
     Question (Badini)
   </label>
   <input
-    value={editFaq.question_ba || ''}
-    onChange={e => setEditFaq({ ...editFaq, question_ba: e.target.value })}
-    style={{ ...S.mInput }}
-    placeholder="Pirsiya bi Badinî"
-  />
+  value={editFaq.question_ba || ''}
+  onChange={e => setEditFaq({ ...editFaq, question_ba: e.target.value })}
+  style={{
+    ...S.mInput,
+    direction:'rtl'
+  }}
+  placeholder="پرسیار بە بادینی"
+/>
 </div>
 
 <div style={S.mField}>
@@ -248,11 +251,16 @@ export default function EditorPanel() {
     Answer (Badini)
   </label>
   <textarea
-    value={editFaq.answer_ba || ''}
-    onChange={e => setEditFaq({ ...editFaq, answer_ba: e.target.value })}
-    style={{ ...S.mInput, height:'100px', resize:'vertical' }}
-    placeholder="Bersiva bi Badinî"
-  />
+  value={editFaq.answer_ba || ''}
+  onChange={e => setEditFaq({ ...editFaq, answer_ba: e.target.value })}
+  style={{
+    ...S.mInput,
+    height:'100px',
+    resize:'vertical',
+    direction:'rtl'
+  }}
+  placeholder="وەڵام بە بادینی"
+/>
 </div>
 
 <div style={S.mField}>
