@@ -404,7 +404,17 @@ panel={panel}
     color:'red'
   }}
 >
-  TEST QUESTION: {faq.question_en}
+{
+  lang === 'en'
+    ? faq.question_en
+    : lang === 'ku'
+    ? (faq.question_ku || faq.question_en)
+    : lang === 'ba'
+    ? (faq.question_ba || faq.question_en)
+    : lang === 'ar'
+    ? (faq.question_ar || faq.question_en)
+    : faq.question_en
+}
 </div>
           
           </div>
