@@ -233,20 +233,7 @@ export default function EditorPanel() {
       rows = rows.concat(sheetRows);
     });
 
-    const res = await fetch(
-      `${API}/api/faqs/import`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          rows
-        })
-      }
-    );
-
+  
     const data = await res.json();
 
     if (!res.ok) {
