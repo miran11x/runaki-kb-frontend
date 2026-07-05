@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
@@ -204,22 +205,65 @@ export default function EditorPanel() {
   accept=".xlsx,.xls"
   style={{ display: 'none' }}
   onChange={async (e) => {
+  const file = e.target.files[0];
 
-    if (!file) return;
+  if (!file) return;
 
-    try {
-      const text = await file.text();
-      const faqs = JSON.parse(text);
+  try {
 
-      console.log('Imported FAQs:', faqs);
+    const buffer = await file.arrayBuffer();
 
-      toast.success(
-        `${faqs.length} FAQs loaded successfully`
+    const workbook = XLSX.read(buffer, {
+      type: 'array'
+    });
+
+    let rows = [];
+
+    workbook.SheetNames.forEach(sheetName => {
+      const sheet = workbook.Sheets[sheetName];
+
+      const sheetRows = XLSX.utils.sheet_to_json(
+        sheet,
+        { defval: '' }
       );
-    } catch (err) {
-      toast.error('Invalid JSON file');
+
+      rows = rows.concat(sheetRows);
+    });
+
+    const res = await fetch(
+      `${API}/api/faqs/import`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          rows
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data.error || 'Import failed'
+      );
     }
-  }}
+
+    toast.success(
+      `${data.imported} FAQs imported successfully`
+    );
+
+  } catch (err) {
+    console.error(err);
+
+    toast.error(
+      err.message || 'Failed to import Excel file'
+    );
+  }
+}}
 />
 </div>
               </div>
