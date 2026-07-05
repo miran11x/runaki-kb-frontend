@@ -232,19 +232,16 @@ export default function EditorPanel() {
 
       rows = rows.concat(sheetRows);
     });
+const response = await api.post(
+  '/faqs/import',
+  { rows }
+);
 
-  
-    const data = await res.json();
+toast.success(
+  `${response.data.imported} FAQs imported successfully`
+);
 
-    if (!res.ok) {
-      throw new Error(
-        data.error || 'Import failed'
-      );
-    }
-
-    toast.success(
-      `${data.imported} FAQs imported successfully`
-    );
+loadFaqs();
 
   } catch (err) {
     console.error(err);
