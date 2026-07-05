@@ -201,10 +201,9 @@ export default function EditorPanel() {
 <input
   ref={fileInputRef}
   type="file"
-  accept=".json"
+  accept=".xlsx,.xls"
   style={{ display: 'none' }}
   onChange={async (e) => {
-    const file = e.target.files[0];
 
     if (!file) return;
 
