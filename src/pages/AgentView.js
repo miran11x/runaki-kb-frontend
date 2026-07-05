@@ -397,33 +397,15 @@ panel={panel}
         <button style={{ display:'flex', alignItems:'flex-start', gap:'12px', padding:'16px', background:'none', border:'none', width:'100%', cursor:'pointer', fontFamily:'inherit' }} onClick={onToggle}>
           <div style={{ width:'4px', alignSelf:'stretch', borderRadius:'4px', background:meta.grad, flexShrink:0 }} />
           <div style={{ flex:1, textAlign:'left' }}>
-            <div style={{
+            <div
+  style={{
     fontSize:'14px',
     fontWeight:'700',
-    color:DM.text,
-    lineHeight:'1.45',
-    letterSpacing:'-0.01em',
-    direction:
-      lang === 'ku' || lang === 'ba' || lang === 'ar'
-        ? 'rtl'
-        : 'ltr',
-    textAlign:
-      lang === 'ku' || lang === 'ba' || lang === 'ar'
-        ? 'right'
-        : 'left'
-  }}>
-  {
-  lang === 'en'
-    ? faq.answer_en
-    : lang === 'ku'
-    ? (faq.answer_ku || '🚧 وەرگێڕان لە ژێر ئامادەکردندایە. بەزوویی زیاد دەکرێت.')
-    : lang === 'ba'
-    ? (faq.answer_ba || '🚧 وەرگێران ل ژێر ئامادەکرنێ دایە. ب زوویی دهێتە زیادکرن.')
-    : lang === 'ar'
-    ? (faq.answer_ar || '🚧 الترجمة قيد الإعداد. ستتوفر قريباً.')
-    : faq.answer_en
-}
- </div>
+    color:'red'
+  }}
+>
+  TEST QUESTION: {faq.question_en}
+</div>
           
           </div>
           <div style={{ display:'flex', gap:'6px', alignItems:'center', flexShrink:0 }}>
@@ -453,13 +435,13 @@ panel={panel}
           : 'left'
     }}
   >
-    {
-      lang === 'en' ? faq.answer_en :
-      lang === 'ku' ? faq.answer_ku :
-      lang === 'ba' ? faq.answer_ba :
-      lang === 'ar' ? faq.answer_ar :
-      faq.answer_en
-    }
+  {
+       lang === 'en' ? faq.answer_en :
+       lang === 'ku' ? (faq.answer_ku || '🚧 وەرگێڕان لە ژێر ئامادەکردندایە. بەزوویی زیاد دەکرێت.') :
+       lang === 'ba' ? (faq.answer_ba || '🚧 وەرگێران ل ژێر ئامادەکرنێ دایە. ب زوویی دهێتە زیادکرن.') :
+       lang === 'ar' ? (faq.answer_ar || '🚧 الترجمة قيد الإعداد. ستتوفر قريباً.') :
+  faq.answer_en
+}
   </div>
             {/* Footer: tags + rating */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'14px', flexWrap:'wrap', gap:'8px' }}>
