@@ -109,11 +109,35 @@ export default function EditorPanel() {
     toast.success('Tip deleted'); loadTips();
   };
 
-  const filtered = faqs.filter(f => {
-    const matchCat = catFilter === 'All' || f.category === catFilter;
-    const matchSearch = !search || f.question_en.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
-  });
+ const filtered = faqs.filter(f => {
+  const matchCat =
+    catFilter === 'All' ||
+    f.category === catFilter;
+
+  const q = search.toLowerCase();
+
+  const matchSearch =
+    !search ||
+
+    (f.question_en || '').toLowerCase().includes(q) ||
+    (f.answer_en || '').toLowerCase().includes(q) ||
+
+    (f.question_ku || '').toLowerCase().includes(q) ||
+    (f.answer_ku || '').toLowerCase().includes(q) ||
+
+    (f.question_ba || '').toLowerCase().includes(q) ||
+    (f.answer_ba || '').toLowerCase().includes(q) ||
+
+    (f.question_ar || '').toLowerCase().includes(q) ||
+    (f.answer_ar || '').toLowerCase().includes(q) ||
+
+    (f.category || '').toLowerCase().includes(q) ||
+    (f.subcategory || '').toLowerCase().includes(q) ||
+
+    (f.tags || '').toLowerCase().includes(q);
+
+  return matchCat && matchSearch;
+});
 
   return (
     <div style={{ ...S.layout, background: darkMode ? '#080e18' : '#f0f4ff' }}>

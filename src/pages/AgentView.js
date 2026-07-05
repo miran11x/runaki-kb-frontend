@@ -189,11 +189,31 @@ if (tr.data) setTip(tr.data);
 
   const panelFaqs = () => {
     if (panel === '_bookmarks') return faqs.filter(f => bookmarks.includes(f.id));
-    if (search) return faqs.filter(f =>
-      [f.question_en, f.answer_en, f.category, f.subcategory].some(x =>
-        (x||'').toLowerCase().includes(search.toLowerCase())
-      )
-    );
+    if (search) {
+  const q = search.toLowerCase();
+
+  return faqs.filter(f =>
+    [
+      f.question_en,
+      f.answer_en,
+
+      f.question_ku,
+      f.answer_ku,
+
+      f.question_ba,
+      f.answer_ba,
+
+      f.question_ar,
+      f.answer_ar,
+
+      f.category,
+      f.subcategory,
+      f.tags
+    ].some(x =>
+      (x || '').toLowerCase().includes(q)
+    )
+  );
+}
     const fn = PANEL_FILTER[panel];
     return fn ? faqs.filter(fn) : [];
   };
