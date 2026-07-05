@@ -1000,51 +1000,386 @@ panel={panel}
     );
   }
 
-function RUNAKIAIAssistant({ DM }) {
+function RUNAKIAIAssistant({ darkMode, DM }) {
   const [question, setQuestion] = React.useState('');
+  const [answer, setAnswer] = React.useState('');
+
+const askAI = (q = question) => {
+  const text = q?.trim();
+
+  if (!text) return;
+
+  setAnswer(`
+Question:
+${text}
+
+Suggested Resolution:
+
+1. Check the FAQ section first.
+2. Verify customer information.
+3. Follow the relevant process or call flow.
+4. Escalate if required.
+  `);
+};
+
+  const quickActions = [
+    'Customer paid but still disconnected',
+    'KYC rejected',
+    'High bill complaint',
+    'Runaki App registration issue',
+    'Wrong tariff complaint',
+    'Which call flow should I use?'
+  ];
 
   return (
-    <div
-      style={{
-        background: DM.cardBg,
-        borderRadius: '18px',
-        padding: '24px',
-        border: `1px solid ${DM.border}`
-      }}
-    >
-      <h2>🤖 Runaki AI Assistant</h2>
-
-      <p style={{ color: DM.subText }}>
-        Ask anything about Runaki processes,
-        billing, KYC, outages, scripts, or call flows.
-      </p>
-
-      <textarea
-        value={question}
-        onChange={e => setQuestion(e.target.value)}
-        placeholder="Example: Customer paid but is still disconnected..."
+    <div>
+      {/* Hero */}
+      <div
         style={{
-          width: '100%',
-          minHeight: '120px',
-          marginTop: '16px',
-          borderRadius: '12px',
-          padding: '12px'
-        }}
-      />
-
-      <button
-        style={{
-          marginTop: '12px',
-          padding: '12px 20px',
-          borderRadius: '10px',
-          border: 'none',
-          cursor: 'pointer'
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '28px',
+          padding: '32px',
+          background:
+            'linear-gradient(135deg,#0B1120 0%,#182235 100%)',
+          color: '#fff',
+          marginBottom: '24px'
         }}
       >
-        Ask AI
-      </button>
+        <div
+          style={{
+            position: 'absolute',
+            top: '-80px',
+            right: '-80px',
+            width: '250px',
+            height: '250px',
+            borderRadius: '50%',
+            background: 'rgba(255,107,53,.18)',
+            filter: 'blur(60px)'
+          }}
+        />
+
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 2
+          }}
+        >
+          <div
+  style={{
+    width: '72px',
+    height: '72px',
+    borderRadius: '20px',
+    background:
+      'linear-gradient(135deg,#FF6B35,#ff8f66)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '34px',
+    marginBottom: '18px',
+    boxShadow: '0 10px 30px rgba(255,107,53,.35)'
+  }}
+>
+  🤖
+</div>
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '32px',
+              fontWeight: '800'
+            }}
+          >
+            Runaki AI Assistant
+          </h1>
+
+          <p
+            style={{
+              marginTop: '10px',
+              color: 'rgba(255,255,255,.7)',
+              fontSize: '15px'
+            }}
+          >{/* Search */}
+            Your intelligent assistant for FAQs,
+            KYC, Billing, Outages, Scripts and
+            Operations Support.
+          </p>
+        </div>
+      </div>
+
+{/* Stats Cards */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4,1fr)',
+          gap: '12px',
+          marginBottom: '24px'
+        }}
+      >
+        {[
+          ['📖', 'FAQs'],
+          ['📞', 'Call Flows'],
+          ['📱', 'KYC'],
+          ['⚡', 'Processes']
+        ].map(([icon, label]) => (
+          <div
+            key={label}
+            style={{
+              background: '#fff',
+              borderRadius: '18px',
+              padding: '20px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 4px 12px rgba(0,0,0,.04)'
+            }}
+          >
+            <div style={{ fontSize: '24px' }}>
+              {icon}
+            </div>
+
+            <div
+              style={{
+                fontWeight: '700',
+                marginTop: '8px'
+              }}
+            >
+              {label}
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Search */}
+<div
+  style={{
+      color: DM.subText,
+
+    background: 'rgba(255,255,255,0.95)',
+    borderRadius: '28px',
+    backdropFilter: 'blur(20px)',
+    padding: '20px',
+    border: '1px solid #e2e8f0',
+    boxShadow: '0 10px 30px rgba(15,22,41,.05)',
+    marginBottom: '24px'
+  }}
+>
+  
+  <div
+    style={{
+      display: 'flex',
+      gap: '12px',
+      alignItems: 'center'
+    }}
+  >
+    <input
+      value={question}
+      onChange={e => setQuestion(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          askAI();
+        }
+      }}
+      placeholder="Ask Runaki AI Assistant..."
+      style={{
+        flex: 1,
+        height: '60px',
+        borderRadius: '16px',
+        border: '1px solid #e2e8f0',
+        padding: '0 20px',
+        fontSize: '15px',
+        outline: 'none'
+      }}
+    />
+
+    <button
+      onClick={askAI}
+      style={{
+        height: '60px',
+        padding: '0 24px',
+        border: 'none',
+        borderRadius: '16px',
+        background: '#FF6B35',
+        color: '#fff',
+        fontWeight: '700',
+        cursor: 'pointer'
+      }}
+    >
+      ⚡ Ask
+    </button>
+  </div>
+</div>
+<div>
+  {answer || 'NO ANSWER YET'}
+</div>
+  <div
+    style={{
+      background: DM.cardBg,
+      border: `1px solid ${DM.border}`,
+      borderRadius: '24px',
+      padding: '24px',
+      marginBottom: '24px'
+    }}
+  >
+    <h3 style={{ color: DM.text, marginTop: 0 }}>
+      🤖 AI Response
+    </h3>
+
+    <div
+  style={{
+    color: DM.subText,
+    lineHeight: '1.8',
+    whiteSpace: 'pre-line'
+  }}
+>
+  {answer}
+</div>
+  </div>
+)}
+
+      {/* Quick Actions */}
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: '24px',
+          padding: '24px',
+          border: '1px solid #e2e8f0',
+          marginBottom: '24px'
+        }}
+      >
+        <h3
+          style={{
+            marginTop: 0,
+            marginBottom: '18px'
+          }}
+        >
+          ⚡ Quick Actions
+        </h3>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))',
+            gap: '12px',
+          }}
+        >
+          {quickActions.map(item => (
+            <button
+              key={item}
+             onClick={() => {
+  setQuestion(item);
+  askAI(item);
+}}
+              style={{
+  border: '1px solid rgba(15,22,41,.08)',
+  background: '#fff',
+  padding: '12px 18px',
+  borderRadius: '18px',
+  cursor: 'pointer',
+  fontWeight: '700',
+  transition: 'all .2s ease',
+  boxShadow: '0 4px 12px rgba(0,0,0,.04)',
+  minWidth: '220px',
+  textAlign: 'left',
+
+  
+}}
+onMouseEnter={(e) => {
+  e.currentTarget.style.transform = 'translateY(-2px)';
+  e.currentTarget.style.borderColor = '#FF6B35';
+}}
+
+onMouseLeave={(e) => {
+  e.currentTarget.style.transform = 'translateY(0)';
+  e.currentTarget.style.borderColor = 'rgba(15,22,41,.08)';
+}}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Empty State */}
+{/* Empty State */}
+<div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: '2fr 1fr',
+    gap: '20px'
+  }}
+>
+  <div
+    style={{
+      background: '#fff',
+      borderRadius: '24px',
+      padding: '40px',
+      border: '1px solid #e2e8f0'
+    }}
+  >
+    <div style={{ fontSize: '54px' }}>🤖</div>
+
+    <h2>Ready to Assist</h2>
+
+    <p style={{ color: '#64748b' }}>
+      Ask a question and receive FAQ matches,
+      resolution guidance, call flows, and scripts.
+    </p>
+  </div>
+
+  <div
+    style={{
+      background: '#fff',
+      borderRadius: '24px',
+      padding: '24px',
+      border: '1px solid #e2e8f0'
+    }}
+  >
+    <h3 style={{ marginTop: 0 }}>
+      Quick Tips
+    </h3>
+
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px'
+      }}
+    >
+      <div style={{
+        padding:'12px',
+        background:'#f8fafc',
+        borderRadius:'12px'
+      }}>
+        📱 KYC Rejected
+      </div>
+
+      <div style={{
+        padding:'12px',
+        background:'#f8fafc',
+        borderRadius:'12px'
+      }}>
+        💳 High Bill Complaint
+      </div>
+
+      <div style={{
+        padding:'12px',
+        background:'#f8fafc',
+        borderRadius:'12px'
+      }}>
+        ⚡ Outage Process
+      </div>
+
+      <div style={{
+        padding:'12px',
+        background:'#f8fafc',
+        borderRadius:'12px'
+      }}>
+        🏗 Runaki App Registration
+      </div>
     </div>
-  );
+  </div>
+</div>
+</div>
+);
 }
   const S = {
     layout: { display:'flex', height:'100vh', overflow:'hidden', fontFamily:"'Inter','Segoe UI',sans-serif" },
