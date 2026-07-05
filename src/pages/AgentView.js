@@ -230,7 +230,7 @@
 
     const items = panelFaqs();
     const groups = grouped(items);
-    const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_evaluations','_updatescripts'].includes(panel);
+    const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_evaluations','_updatescripts','_ai'].includes(panel);
 
     if (loading) return (
       <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
@@ -1001,26 +1001,48 @@ panel={panel}
   }
 
 function AIAssistant({ DM }) {
+  const [question, setQuestion] = React.useState('');
+
   return (
     <div
       style={{
         background: DM.cardBg,
-        borderRadius: '16px',
+        borderRadius: '18px',
         padding: '24px',
         border: `1px solid ${DM.border}`
       }}
     >
       <h2>🤖 Runaki AI Assistant</h2>
 
-      <p
+      <p style={{ color: DM.subText }}>
+        Ask anything about Runaki processes,
+        billing, KYC, outages, scripts, or call flows.
+      </p>
+
+      <textarea
+        value={question}
+        onChange={e => setQuestion(e.target.value)}
+        placeholder="Example: Customer paid but is still disconnected..."
         style={{
-          color: DM.subText,
-          marginTop: '10px'
+          width: '100%',
+          minHeight: '120px',
+          marginTop: '16px',
+          borderRadius: '12px',
+          padding: '12px'
+        }}
+      />
+
+      <button
+        style={{
+          marginTop: '12px',
+          padding: '12px 20px',
+          borderRadius: '10px',
+          border: 'none',
+          cursor: 'pointer'
         }}
       >
-        Ask questions about FAQs, processes, call flows, KYC,
-        billing complaints, and Runaki operations.
-      </p>
+        Ask AI
+      </button>
     </div>
   );
 }
