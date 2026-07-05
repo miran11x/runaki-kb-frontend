@@ -59,7 +59,7 @@
     'feedback':'Feedback & Others','_updates':'New Updates',
     '_restree':'Resolution Tree','_scripts':'Scripts & Processes','_priority':'Case Priorities',
     '_search':'Search Results','_bookmarks':'⭐ Bookmarks',
-    '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling','_ai':'🤖 AI Assistant',
+    '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling','_ai':'🤖 RUNAKI AI Assistant',
   };
 
   export default function AgentView() {
@@ -334,7 +334,7 @@ panel={panel}
             {panel === '_maintenance'   && <MaintenanceLookup darkMode={darkMode} />}
             {panel === '_evaluations'   && <MyEvaluations darkMode={darkMode} />}
             {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
-            {panel === '_ai' && <AIAssistant darkMode={darkMode} DM={DM} />}
+            {panel === '_ai' && <RUNAKIAIAssistant darkMode={darkMode} DM={DM} />}
 
             {/* Bookmarks empty */}
             {panel === '_bookmarks' && items.length === 0 && (
@@ -1000,7 +1000,7 @@ panel={panel}
     );
   }
 
-function AIAssistant({ DM }) {
+function RUNAKIAIAssistant({ DM }) {
   const [question, setQuestion] = React.useState('');
 
   return (
