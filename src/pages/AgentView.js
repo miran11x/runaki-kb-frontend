@@ -45,6 +45,7 @@
     '_traccess':   () => false,
     '_callflows':  () => false,
     '_maintenance': () => false,
+    '_ai': () => false,
     'inq-runakirapp': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase() === 'runaki app',
   };
 
@@ -58,7 +59,7 @@
     'feedback':'Feedback & Others','_updates':'New Updates',
     '_restree':'Resolution Tree','_scripts':'Scripts & Processes','_priority':'Case Priorities',
     '_search':'Search Results','_bookmarks':'⭐ Bookmarks',
-    '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling',
+    '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling','_ai':'🤖 AI Assistant',
   };
 
   export default function AgentView() {
@@ -333,6 +334,7 @@ panel={panel}
             {panel === '_maintenance'   && <MaintenanceLookup darkMode={darkMode} />}
             {panel === '_evaluations'   && <MyEvaluations darkMode={darkMode} />}
             {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
+            {panel === '_ai' && <AIAssistant darkMode={darkMode} DM={DM} />}
 
             {/* Bookmarks empty */}
             {panel === '_bookmarks' && items.length === 0 && (
@@ -998,7 +1000,30 @@ panel={panel}
     );
   }
 
+function AIAssistant({ DM }) {
+  return (
+    <div
+      style={{
+        background: DM.cardBg,
+        borderRadius: '16px',
+        padding: '24px',
+        border: `1px solid ${DM.border}`
+      }}
+    >
+      <h2>🤖 Runaki AI Assistant</h2>
 
+      <p
+        style={{
+          color: DM.subText,
+          marginTop: '10px'
+        }}
+      >
+        Ask questions about FAQs, processes, call flows, KYC,
+        billing complaints, and Runaki operations.
+      </p>
+    </div>
+  );
+}
   const S = {
     layout: { display:'flex', height:'100vh', overflow:'hidden', fontFamily:"'Inter','Segoe UI',sans-serif" },
     body: { flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 },

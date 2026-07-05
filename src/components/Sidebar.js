@@ -15,6 +15,7 @@ const ROLE_META = {
 };
 
 const RESOURCE_ITEMS = [
+  { id:'_ai', icon:'🤖', label:'AI Assistant' },
   { id:'_maintenance', icon:'🔧', label:'Maintenance Lookup' },
   { id:'_restree',   icon:'🌳', label:'Resolution Tree'     },
   { id:'_scripts',   icon:'📞', label:'Scripts & Processes' },
