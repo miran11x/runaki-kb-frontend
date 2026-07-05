@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -5,6 +6,10 @@ import api from '../utils/api';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
+
+const API =
+  process.env.REACT_APP_API_URL ||
+  'https://runaki-kb-api.vercel.app';
 
 const NAVY = '#0F1629';
 const ORANGE = '#FF6B35';
