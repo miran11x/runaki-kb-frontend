@@ -423,7 +423,7 @@ panel={panel}
     ? (faq.answer_ar || '🚧 الترجمة قيد الإعداد. ستتوفر قريباً.')
     : faq.answer_en
 }
-  </div>
+ </div>
           
           </div>
           <div style={{ display:'flex', gap:'6px', alignItems:'center', flexShrink:0 }}>
