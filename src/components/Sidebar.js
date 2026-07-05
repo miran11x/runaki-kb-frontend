@@ -133,7 +133,6 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
   placeholder="Quick search..."
   value={search}
   onChange={e => {
-    console.log('TYPING:', e.target.value);
 
     setSearch(e.target.value);
 
