@@ -334,7 +334,13 @@ panel={panel}
             {panel === '_maintenance'   && <MaintenanceLookup darkMode={darkMode} />}
             {panel === '_evaluations'   && <MyEvaluations darkMode={darkMode} />}
             {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
-            {panel === '_ai' && <RUNAKIAIAssistant darkMode={darkMode} DM={DM} />}
+            {panel === '_ai' && (
+  <RUNAKIAIAssistant
+    darkMode={darkMode}
+    DM={DM}
+    faqs={faqs}
+  />
+)}
 
             {/* Bookmarks empty */}
             {panel === '_bookmarks' && items.length === 0 && (
@@ -401,7 +407,19 @@ panel={panel}
   style={{
     fontSize:'14px',
     fontWeight:'700',
-    color:DM.text
+    color:DM.text,
+    direction:
+      lang === 'ku' ||
+      lang === 'ba' ||
+      lang === 'ar'
+        ? 'rtl'
+        : 'ltr',
+    textAlign:
+      lang === 'ku' ||
+      lang === 'ba' ||
+      lang === 'ar'
+        ? 'right'
+        : 'left'
   }}
 >
 {
@@ -992,26 +1010,163 @@ panel={panel}
     );
   }
 
-function RUNAKIAIAssistant({ darkMode, DM }) {
+function RUNAKIAIAssistant({
+  darkMode,
+  DM,
+  faqs
+}){
+
   const [question, setQuestion] = React.useState('');
-  const [answer, setAnswer] = React.useState('');
+  const [results, setResults] = React.useState([]);
+
+  const [resultLanguage, setResultLanguage] =
+    React.useState('en');
+
+const detectLanguage = (text) => {
+  const t = text.toLowerCase();
+
+  // Badini
+  if (
+    t.includes('ئه‌ز') ||
+    t.includes('ئه‌ڤ') ||
+    t.includes('چاوا') ||
+    t.includes('دبیت') ||
+    t.includes('دێت')
+  ) {
+    return 'ba';
+  }
+
+  // Sorani
+  if (
+    t.includes('ڕ') ||
+    t.includes('ڵ') ||
+    t.includes('ۆ') ||
+    t.includes('ێ') ||
+    t.includes('ە')
+  ) {
+    return 'ku';
+  }
+
+  // Arabic
+  if (/[\u0600-\u06FF]/.test(t)) {
+    return 'ar';
+  }
+
+  return 'en';
+};
 
 const askAI = (q = question) => {
-  const text = q?.trim();
 
-  if (!text) return;
+  const query = q?.trim().toLowerCase();
 
-  setAnswer(`
-Question:
-${text}
+  const detectedLang = detectLanguage(query);
+  setResultLanguage(detectedLang);
 
-Suggested Resolution:
+  if (!query) {
+    setResults([]);
+    return;
+  }
 
-1. Check the FAQ section first.
-2. Verify customer information.
-3. Follow the relevant process or call flow.
-4. Escalate if required.
-  `);
+  const queryWords = query
+  .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+  .split(/\s+/)
+  .filter(w => w.length > 1);
+
+  const matches = faqs
+    .map(faq => {
+
+      let score = 0;
+
+      const questionText = [
+  faq.question_en,
+  faq.question_ku,
+  faq.question_ba,
+  faq.question_ar
+]
+  .filter(Boolean)
+  .join(' ')
+  .toLowerCase();
+
+const answerText = [
+  faq.answer_en,
+  faq.answer_ku,
+  faq.answer_ba,
+  faq.answer_ar
+]
+  .filter(Boolean)
+  .join(' ')
+  .toLowerCase();
+
+      const categoryText =
+        (faq.category || '').toLowerCase();
+
+      const subcategoryText =
+        (faq.subcategory || '').toLowerCase();
+
+      const tagsText =
+        (faq.tags || '').toLowerCase();
+
+
+     const questionWords = questionText.split(/\s+/);
+const answerWords = answerText.split(/\s+/);
+
+queryWords.forEach(word => {
+
+  // Question
+  if (questionWords.includes(word))
+    score += 40;
+  else if (questionText.includes(word))
+    score += 15;
+{
+  score += 10;
+}
+
+
+  // Tags
+  if (tagsText.includes(word))
+    score += 30;
+
+  // Subcategory
+  if (subcategoryText.includes(word))
+    score += 25;
+
+  // Category
+  if (categoryText.includes(word))
+    score += 20;
+
+  // Answer
+  if (answerWords.includes(word))
+    score += 15;
+  else if (answerText.includes(word))
+    score += 5;
+});
+
+      if (questionText.includes(query))
+  score += 100;
+
+if (tagsText.includes(query))
+  score += 80;
+
+if (subcategoryText.includes(query))
+  score += 70;
+
+if (categoryText.includes(query))
+  score += 60;
+
+if (answerText.includes(query))
+  score += 50;
+
+      return {
+        faq,
+        score
+      };
+
+    })
+    .filter(x => x.score >= 25)
+    .sort((a,b) => b.score - a.score)
+    .slice(0,5);
+
+  setResults(matches);
 };
 
   const quickActions = [
@@ -1141,39 +1296,157 @@ Suggested Resolution:
 
       {/* Search */}
 
-{answer && (
-  <div
-    style={{
-      background: DM.cardBg,
-      border: `1px solid ${DM.border}`,
-      borderRadius: '24px',
-      padding: '24px',
-      marginBottom: '24px'
-    }}
-  >
-    <h3
+{results.length > 0 && (
+
+<div
   style={{
-    color: DM.text,
-    marginTop: 0,
-    fontSize: '18px',
-    fontWeight: '700'
+    display:'flex',
+    flexDirection:'column',
+    gap:'16px',
+    marginBottom:'24px'
   }}
 >
-  Suggested Resolution
-</h3>
+
+  {results.map(({ faq, score }) => (
 
     <div
+      key={faq.id}
+      style={{
+        background:DM.cardBg,
+        border:`1px solid ${DM.border}`,
+        borderRadius:'20px',
+        padding:'20px'
+      }}
+    >
+
+      <div
+        style={{
+          color:'#10b981',
+          fontWeight:'800',
+          marginBottom:'10px'
+        }}
+      >
+        ✅ Approved Runaki Knowledge
+      </div>
+
+      <div
   style={{
-    color: DM.subText,
-    lineHeight: '1.8',
-    whiteSpace: 'pre-line'
+    color: DM.text,
+    fontSize: '18px',
+    fontWeight: '800',
+    marginBottom: '12px',
+    direction:
+      resultLanguage === 'ku' ||
+      resultLanguage === 'ba' ||
+      resultLanguage === 'ar'
+        ? 'rtl'
+        : 'ltr',
+    textAlign:
+      resultLanguage === 'ku' ||
+      resultLanguage === 'ba' ||
+      resultLanguage === 'ar'
+        ? 'right'
+        : 'left'
   }}
 >
-  {answer}
+  📌 {
+    resultLanguage === 'ba'
+      ? (
+          faq.question_ba ||
+          faq.question_ku ||
+          faq.question_en
+        )
+      : resultLanguage === 'ku'
+      ? (
+          faq.question_ku ||
+          faq.question_en
+        )
+      : resultLanguage === 'ar'
+      ? (
+          faq.question_ar ||
+          faq.question_en
+        )
+      : faq.question_en
+  }
 </div>
-  </div>
-)}
 
+      <div
+  style={{
+    color:DM.subText,
+    lineHeight:'1.8',
+    whiteSpace:'pre-wrap',
+    direction:
+      resultLanguage === 'ku' ||
+      resultLanguage === 'ba' ||
+      resultLanguage === 'ar'
+        ? 'rtl'
+        : 'ltr',
+    textAlign:
+      resultLanguage === 'ku' ||
+      resultLanguage === 'ba' ||
+      resultLanguage === 'ar'
+        ? 'right'
+        : 'left'
+  }}
+>
+ {
+  resultLanguage === 'ba'
+    ? (
+        faq.answer_ba ||
+        faq.answer_ku ||
+        faq.answer_en
+      )
+    : resultLanguage === 'ku'
+    ? (
+        faq.answer_ku ||
+        faq.answer_en
+      )
+    : resultLanguage === 'ar'
+    ? (
+        faq.answer_ar ||
+        faq.answer_en
+      )
+    : faq.answer_en
+}
+      </div>
+
+      <div
+        style={{
+          marginTop:'12px',
+          display:'flex',
+          gap:'8px'
+        }}
+      >
+        <span
+          style={{
+            background:'#eef2ff',
+            padding:'4px 10px',
+            borderRadius:'999px',
+            fontSize:'12px'
+          }}
+        >
+          {faq.category}
+        </span>
+
+        <span
+          style={{
+            background:'#f8fafc',
+            padding:'4px 10px',
+            borderRadius:'999px',
+            fontSize:'12px'
+          }}
+        >
+          {faq.subcategory}
+        </span>
+      </div>
+
+    </div>
+
+  ))}
+
+</div>
+
+)}
       {/* Quick Actions */}
       <div
         style={{
@@ -1240,7 +1513,28 @@ onMouseLeave={(e) => {
       </div>
 
   {/* Empty State */}
-{!answer && (
+  {question && results.length === 0 && (
+
+  <div
+    style={{
+      background:'#fef2f2',
+      border:'1px solid #fecaca',
+      color:'#dc2626',
+      padding:'18px',
+      borderRadius:'16px',
+      marginBottom:'20px'
+    }}
+  >
+    <strong>No approved Runaki knowledge found for:</strong>
+
+    <div style={{ marginTop:'8px' }}>
+      "{question}"
+    </div>
+
+  </div>
+
+)}
+{!question && results.length === 0 && (
   <div
     style={{
       display: 'grid',
