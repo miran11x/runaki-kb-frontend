@@ -134,14 +134,20 @@ export default function EditorPanel() {
     (f.category || '').toLowerCase().includes(q) ||
     (f.subcategory || '').toLowerCase().includes(q) ||
 
-    (f.tags || '').toLowerCase().includes(q);
+   String(f.tags || '').toLowerCase().includes(q);
 
   return matchCat && matchSearch;
 });
 
   return (
     <div style={{ ...S.layout, background: darkMode ? '#080e18' : '#f0f4ff' }}>
-      <Sidebar panel={null} setPanel={() => navigate('/')} search={sideSearch} setSearch={setSideSearch} />
+      <Sidebar
+  panel={null}
+  setPanel={() => navigate('/')}
+  search={sideSearch}
+  setSearch={setSideSearch}
+  faqs={faqs}
+/>
       <div style={S.body}>
         <Topbar
           title="FAQ Editor"

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import React, { useState, useEffect, useMemo } from 'react';
+
 
 const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -12,24 +13,6 @@ const ROLE_META = {
   qa_officer: { label: 'QA Officer', color: '#34d399', bg: 'rgba(52,211,153,0.18)' },
   agent: { label: 'Agent', color: '#60a5fa', bg: 'rgba(96,165,250,0.18)' },
 };
-
-const FAQ_CHILDREN = [
-  { id:'inq-runakirapp', icon:'📱', label:'Runaki App',       badge:11 },
-  { id:'inq-runaki',  icon:'🏗️', label:'Runaki Project',    badge:24 },
-  { id:'inq-kyc',     icon:'🪪',  label:'KYC',              badge:24 },
-  { id:'inq-billing', icon:'💳', label:'Billing Inquiries',  badge:18 },
-  { id:'inq-dunning', icon:'⚠️', label:'Dunning',           badge:14 },
-  { id:'inq-epsule',  icon:'📱', label:'e-Psûle',           badge:11 },
-  { id:'inq-ussd',    icon:'📲', label:'USSD',              badge:5  },
-  { id:'inq-solar',   icon:'☀️', label:'Solar & Other',     badge:7  },
-];
-
-const FAQ_ITEMS = [
-  { id:'billing',  icon:'💳', label:'Billing Complaints',  badge:22 },
-  { id:'general',  icon:'⚡', label:'General Complaints',  badge:7  },
-  { id:'service',  icon:'🔧', label:'Service Requests',    badge:9  },
-  { id:'feedback', icon:'💌', label:'Feedback & Others',   badge:2  },
-];
 
 const RESOURCE_ITEMS = [
   { id:'_maintenance', icon:'🔧', label:'Maintenance Lookup' },
@@ -44,9 +27,16 @@ const RESOURCE_ITEMS = [
   { id:'_bookmarks', icon:'⭐', label:'My Bookmarks'        },
 ];
 
-export default function Sidebar({ panel, setPanel, search, setSearch }) {
+export default function Sidebar({
+  panel,
+  setPanel,
+  search,
+  setSearch,
+  faqs = []
+}) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
@@ -57,9 +47,98 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
   }, []);
   const location = useLocation();
   const [inqOpen, setInqOpen] = useState(true);
-  const [collapsed, setCollapsed] = useState(false);
   const [hasActiveScript, setHasActiveScript] = useState(false);
   const rm = ROLE_META[user?.role] || ROLE_META.agent;
+  const faqCounts = useMemo(() => ({
+  inquiries: faqs.filter(
+    f => f.category === 'Inquiries'
+  ).length,
+
+  runakiApp: faqs.filter(
+    f =>
+      f.category === 'Inquiries' &&
+      (f.subcategory || '').toLowerCase() === 'runaki app'
+  ).length,
+
+  runaki: faqs.filter(
+  f =>
+    f.category === 'Inquiries' &&
+    (f.subcategory || '').toLowerCase().includes('runaki') &&
+    (f.subcategory || '').toLowerCase() !== 'runaki app'
+).length,
+
+  kyc: faqs.filter(
+    f =>
+      f.category === 'Inquiries' &&
+      (f.subcategory || '').toLowerCase().includes('kyc')
+  ).length,
+
+  billingInquiries: faqs.filter(
+    f =>
+      f.category === 'Inquiries' &&
+      (f.subcategory || '').toLowerCase().includes('billing')
+  ).length,
+
+  dunning: faqs.filter(
+    f =>
+      f.category === 'Inquiries' &&
+      (f.subcategory || '').toLowerCase().includes('dunning')
+  ).length,
+
+  epsule: faqs.filter(
+    f =>
+      f.category === 'Inquiries' &&
+      (f.subcategory || '').toLowerCase().includes('psule')
+  ).length,
+
+  ussd: faqs.filter(
+    f =>
+      f.category === 'Inquiries' &&
+      (f.subcategory || '').toLowerCase().includes('ussd')
+  ).length,
+
+  solar: faqs.filter(
+    f =>
+      f.category === 'Inquiries' &&
+      (
+        (f.subcategory || '').toLowerCase().includes('solar') ||
+        (f.subcategory || '').toLowerCase().includes('other')
+      )
+  ).length,
+
+  billingComplaints: faqs.filter(
+    f => f.category === 'Billing Complaints'
+  ).length,
+
+  generalComplaints: faqs.filter(
+    f => f.category === 'General Complaints'
+  ).length,
+
+  serviceRequests: faqs.filter(
+    f => f.category === 'Service Requests'
+  ).length,
+
+  feedback: faqs.filter(
+    f => f.category === 'Feedback & Others'
+  ).length,
+}), [faqs]);
+const FAQ_CHILDREN = [
+  { id:'inq-runakirapp', icon:'📱', label:'Runaki App', badge:faqCounts.runakiApp },
+  { id:'inq-runaki', icon:'🏗️', label:'Runaki Project', badge:faqCounts.runaki },
+  { id:'inq-kyc', icon:'🪪', label:'KYC', badge:faqCounts.kyc },
+  { id:'inq-billing', icon:'💳', label:'Billing Inquiries', badge:faqCounts.billingInquiries },
+  { id:'inq-dunning', icon:'⚠️', label:'Dunning', badge:faqCounts.dunning },
+  { id:'inq-epsule', icon:'📱', label:'e-Psûle', badge:faqCounts.epsule },
+  { id:'inq-ussd', icon:'📲', label:'USSD', badge:faqCounts.ussd },
+  { id:'inq-solar', icon:'☀️', label:'Solar & Other', badge:faqCounts.solar },
+];
+
+const FAQ_ITEMS = [
+  { id:'billing', icon:'💳', label:'Billing Complaints', badge:faqCounts.billingComplaints },
+  { id:'general', icon:'⚡', label:'General Complaints', badge:faqCounts.generalComplaints },
+  { id:'service', icon:'🔧', label:'Service Requests', badge:faqCounts.serviceRequests },
+  { id:'feedback', icon:'💌', label:'Feedback & Others', badge:faqCounts.feedback },
+];
 
   useEffect(() => {
     const BASE = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';
@@ -164,7 +243,7 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
         {/* Knowledge Base */}
         {!collapsed && <div style={{ ...S.groupLabel, marginTop:'6px' }}>📋 Knowledge Base</div>}
 
-        <NI icon="💬" label="Inquiries" badge={103} collapsed={collapsed}
+        <NI icon="💬" label="Inquiries" badge={faqCounts.inquiries} collapsed={collapsed}
           active={panel==='inquiries'}
           onClick={() => { setInqOpen(!inqOpen); go('inquiries'); }}
           suffix={!collapsed && (
