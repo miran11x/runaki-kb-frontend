@@ -412,17 +412,17 @@ panel={panel}
         ? 'right'
         : 'left'
   }}>
-    {
-    lang === 'en'
-      ? faq.question_en
-      : lang === 'ku'
-      ? faq.question_ku
-      : lang === 'ba'
-      ? faq.question_ba
-      : lang === 'ar'
-      ? faq.question_ar
-      : faq.question_en
-  }
+  {
+  lang === 'en'
+    ? faq.answer_en
+    : lang === 'ku'
+    ? (faq.answer_ku || '🚧 وەرگێڕان لە ژێر ئامادەکردندایە. بەزوویی زیاد دەکرێت.')
+    : lang === 'ba'
+    ? (faq.answer_ba || '🚧 وەرگێران ل ژێر ئامادەکرنێ دایە. ب زوویی دهێتە زیادکرن.')
+    : lang === 'ar'
+    ? (faq.answer_ar || '🚧 الترجمة قيد الإعداد. ستتوفر قريباً.')
+    : faq.answer_en
+}
   </div>
           
           </div>
