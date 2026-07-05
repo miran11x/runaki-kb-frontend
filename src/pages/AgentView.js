@@ -401,7 +401,7 @@ panel={panel}
   style={{
     fontSize:'14px',
     fontWeight:'700',
-    color:'red'
+    color:DM.text
   }}
 >
 {
