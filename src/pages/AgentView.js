@@ -247,7 +247,12 @@ if (tr.data) setTip(tr.data);
         @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
       `}</style>
-      <Sidebar panel={panel} setPanel={p => { setPanel(p); setSearch(''); }} search={search} setSearch={setSearch} />
+      <Sidebar
+  panel={panel}
+  setPanel={setPanel}
+  search={search}
+  setSearch={setSearch}
+/>
       <div style={S.body}>
         <Topbar
           title={PANEL_LABELS[search ? '_search' : panel] || 'Knowledge Base'}

@@ -97,8 +97,8 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
         width: '260px', boxShadow: mobileOpen ? '4px 0 30px rgba(0,0,0,0.5)' : 'none',
       } : {})
     }}
-      onMouseEnter={() => setCollapsed(false)}
-      onMouseLeave={() => setCollapsed(true)}
+      // onMouseEnter={() => setCollapsed(false)}
+    // onMouseLeave={() => setCollapsed(true)}
     >
       {/* ── BRAND ── */}
       <div style={S.brand}>
@@ -130,11 +130,19 @@ export default function Sidebar({ panel, setPanel, search, setSearch }) {
         <div style={S.searchWrap}>
           <span style={S.searchIco}>🔍</span>
           <input
-            placeholder="Quick search..."
-            value={search}
-            onChange={e => { setSearch(e.target.value); if (e.target.value) go('_search'); }}
-            style={S.searchInput}
-          />
+  placeholder="Quick search..."
+  value={search}
+  onChange={e => {
+    console.log('TYPING:', e.target.value);
+
+    setSearch(e.target.value);
+
+    if (e.target.value && panel !== '_search') {
+      setPanel('_search');
+    }
+  }}
+  style={S.searchInput}
+/>
           {search && (
             <button style={S.searchClear} onClick={() => { setSearch(''); setPanel('billing'); }}>✕</button>
           )}
