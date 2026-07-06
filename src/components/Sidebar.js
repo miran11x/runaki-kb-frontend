@@ -32,9 +32,46 @@ export default function Sidebar({
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
+
   const location = useLocation();
-  const [inqOpen, setInqOpen] = useState(true);
+  const [faqOpen, setFaqOpen] = useState(true);
+  const [inqOpen, setInqOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [opsOpen, setOpsOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const [personalOpen, setPersonalOpen] = useState(false);
   const [hasActiveScript, setHasActiveScript] = useState(false);
+    useEffect(() => {
+  if (panel?.startsWith('inq-')) {
+    setFaqOpen(true);
+    setInqOpen(true);
+  }
+
+  if (
+    ['_ai-kb', '_ai-categorizer'].includes(panel)
+  ) {
+    setAiOpen(true);
+  }
+
+  if (
+    ['_callflows', '_restree', '_scripts', '_priority', '_holdunhold']
+      .includes(panel)
+  ) {
+    setOpsOpen(true);
+  }
+
+  if (
+    ['_maintenance', '_kyc'].includes(panel)
+  ) {
+    setToolsOpen(true);
+  }
+
+  if (
+    ['_bookmarks', '_evaluations'].includes(panel)
+  ) {
+    setPersonalOpen(true);
+  }
+}, [panel]);
   const rm = ROLE_META[user?.role] || ROLE_META.agent;
   const faqCounts = useMemo(() => ({
   inquiries: faqs.filter(
@@ -227,137 +264,270 @@ const FAQ_ITEMS = [
           )}
         </div>
 
-        {/* FAQs */}
-        {!collapsed && <div style={{ ...S.groupLabel, marginTop:'6px' }}> 📚 FAQs</div>}
-
-        <NI icon="💬" label="Inquiries" badge={faqCounts.inquiries} collapsed={collapsed}
-          active={panel==='inquiries'}
-          onClick={() => { setInqOpen(!inqOpen); go('inquiries'); }}
-          suffix={!collapsed && (
-            <span style={{ fontSize:'13px', color:'rgba(255,255,255,0.35)', transition:'transform .2s', display:'inline-block', transform: inqOpen?'rotate(90deg)':'none' }}>›</span>
-          )}
-        />
-        {inqOpen && !collapsed && FAQ_CHILDREN.map(c => (
-          <NI key={c.id} icon={c.icon} label={c.label} badge={c.badge} sub collapsed={collapsed}
-            active={panel===c.id} onClick={() => go(c.id)} />
-        ))}
-        {FAQ_ITEMS.map(item => (
-  <NI
-    key={item.id}
-    icon={item.icon}
-    label={item.label}
-    badge={item.badge}
-    collapsed={collapsed}
-    active={panel === item.id}
-    onClick={() => go(item.id)}
-  />
-))}
-
-<NI
-  icon="🆕"
-  label="New Updates"
-  active={panel === '_updates'}
+        <NI
+        folder
+  icon="📚"
+  label="FAQs"
   collapsed={collapsed}
-  onClick={() => go('_updates')}
+  active={faqOpen}
+  onClick={() => setFaqOpen(!faqOpen)}
+  suffix={
+    !collapsed && (
+      <span
+        style={{
+          transform: faqOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+          transition: '0.2s'
+        }}
+      >
+        ›
+      </span>
+    )
+  }
 />
+
+{faqOpen && (
+  <>
+    <NI
+    folder
+      icon="💬"
+      label="Inquiries"
+      badge={faqCounts.inquiries}
+      collapsed={collapsed}
+      active={inqOpen}
+      sub
+      onClick={() => setInqOpen(!inqOpen)}
+      suffix={
+        !collapsed && (
+          <span
+            style={{
+              transform: inqOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+              transition: '0.2s'
+            }}
+          >
+            ›
+          </span>
+        )
+      }
+    />
+
+    {inqOpen && FAQ_CHILDREN.map(c => (
+      <NI
+        key={c.id}
+        icon={c.icon}
+        label={c.label}
+        badge={c.badge}
+        sub
+        collapsed={collapsed}
+        active={panel === c.id}
+        onClick={() => go(c.id)}
+      />
+    ))}
+
+    {FAQ_ITEMS.map(item => (
+      <NI
+        key={item.id}
+        icon={item.icon}
+        label={item.label}
+        badge={item.badge}
+        collapsed={collapsed}
+        active={panel === item.id}
+        onClick={() => go(item.id)}
+      />
+    ))}
+
+    <NI
+      icon="🆕"
+      label="New Updates"
+      collapsed={collapsed}
+      active={panel === '_updates'}
+      onClick={() => go('_updates')}
+    />
+  </>
+)}
 
 {/* RUNAKI AI */}
-{!collapsed && (
-  <div style={{ ...S.groupLabel, marginTop:'10px' }}>
-    🤖 RUNAKI AI
-  </div>
-)}
-
 <NI
-  icon="🧠"
-  label="Knowledge Assistant"
-  active={panel === '_ai-kb'}
+folder
+  icon="🤖"
+  label="RUNAKI AI"
   collapsed={collapsed}
-  onClick={() => go('_ai-kb')}
+  active={aiOpen}
+  onClick={() => setAiOpen(!aiOpen)}
+  suffix={
+    !collapsed && (
+      <span
+        style={{
+          transform: aiOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+          transition: '0.2s'
+        }}
+      >
+        ›
+      </span>
+    )
+  }
 />
 
+{aiOpen && (
+  <>
+    <NI
+      icon="🧠"
+      label="Knowledge Assistant"
+      sub
+      collapsed={collapsed}
+      active={panel === '_ai-kb'}
+      onClick={() => go('_ai-kb')}
+    />
+
+    <NI
+      icon="🏷️"
+      label="Case Categorizer"
+      sub
+      collapsed={collapsed}
+      active={panel === '_ai-categorizer'}
+      onClick={() => go('_ai-categorizer')}
+    />
+  </>
+)}
+
+{/* OPERATIONS */}
 <NI
-  icon="🏷️"
-  label="Case Categorizer"
-  active={panel === '_ai-categorizer'}
+folder
+  icon="📞"
+  label="Operations"
   collapsed={collapsed}
-  onClick={() => go('_ai-categorizer')}
+  active={opsOpen}
+  onClick={() => setOpsOpen(!opsOpen)}
+  suffix={
+    !collapsed && (
+      <span
+        style={{
+          transform: opsOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+          transition: '0.2s'
+        }}
+      >
+        ›
+      </span>
+    )
+  }
 />
 
-{!collapsed && (
-  <div style={{ ...S.groupLabel, marginTop:'10px' }}>
-    📞 Operations
-  </div>
+{opsOpen && (
+  <>
+    <NI sub icon="📞" label="Call Flows" collapsed={collapsed}
+      active={panel === '_callflows'}
+      onClick={() => go('_callflows')}
+    />
+
+    <NI sub icon="🌳" label="Resolution Tree" collapsed={collapsed}
+      active={panel === '_restree'}
+      onClick={() => go('_restree')}
+    />
+
+    <NI sub icon="📋" label="Scripts & Processes" collapsed={collapsed}
+      active={panel === '_scripts'}
+      onClick={() => go('_scripts')}
+    />
+
+    <NI sub icon="🎯" label="Case Priorities" collapsed={collapsed}
+      active={panel === '_priority'}
+      onClick={() => go('_priority')}
+    />
+
+    <NI sub icon="⏸️" label="Hold & Unhold" collapsed={collapsed}
+      active={panel === '_holdunhold'}
+      onClick={() => go('_holdunhold')}
+    />
+  </>
 )}
 
-<NI icon="📞" label="Call Flows"
-  active={panel === '_callflows'}
+{/* TOOLS */}
+<NI
+folder
+  icon="🛠️"
+  label="Tools"
   collapsed={collapsed}
-  onClick={() => go('_callflows')}
+  active={toolsOpen}
+  onClick={() => setToolsOpen(!toolsOpen)}
+  suffix={
+    !collapsed && (
+      <span
+        style={{
+          transform: toolsOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+          transition: '0.2s'
+        }}
+      >
+        ›
+      </span>
+    )
+  }
 />
 
-<NI icon="🌳" label="Resolution Tree"
-  active={panel === '_restree'}
-  collapsed={collapsed}
-  onClick={() => go('_restree')}
-/>
+{toolsOpen && (
+  <>
+    <NI
+      sub
+      icon="🔧"
+      label="Maintenance Lookup"
+      collapsed={collapsed}
+      active={panel === '_maintenance'}
+      onClick={() => go('_maintenance')}
+    />
 
-<NI icon="📋" label="Scripts & Processes"
-  active={panel === '_scripts'}
-  collapsed={collapsed}
-  onClick={() => go('_scripts')}
-/>
-
-<NI icon="🎯" label="Case Priorities"
-  active={panel === '_priority'}
-  collapsed={collapsed}
-  onClick={() => go('_priority')}
-/>
-
-<NI icon="⏸️" label="Hold & Unhold"
-  active={panel === '_holdunhold'}
-  collapsed={collapsed}
-  onClick={() => go('_holdunhold')}
-/>
-
-{!collapsed && (
-  <div style={{ ...S.groupLabel, marginTop:'10px' }}>
-    🛠 Tools
-  </div>
+    <NI
+      sub
+      icon="📱"
+      label="KYC Platform Outputs"
+      collapsed={collapsed}
+      active={panel === '_kyc'}
+      onClick={() => go('_kyc')}
+    />
+  </>
 )}
 
-<NI icon="🔧" label="Maintenance Lookup"
-  active={panel === '_maintenance'}
+{/* PERSONAL */}
+<NI
+folder
+  icon="⭐"
+  label="Personal"
   collapsed={collapsed}
-  onClick={() => go('_maintenance')}
+  active={personalOpen}
+  onClick={() => setPersonalOpen(!personalOpen)}
+  suffix={
+    !collapsed && (
+      <span
+        style={{
+          transform: personalOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+          transition: '0.2s'
+        }}
+      >
+        ›
+      </span>
+    )
+  }
 />
 
-<NI icon="📱" label="KYC Platform Outputs"
-  active={panel === '_kyc'}
-  collapsed={collapsed}
-  onClick={() => go('_kyc')}
-/>
+{personalOpen && (
+  <>
+    <NI
+      sub
+      icon="⭐"
+      label="My Bookmarks"
+      collapsed={collapsed}
+      active={panel === '_bookmarks'}
+      onClick={() => go('_bookmarks')}
+    />
 
-{!collapsed && (
-  <div style={{ ...S.groupLabel, marginTop:'10px' }}>
-    ⭐ Personal
-  </div>
+    <NI
+      sub
+      icon="📝"
+      label="My Evaluations"
+      collapsed={collapsed}
+      active={panel === '_evaluations'}
+      onClick={() => go('_evaluations')}
+    />
+  </>
 )}
 
-<NI icon="⭐" label="My Bookmarks"
-  active={panel === '_bookmarks'}
-  collapsed={collapsed}
-  onClick={() => go('_bookmarks')}
-/>
-
-<NI icon="📝" label="My Evaluations"
-  active={panel === '_evaluations'}
-  collapsed={collapsed}
-  onClick={() => go('_evaluations')}
-/>
-
-
-        
       </nav>
 
       {/* ── LOGOUT ── */}
@@ -372,7 +542,18 @@ const FAQ_ITEMS = [
   );
 }
 
-function NI({ icon, label, badge, active, sub, onClick, suffix, hot, collapsed }) {
+function NI({
+  icon,
+  label,
+  badge,
+  active,
+  sub,
+  folder,
+  onClick,
+  suffix,
+  hot,
+  collapsed
+}) {
   const [hov, setHov] = useState(false);
   return (
     <button
@@ -381,18 +562,31 @@ function NI({ icon, label, badge, active, sub, onClick, suffix, hot, collapsed }
       onMouseLeave={() => setHov(false)}
       title={collapsed ? label : undefined}
       style={{
-        ...S.ni,
-        ...(sub && !collapsed ? S.niSub : {}),
-        ...(active ? S.niActive : hov ? S.niHov : {}),
+  ...S.ni,
+  ...(folder ? S.folderNi : {}),
+ ...(folder && active
+  ? S.folderActive
+  : active
+    ? S.niActive
+    : hov
+      ? S.niHov
+      : {}),
         justifyContent: collapsed ? 'center' : 'flex-start',
-        padding: collapsed ? '10px 0' : sub ? '7px 12px 7px 22px' : '9px 12px',
+        padding:
+  collapsed
+    ? '10px 0'
+    : folder
+      ? '11px 12px'
+      : sub
+        ? '7px 12px 7px 42px'
+        : '9px 12px',
       }}
     >
       <span style={{ fontSize: collapsed ? '18px' : '15px', flexShrink:0, width:'22px', textAlign:'center' }}>{icon}</span>
       {!collapsed && (
         <>
           <span style={{
-            flex:1, fontSize:'13px', fontWeight: active?'700':'500',
+            flex:1, fontSize:'13px',fontWeight: folder ? '700' : active ? '700' : '500',
             color: active?'#fff':'rgba(255,255,255,0.7)',
             overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textAlign:'left'
           }}>{label}</span>
@@ -411,6 +605,20 @@ function NI({ icon, label, badge, active, sub, onClick, suffix, hot, collapsed }
 }
 
 const S = {
+
+  folderNi: {
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: '12px',
+  marginTop: '8px',
+  marginBottom: '4px',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+},
+
+folderActive: {
+  background: 'rgba(255,107,53,0.08)',
+  border: '1px solid rgba(255,107,53,0.18)',
+},
   aside: {
     flexShrink:0,
     background:`linear-gradient(180deg,#0f1623 0%,#0B1120 100%)`,
@@ -469,7 +677,7 @@ const S = {
     cursor:'pointer', fontFamily:'inherit', transition:'all .14s',
     boxSizing:'border-box', overflow:'hidden', whiteSpace:'nowrap',
   },
-  niSub: { paddingLeft:'26px !important' },
+
   niActive: {
     background:'rgba(255,107,53,0.15)',
     borderLeft:`2px solid ${ORANGE}`,
