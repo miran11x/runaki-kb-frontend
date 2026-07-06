@@ -1057,7 +1057,12 @@ const detectLanguage = (text) => {
 
 const askAI = (q = question) => {
 
-  const query = q?.trim().toLowerCase();
+const synonyms = {
+  customer: ['customer','costumer','client','consumer'],
+  received: ['received','recived','got'],
+  bill: ['bill','billing','invoice'],
+  high: ['high','expensive','large']
+};
 
   const detectedLang = detectLanguage(query);
   setResultLanguage(detectedLang);
@@ -1117,9 +1122,6 @@ queryWords.forEach(word => {
     score += 40;
   else if (questionText.includes(word))
     score += 15;
-{
-  score += 10;
-}
 
 
   // Tags

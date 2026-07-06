@@ -14,20 +14,6 @@ const ROLE_META = {
   agent: { label: 'Agent', color: '#60a5fa', bg: 'rgba(96,165,250,0.18)' },
 };
 
-const RESOURCE_ITEMS = [
-  { id:'_ai', icon:'🤖', label:'RUNAKI AI Assistant' },
-  { id:'_maintenance', icon:'🔧', label:'Maintenance Lookup' },
-  { id:'_restree',   icon:'🌳', label:'Resolution Tree'     },
-  { id:'_scripts',   icon:'📞', label:'Scripts & Processes' },
-  { id:'_priority',  icon:'🎯', label:'Case Priorities'     },
-  { id:'_kyc',       icon:'📱', label:'KYC Platform'        },
-  { id:'_holdunhold',icon:'⏸️', label:'Hold & Unhold'       },
-  { id:'_traccess',  icon:'⚡', label:'TR Access'           },
-  { id:'_callflows', icon:'📞', label:'Call Flows'           },
-  { id:'_updates',   icon:'🆕', label:'New Updates'         },
-  { id:'_bookmarks', icon:'⭐', label:'My Bookmarks'        },
-];
-
 export default function Sidebar({
   panel,
   setPanel,
@@ -241,8 +227,8 @@ const FAQ_ITEMS = [
           )}
         </div>
 
-        {/* Knowledge Base */}
-        {!collapsed && <div style={{ ...S.groupLabel, marginTop:'6px' }}>📋 Knowledge Base</div>}
+        {/* FAQs */}
+        {!collapsed && <div style={{ ...S.groupLabel, marginTop:'6px' }}> 📚 FAQs</div>}
 
         <NI icon="💬" label="Inquiries" badge={faqCounts.inquiries} collapsed={collapsed}
           active={panel==='inquiries'}
@@ -256,31 +242,122 @@ const FAQ_ITEMS = [
             active={panel===c.id} onClick={() => go(c.id)} />
         ))}
         {FAQ_ITEMS.map(item => (
-          <NI key={item.id} icon={item.icon} label={item.label} badge={item.badge} collapsed={collapsed}
-            active={panel===item.id} onClick={() => go(item.id)} />
-        ))}
+  <NI
+    key={item.id}
+    icon={item.icon}
+    label={item.label}
+    badge={item.badge}
+    collapsed={collapsed}
+    active={panel === item.id}
+    onClick={() => go(item.id)}
+  />
+))}
 
-        {/* Resources */}
-        {!collapsed && <div style={{ ...S.groupLabel, marginTop:'6px' }}>🗂️ Resources</div>}
-        {RESOURCE_ITEMS.map(item => (
-          <NI key={item.id} icon={item.icon} label={item.label} badge={item.badge} hot={item.hot} collapsed={collapsed}
-            active={panel===item.id} onClick={() => go(item.id)} />
-        ))}
+<NI
+  icon="🆕"
+  label="New Updates"
+  active={panel === '_updates'}
+  collapsed={collapsed}
+  onClick={() => go('_updates')}
+/>
 
-        {/* Management */}
-        {(user?.role === 'qa_officer' || user?.role === 'team_lead') && (
-          <>
-            {!collapsed && <div style={{ ...S.groupLabel, marginTop:'6px' }}>⚙️ Management</div>}
-            <NI icon="✏️" label="FAQ Editor" collapsed={collapsed}
-              active={location.pathname==='/editor'}
-              onClick={() => { navigate('/editor'); if(isMobile) setMobileOpen(false); }} />
-            {user?.role === 'team_lead' && (
-              <NI icon="📊" label="Admin Panel" collapsed={collapsed}
-                active={location.pathname==='/admin'}
-                onClick={() => { navigate('/admin'); if(isMobile) setMobileOpen(false); }} />
-            )}
-          </>
-        )}
+{/* RUNAKI AI */}
+{!collapsed && (
+  <div style={{ ...S.groupLabel, marginTop:'10px' }}>
+    🤖 RUNAKI AI
+  </div>
+)}
+
+<NI
+  icon="🧠"
+  label="Knowledge Assistant"
+  active={panel === '_ai-kb'}
+  collapsed={collapsed}
+  onClick={() => go('_ai-kb')}
+/>
+
+<NI
+  icon="🏷️"
+  label="Case Categorizer"
+  active={panel === '_ai-categorizer'}
+  collapsed={collapsed}
+  onClick={() => go('_ai-categorizer')}
+/>
+
+{!collapsed && (
+  <div style={{ ...S.groupLabel, marginTop:'10px' }}>
+    📞 Operations
+  </div>
+)}
+
+<NI icon="📞" label="Call Flows"
+  active={panel === '_callflows'}
+  collapsed={collapsed}
+  onClick={() => go('_callflows')}
+/>
+
+<NI icon="🌳" label="Resolution Tree"
+  active={panel === '_restree'}
+  collapsed={collapsed}
+  onClick={() => go('_restree')}
+/>
+
+<NI icon="📋" label="Scripts & Processes"
+  active={panel === '_scripts'}
+  collapsed={collapsed}
+  onClick={() => go('_scripts')}
+/>
+
+<NI icon="🎯" label="Case Priorities"
+  active={panel === '_priority'}
+  collapsed={collapsed}
+  onClick={() => go('_priority')}
+/>
+
+<NI icon="⏸️" label="Hold & Unhold"
+  active={panel === '_holdunhold'}
+  collapsed={collapsed}
+  onClick={() => go('_holdunhold')}
+/>
+
+{!collapsed && (
+  <div style={{ ...S.groupLabel, marginTop:'10px' }}>
+    🛠 Tools
+  </div>
+)}
+
+<NI icon="🔧" label="Maintenance Lookup"
+  active={panel === '_maintenance'}
+  collapsed={collapsed}
+  onClick={() => go('_maintenance')}
+/>
+
+<NI icon="📱" label="KYC Platform Outputs"
+  active={panel === '_kyc'}
+  collapsed={collapsed}
+  onClick={() => go('_kyc')}
+/>
+
+{!collapsed && (
+  <div style={{ ...S.groupLabel, marginTop:'10px' }}>
+    ⭐ Personal
+  </div>
+)}
+
+<NI icon="⭐" label="My Bookmarks"
+  active={panel === '_bookmarks'}
+  collapsed={collapsed}
+  onClick={() => go('_bookmarks')}
+/>
+
+<NI icon="📝" label="My Evaluations"
+  active={panel === '_evaluations'}
+  collapsed={collapsed}
+  onClick={() => go('_evaluations')}
+/>
+
+
+        
       </nav>
 
       {/* ── LOGOUT ── */}
