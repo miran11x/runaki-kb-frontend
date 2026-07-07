@@ -2,7 +2,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import React, { useState, useEffect, useMemo } from 'react';
-
+import LogoLight from '../assets/runaki-light.svg';
+import LogoDark from '../assets/runaki-dark.svg';
 
 const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -201,15 +202,16 @@ const FAQ_CHILDREN = [
   }}
 >
  
+
 {/* ── BRAND ── */}
 <div style={S.brand}>
   <img
-    src={RK_LOGO}
+    src={darkMode ? LogoDark : LogoLight}
     alt="Runaki"
     style={{
-      height: 35,
+      height: 48,
+
       width: 'auto',
-      filter: darkMode ? 'none' : 'brightness(0)',
     }}
   />
 </div>
