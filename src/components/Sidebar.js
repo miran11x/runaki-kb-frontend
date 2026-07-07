@@ -203,10 +203,16 @@ const FAQ_CHILDREN = [
  
 {/* ── BRAND ── */}
 <div style={S.brand}>
-  {RK_LOGO} 'none' : 'brightness(0)'
-    
+  <img
+    src={RK_LOGO}
+    alt="Runaki"
+    style={{
+      height: 35,
+      width: 'auto',
+      filter: darkMode ? 'none' : 'brightness(0)',
+    }}
+  />
 </div>
-
 {/* ── USER CARD ── */}
 <div
   onClick={() => {
