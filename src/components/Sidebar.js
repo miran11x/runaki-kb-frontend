@@ -251,9 +251,16 @@ const FAQ_CHILDREN = [
 <NI
   folder
   icon="📚"
-  label="FAQs"
+  label={`FAQs (${faqs.length})`}
   collapsed={collapsed}
-  active={faqOpen}
+  active={
+  faqOpen &&
+  (
+    panel.startsWith('inq-') ||
+    ['billing','general','service','feedback','_updates']
+      .includes(panel)
+  )
+}
   onClick={() => setFaqOpen(!faqOpen)}
   suffix={
     !collapsed && (
@@ -382,9 +389,12 @@ const FAQ_CHILDREN = [
 <NI
 folder
   icon="🤖"
-  label="RUNAKI AI"
+  label="✨ RUNAKI AI PRO"
   collapsed={collapsed}
-  active={aiOpen}
+  active={
+  ['_ai-kb', '_ai-categorizer']
+    .includes(panel)
+}
   onClick={() => setAiOpen(!aiOpen)}
   suffix={
     !collapsed && (
@@ -428,7 +438,15 @@ folder
   icon="📞"
   label="Operations"
   collapsed={collapsed}
-  active={opsOpen}
+  active={
+  [
+    '_callflows',
+    '_restree',
+    '_scripts',
+    '_priority',
+    '_holdunhold'
+  ].includes(panel)
+}
   onClick={() => setOpsOpen(!opsOpen)}
   suffix={
     !collapsed && (
@@ -479,7 +497,10 @@ folder
   icon="🛠️"
   label="Tools"
   collapsed={collapsed}
-  active={toolsOpen}
+  active={
+  ['_maintenance','_kyc']
+    .includes(panel)
+}
   onClick={() => setToolsOpen(!toolsOpen)}
   suffix={
     !collapsed && (
@@ -523,7 +544,10 @@ folder
   icon="⭐"
   label="Personal"
   collapsed={collapsed}
-  active={personalOpen}
+  active={
+  ['_bookmarks','_evaluations']
+    .includes(panel)
+}
   onClick={() => setPersonalOpen(!personalOpen)}
   suffix={
     !collapsed && (
@@ -626,8 +650,17 @@ function NI({
           {badge !== undefined && (
             <span style={{
               fontSize:'10px', fontWeight:'700', padding:'2px 8px', borderRadius:'100px', flexShrink:0,
-              background: active?'rgba(255,255,255,0.2)': hot?'rgba(255,107,53,0.25)':'rgba(255,255,255,0.1)',
-              color: active?'#fff': hot?ORANGE:'rgba(255,255,255,0.55)',
+             background: badge > 0
+  ? 'rgba(255,107,53,0.18)'
+  : 'rgba(255,255,255,0.08)',
+
+color: badge > 0
+  ? '#FFB088'
+  : 'rgba(255,255,255,0.45)',
+
+fontWeight:'800',
+minWidth:'24px',
+textAlign:'center',
             }}>{badge}</span>
           )}
           {suffix}
@@ -650,18 +683,20 @@ sectionLabel: {
 },
 
 
-  folderNi: {
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.06)',
-  borderRadius: '12px',
-  marginTop: '8px',
-  marginBottom: '4px',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+ folderNi: {
+  background: 'linear-gradient(135deg,#182132,#111827)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '16px',
+  marginTop: '10px',
+  marginBottom: '8px',
+  minHeight: '52px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
 },
 
 folderActive: {
-  background: 'rgba(255,107,53,0.08)',
-  border: '1px solid rgba(255,107,53,0.18)',
+  background:'linear-gradient(135deg, rgba(255,107,53,.20), rgba(255,107,53,.08))',
+  border:'1px solid rgba(255,107,53,.30)',
+  boxShadow:'0 0 16px rgba(255,107,53,.18)',
 },
   aside: {
     flexShrink:0,
@@ -718,16 +753,21 @@ folderActive: {
     display:'flex', alignItems:'center', gap:'9px',
     width:'calc(100% - 14px)', margin:'1px 7px',
     borderRadius:'10px', border:'none', background:'transparent',
-    cursor:'pointer', fontFamily:'inherit', transition:'all .14s',
+    cursor:'pointer', fontFamily:'inherit', transition:'all .2s ease',
     boxSizing:'border-box', overflow:'hidden', whiteSpace:'nowrap',
   },
 
-  niActive: {
-    background:'rgba(255,107,53,0.15)',
-    borderLeft:`2px solid ${ORANGE}`,
-    paddingLeft:'10px',
+niActive: {
+  background:'linear-gradient(90deg, rgba(255,107,53,.28), rgba(255,107,53,.08))',
+  borderLeft:`4px solid ${ORANGE}`,
+  paddingLeft:'8px',
+  boxShadow:'0 0 12px rgba(255,107,53,.25)',
+
   },
-  niHov: { background:'rgba(255,255,255,0.06)' },
+ niHov: {
+  background:'rgba(255,255,255,0.08)',
+  transform:'translateX(4px)',
+},
 
   logoutBtn: {
     display:'flex', alignItems:'center', gap:'8px',

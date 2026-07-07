@@ -37,12 +37,6 @@
   (f.subcategory || '').toLowerCase().includes('ussd'),
 
 'inq-other': f => {
-  console.log(
-    'Checking:',
-    f.category,
-    f.subcategory
-  );
-
   return (
     f.category === 'Inquiries' &&
     (f.subcategory || '').toLowerCase().includes('other')
@@ -74,7 +68,8 @@
 'inq-other':'Other',
 'billing':'Billing Complaints',
     '_maintenance':'🔧 Maintenance Lookup',
-    'inq-runakirapp':'📱 Runaki App',
+    'inq-runakirapp':'📱 Runaki App','_ai-kb':'🧠 Knowledge Assistant',
+'_ai-categorizer':'🏷️ Case Categorizer',
     'general':'General Complaints','service':'Service Requests',
     'feedback':'Feedback & Others','_updates':'New Updates',
     '_restree':'Resolution Tree','_scripts':'Scripts & Processes','_priority':'Case Priorities',
@@ -156,12 +151,6 @@
           api.get('/announcements').catch(() => ({ data: [] })),
         ]);
       setFaqs(fr.data);
-      console.log(
-  fr.data.map(f => ({
-    category: f.category,
-    subcategory: f.subcategory
-  }))
-);
 
 
   if (tr.data) setTip(tr.data);
@@ -214,17 +203,6 @@
     };
 
     const panelFaqs = () => {
-
- console.log(
-  'Other FAQs:',
-  faqs.filter(
-    f =>
-      f.category === 'Inquiries' &&
-      (f.subcategory || '')
-        .toLowerCase()
-        .includes('other')
-  )
-);
 
       if (panel === '_bookmarks') return faqs.filter(f => bookmarks.includes(f.id));
       if (search) {
@@ -417,9 +395,28 @@ panel={panel}
             {/* Empty state */}
             {!isSpecial && !loading && items.length === 0 && panel !== '_bookmarks' && (
               <div style={{ textAlign:'center', padding:'70px 40px', background:DM.cardBg, borderRadius:'20px', border:`1px solid ${DM.border}` }}>
-                <div style={{ fontSize:'52px', marginBottom:'14px' }}>{search ? '🔍' : '📭'}</div>
-                <div style={{ fontSize:'20px', fontWeight:'800', color:DM.text, marginBottom:'8px' }}>{search ? `No results for "${search}"` : 'No content here yet'}</div>
-                <div style={{ fontSize:'14px', color:DM.subText }}>{search ? 'Try different keywords' : 'Content will be added soon'}</div>
+               <div style={{ fontSize:'64px', marginBottom:'14px' }}>
+  {search ? '🔍' : '📂'}
+</div>
+
+<div style={{
+  fontSize:'22px',
+  fontWeight:'800',
+  color:DM.text,
+  marginBottom:'8px'
+}}>
+  {search ? `No results for "${search}"` : 'No FAQs Available'}
+</div>
+
+<div style={{
+  fontSize:'14px',
+  color:DM.subText
+}}>
+  {search
+    ? 'Try a different keyword'
+    : `There are currently no approved FAQs in ${PANEL_LABELS[panel] || 'this section'}.`
+  }
+</div>
               </div>
             )}
           </div>
