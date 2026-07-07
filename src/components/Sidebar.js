@@ -202,51 +202,54 @@ const FAQ_CHILDREN = [
 >
  
 {/* ── BRAND ── */}
+<div style={S.brand}>
+  {RK_LOGO} 'none' : 'brightness(0)'
+    
+</div>
 
-div style={S.brand}>
-  {collapsed ? (
-    <img
-      src={RK_LOGO}
-      alt="Runaki"
-      style={{
-        ...S.logoCollapsed,
-        filter: darkMode ? 'none' : 'brightness(0)'
-      }}
-    />
-  ) : (
-    <img
-      src={RK_LOGO}
-      alt="Runaki"
-      style={{
-        ...S.logoFull
+{/* ── USER CARD ── */}
+<div
+  onClick={() => {
+    navigate('/profile');
+    if (isMobile) setMobileOpen(false);
+  }}
+  style={{
+    ...S.userCard,
+    padding: collapsed ? '12px 0' : '12px 14px',
+    justifyContent: collapsed ? 'center' : 'flex-start',
+    cursor: 'pointer'
+  }}
+  title="My Profile"
+>
+  <div style={S.avatar}>
+    {user?.name?.[0]?.toUpperCase()}
+  </div>
 
-      }}
-    />
+  {!collapsed && (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div
+        style={{
+          ...S.userName,
+          color: darkMode ? '#fff' : '#0B1120'
+        }}
+      >
+        {user?.name}
+      </div>
+
+      <span
+        style={{
+          ...S.roleBadge,
+          color: rm.color,
+          background: rm.bg
+        }}
+      >
+        {user?.title || rm.label}
+      </span>
+    </div>
   )}
 </div>
 
-
-
-
-      {/* ── USER CARD ── */}
-      <div onClick={() => { navigate('/profile'); if(isMobile) setMobileOpen(false); }} style={{ ...S.userCard, padding: collapsed ? '12px 0' : '12px 14px', justifyContent: collapsed ? 'center' : 'flex-start', cursor:'pointer' }} title="My Profile">
-        <div style={S.avatar}>{user?.name?.[0]?.toUpperCase()}</div>
-        {!collapsed && (
-          <div style={{ flex:1, minWidth:0 }}>
-            <div
-  style={{
-    ...S.userName,
-    color: darkMode ? '#fff' : '#0B1120'
-  }}
->{user?.name}</div>
-            <span style={{ ...S.roleBadge, color:rm.color, background:rm.bg }}>
-              {user?.title || rm.label}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* ── SEARCH ── */}
+{/* ── SEARCH ── */}
       {!collapsed && (
         <div style={S.searchWrap}>
           <span style={S.searchIco}>🔍</span>
