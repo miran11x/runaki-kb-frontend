@@ -251,7 +251,8 @@ const FAQ_CHILDREN = [
 <NI
   folder
   icon="📚"
-  label={`FAQs (${faqs.length})`}
+  label="FAQs"
+  badge={faqs.length}
   collapsed={collapsed}
   active={
   faqOpen &&
@@ -262,18 +263,41 @@ const FAQ_CHILDREN = [
   )
 }
   onClick={() => setFaqOpen(!faqOpen)}
-  suffix={
-    !collapsed && (
+ suffix={
+  !collapsed && (
+    <div
+      style={{
+        display:'flex',
+        alignItems:'center',
+        gap:'6px',
+      }}
+    >
+      <span
+        style={{
+          fontSize:'10px',
+          fontWeight:'700',
+          color:'rgba(255,255,255,.45)',
+          textTransform:'uppercase',
+          letterSpacing:'0.08em'
+        }}
+      >
+        {faqOpen ? 'Hide' : 'Open'}
+      </span>
+
       <span
         style={{
           transform: faqOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: '0.2s',
+          transition:'all .2s ease',
+          fontSize:'18px',
+          fontWeight:'900',
+          color:'#FF6B35'
         }}
       >
-        ›
+        ▶
       </span>
-    )
-  }
+    </div>
+  )
+}
 />
 
 {faqOpen && (
@@ -396,18 +420,41 @@ folder
     .includes(panel)
 }
   onClick={() => setAiOpen(!aiOpen)}
-  suffix={
-    !collapsed && (
+ suffix={
+  !collapsed && (
+    <div
+      style={{
+        display:'flex',
+        alignItems:'center',
+        gap:'6px',
+      }}
+    >
+      <span
+        style={{
+          fontSize:'10px',
+          fontWeight:'700',
+          color:'rgba(255,255,255,.45)',
+          textTransform:'uppercase',
+          letterSpacing:'0.08em'
+        }}
+      >
+       {aiOpen ? 'Hide' : 'Open'}
+      </span>
+
       <span
         style={{
           transform: aiOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: '0.2s'
+          transition:'all .2s ease',
+          fontSize:'18px',
+          fontWeight:'900',
+          color:'#FF6B35'
         }}
       >
-        ›
+        ▶
       </span>
-    )
-  }
+    </div>
+  )
+}
 />
 
 {aiOpen && (
@@ -448,18 +495,41 @@ folder
   ].includes(panel)
 }
   onClick={() => setOpsOpen(!opsOpen)}
-  suffix={
-    !collapsed && (
+ suffix={
+  !collapsed && (
+    <div
+      style={{
+        display:'flex',
+        alignItems:'center',
+        gap:'6px',
+      }}
+    >
+      <span
+        style={{
+          fontSize:'10px',
+          fontWeight:'700',
+          color:'rgba(255,255,255,.45)',
+          textTransform:'uppercase',
+          letterSpacing:'0.08em'
+        }}
+      >
+       {opsOpen ? 'Hide' : 'Open'}
+      </span>
+
       <span
         style={{
           transform: opsOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: '0.2s'
+          transition:'all .2s ease',
+          fontSize:'18px',
+          fontWeight:'900',
+          color:'#FF6B35'
         }}
       >
-        ›
+        ▶
       </span>
-    )
-  }
+    </div>
+  )
+}
 />
 
 {opsOpen && (
@@ -503,17 +573,40 @@ folder
 }
   onClick={() => setToolsOpen(!toolsOpen)}
   suffix={
-    !collapsed && (
+  !collapsed && (
+    <div
+      style={{
+        display:'flex',
+        alignItems:'center',
+        gap:'6px',
+      }}
+    >
+      <span
+        style={{
+          fontSize:'10px',
+          fontWeight:'700',
+          color:'rgba(255,255,255,.45)',
+          textTransform:'uppercase',
+          letterSpacing:'0.08em'
+        }}
+      >
+        {toolsOpen ? 'Hide' : 'Open'}
+      </span>
+
       <span
         style={{
           transform: toolsOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: '0.2s'
+          transition:'all .2s ease',
+          fontSize:'18px',
+          fontWeight:'900',
+          color:'#FF6B35'
         }}
       >
-        ›
+        ▶
       </span>
-    )
-  }
+    </div>
+  )
+}
 />
 
 {toolsOpen && (
@@ -550,17 +643,40 @@ folder
 }
   onClick={() => setPersonalOpen(!personalOpen)}
   suffix={
-    !collapsed && (
+  !collapsed && (
+    <div
+      style={{
+        display:'flex',
+        alignItems:'center',
+        gap:'6px',
+      }}
+    >
+      <span
+        style={{
+          fontSize:'10px',
+          fontWeight:'700',
+          color:'rgba(255,255,255,.45)',
+          textTransform:'uppercase',
+          letterSpacing:'0.08em'
+        }}
+      >
+        {personalOpen ? 'Hide' : 'Open'}
+      </span>
+
       <span
         style={{
           transform: personalOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: '0.2s'
+          transition:'all .2s ease',
+          fontSize:'18px',
+          fontWeight:'900',
+          color:'#FF6B35'
         }}
       >
-        ›
+        ▶
       </span>
-    )
-  }
+    </div>
+  )
+}
 />
 
 {personalOpen && (
@@ -683,7 +799,7 @@ sectionLabel: {
 },
 
 
- folderNi: {
+folderNi: {
   background: 'linear-gradient(135deg,#182132,#111827)',
   border: '1px solid rgba(255,255,255,0.08)',
   borderRadius: '16px',
@@ -691,6 +807,8 @@ sectionLabel: {
   marginBottom: '8px',
   minHeight: '52px',
   boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+  cursor: 'pointer',
+  position:'relative',
 },
 
 folderActive: {
@@ -767,8 +885,8 @@ niActive: {
  niHov: {
   background:'rgba(255,255,255,0.08)',
   transform:'translateX(4px)',
+  boxShadow:'0 0 14px rgba(255,107,53,.15)',
 },
-
   logoutBtn: {
     display:'flex', alignItems:'center', gap:'8px',
     margin:'8px 10px 14px', width:'calc(100% - 20px)',
