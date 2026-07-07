@@ -202,7 +202,8 @@ const FAQ_CHILDREN = [
 >
  
 {/* ── BRAND ── */}
-<div style={S.brand}>
+
+div style={S.brand}>
   {collapsed ? (
     <img
       src={RK_LOGO}
@@ -218,6 +219,7 @@ const FAQ_CHILDREN = [
       alt="Runaki"
       style={{
         ...S.logoFull
+
       }}
     />
   )}
