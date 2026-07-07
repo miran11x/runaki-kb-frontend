@@ -120,7 +120,7 @@ export default function Sidebar({
   other: faqs.filter(
   f =>
     f.category === 'Inquiries' &&
-    (f.subcategory || '').trim().toLowerCase() === 'other'
+    (f.subcategory || '').toLowerCase().includes('other')
 ).length,
 
   billingComplaints: faqs.filter(
@@ -403,13 +403,13 @@ folder
 {aiOpen && (
   <>
     <NI
-      icon="🧠"
-      label="Knowledge Assistant"
-      sub
-      collapsed={collapsed}
-      active={panel === '_ai-kb'}
-      onClick={() => go('_ai-kb')}
-    />
+  icon="🧠"
+  label="Knowledge Assistant"
+  sub
+  collapsed={collapsed}
+  active={panel === '_ai-kb'}
+  onClick={() => go('_ai-kb')}
+/>
 
     <NI
       icon="🏷️"

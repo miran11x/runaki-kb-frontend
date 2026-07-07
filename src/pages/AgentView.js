@@ -32,8 +32,26 @@
     'inq-billing': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('billing'),
     'inq-dunning': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('dunning'),
     'inq-epsule':  f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('psule'),
-    'inq-ussd':    f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('ussd'),
-    'inq-solar':   f => f.category === 'Inquiries' && ((f.subcategory||'').toLowerCase().includes('solar') || (f.subcategory||'').toLowerCase().includes('other') || (f.subcategory||'') === ''),
+   'inq-ussd': f =>
+  f.category === 'Inquiries' &&
+  (f.subcategory || '').toLowerCase().includes('ussd'),
+
+'inq-other': f => {
+  console.log(
+    'Checking:',
+    f.category,
+    f.subcategory
+  );
+
+  return (
+    f.category === 'Inquiries' &&
+    (f.subcategory || '').toLowerCase().includes('other')
+  );
+},
+
+'inq-solar': f =>
+  f.category === 'Inquiries' &&
+  (f.subcategory || '').toLowerCase().includes('solar'),
     'billing':     f => f.category === 'Billing Complaints',
     'general':     f => f.category === 'General Complaints',
     'service':     f => f.category === 'Service Requests',
@@ -52,7 +70,9 @@
   const PANEL_LABELS = {
     'inquiries':'Inquiries','inq-runaki':'Runaki Project','inq-kyc':'KYC',
     'inq-billing':'Billing Inquiries','inq-dunning':'Dunning','inq-epsule':'e-Psûle',
-    'inq-ussd':'USSD','inq-solar':'Solar & Other','billing':'Billing Complaints',
+    'inq-ussd':'USSD',
+'inq-other':'Other',
+'billing':'Billing Complaints',
     '_maintenance':'🔧 Maintenance Lookup',
     'inq-runakirapp':'📱 Runaki App',
     'general':'General Complaints','service':'Service Requests',
@@ -136,6 +156,12 @@
           api.get('/announcements').catch(() => ({ data: [] })),
         ]);
       setFaqs(fr.data);
+      console.log(
+  fr.data.map(f => ({
+    category: f.category,
+    subcategory: f.subcategory
+  }))
+);
 
 
   if (tr.data) setTip(tr.data);
@@ -188,8 +214,21 @@
     };
 
     const panelFaqs = () => {
+
+ console.log(
+  'Other FAQs:',
+  faqs.filter(
+    f =>
+      f.category === 'Inquiries' &&
+      (f.subcategory || '')
+        .toLowerCase()
+        .includes('other')
+  )
+);
+
       if (panel === '_bookmarks') return faqs.filter(f => bookmarks.includes(f.id));
       if (search) {
+
     const q = search.toLowerCase();
 
     return faqs.filter(f =>
@@ -230,7 +269,7 @@
 
     const items = panelFaqs();
     const groups = grouped(items);
-    const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_evaluations','_updatescripts','_ai'].includes(panel);
+    const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_evaluations','_updatescripts','_ai', '_ai-kb', '_ai-categorizer'].includes(panel);
 
     if (loading) return (
       <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
@@ -334,7 +373,7 @@ panel={panel}
             {panel === '_maintenance'   && <MaintenanceLookup darkMode={darkMode} />}
             {panel === '_evaluations'   && <MyEvaluations darkMode={darkMode} />}
             {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
-            {panel === '_ai' && (
+           {['_ai', '_ai-kb', '_ai-categorizer'].includes(panel) && (
   <RUNAKIAIAssistant
     darkMode={darkMode}
     DM={DM}
@@ -1057,12 +1096,14 @@ const detectLanguage = (text) => {
 
 const askAI = (q = question) => {
 
-const synonyms = {
-  customer: ['customer','costumer','client','consumer'],
-  received: ['received','recived','got'],
-  bill: ['bill','billing','invoice'],
-  high: ['high','expensive','large']
-};
+  const query = q.trim().toLowerCase();
+
+  const synonyms = {
+    customer: ['customer','costumer','client','consumer'],
+    received: ['received','recived','got'],
+    bill: ['bill','billing','invoice'],
+    high: ['high','expensive','large']
+  };
 
   const detectedLang = detectLanguage(query);
   setResultLanguage(detectedLang);
