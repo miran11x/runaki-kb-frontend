@@ -195,22 +195,36 @@ const FAQ_CHILDREN = [
       transition:'transform .25s cubic-bezier(0.4,0,0.2,1)',
       width:'260px',
       boxShadow: mobileOpen
-        ? '4px 0 30px rgba(0,0,0,.5)'
+        ? '4px 0 30px rgba(34, 30, 30, 0.5)'
         : 'none'
     } : {})
   }}
 >
-      {/* ── BRAND ── */}
-      <div style={S.brand}>
-        {collapsed ? (
-          <img src={RK_LOGO} alt="Runaki" style={S.logoCollapsed} />
-        ) : (
-          <>
-            <img src={RK_LOGO} alt="Runaki" style={S.logoFull} />
+ 
+{/* ── BRAND ── */}
+<div style={S.brand}>
+  {collapsed ? (
+    <img
+      src={RK_LOGO}
+      alt="Runaki"
+      style={{
+        ...S.logoCollapsed,
+        filter: darkMode ? 'none' : 'brightness(0)'
+      }}
+    />
+  ) : (
+    <img
+      src={RK_LOGO}
+      alt="Runaki"
+      style={{
+        ...S.logoFull
+      }}
+    />
+  )}
+</div>
 
-          </>
-        )}
-      </div>
+
+
 
       {/* ── USER CARD ── */}
       <div onClick={() => { navigate('/profile'); if(isMobile) setMobileOpen(false); }} style={{ ...S.userCard, padding: collapsed ? '12px 0' : '12px 14px', justifyContent: collapsed ? 'center' : 'flex-start', cursor:'pointer' }} title="My Profile">
