@@ -35,17 +35,13 @@ export default function Sidebar({
 
   const location = useLocation();
   const [faqOpen, setFaqOpen] = useState(true);
-  const [inqOpen, setInqOpen] = useState(false);
+  
   const [aiOpen, setAiOpen] = useState(false);
   const [opsOpen, setOpsOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
   const [hasActiveScript, setHasActiveScript] = useState(false);
     useEffect(() => {
-  if (panel?.startsWith('inq-')) {
-    setFaqOpen(true);
-    setInqOpen(true);
-  }
 
   if (
     ['_ai-kb', '_ai-categorizer'].includes(panel)
@@ -121,14 +117,11 @@ export default function Sidebar({
       (f.subcategory || '').toLowerCase().includes('ussd')
   ).length,
 
-  solar: faqs.filter(
-    f =>
-      f.category === 'Inquiries' &&
-      (
-        (f.subcategory || '').toLowerCase().includes('solar') ||
-        (f.subcategory || '').toLowerCase().includes('other')
-      )
-  ).length,
+  other: faqs.filter(
+  f =>
+    f.category === 'Inquiries' &&
+    (f.subcategory || '').trim().toLowerCase() === 'other'
+).length,
 
   billingComplaints: faqs.filter(
     f => f.category === 'Billing Complaints'
@@ -154,15 +147,7 @@ const FAQ_CHILDREN = [
   { id:'inq-dunning', icon:'⚠️', label:'Dunning', badge:faqCounts.dunning },
   { id:'inq-epsule', icon:'📱', label:'e-Psûle', badge:faqCounts.epsule },
   { id:'inq-ussd', icon:'📲', label:'USSD', badge:faqCounts.ussd },
-  { id:'inq-solar', icon:'☀️', label:'Solar & Other', badge:faqCounts.solar },
-];
-
-const FAQ_ITEMS = [
-  { id:'billing', icon:'💳', label:'Billing Complaints', badge:faqCounts.billingComplaints },
-  { id:'general', icon:'⚡', label:'General Complaints', badge:faqCounts.generalComplaints },
-  { id:'service', icon:'🔧', label:'Service Requests', badge:faqCounts.serviceRequests },
-  { id:'feedback', icon:'💌', label:'Feedback & Others', badge:faqCounts.feedback },
-];
+  { id:'inq-other', icon:'📌', label:'Other', badge:faqCounts.other },];
 
   useEffect(() => {
     const BASE = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';
@@ -263,9 +248,8 @@ const FAQ_ITEMS = [
             <div style={{ position:'absolute', top:8, right: collapsed?6:12, width:8, height:8, borderRadius:'50%', background:'#ef4444', boxShadow:'0 0 6px #ef4444' }} />
           )}
         </div>
-
-        <NI
-        folder
+<NI
+  folder
   icon="📚"
   label="FAQs"
   collapsed={collapsed}
@@ -276,7 +260,7 @@ const FAQ_ITEMS = [
       <span
         style={{
           transform: faqOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: '0.2s'
+          transition: '0.2s',
         }}
       >
         ›
@@ -286,63 +270,112 @@ const FAQ_ITEMS = [
 />
 
 {faqOpen && (
+  
+
+  
   <>
-    <NI
-    folder
-      icon="💬"
-      label="Inquiries"
-      badge={faqCounts.inquiries}
-      collapsed={collapsed}
-      active={inqOpen}
-      sub
-      onClick={() => setInqOpen(!inqOpen)}
-      suffix={
-        !collapsed && (
-          <span
-            style={{
-              transform: inqOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-              transition: '0.2s'
-            }}
-          >
-            ›
-          </span>
-        )
-      }
-    />
+{!collapsed && (
+  <div style={S.sectionLabel}>
+  💬 INQUIRIES
+  </div>
+)}
 
-    {inqOpen && FAQ_CHILDREN.map(c => (
-      <NI
-        key={c.id}
-        icon={c.icon}
-        label={c.label}
-        badge={c.badge}
-        sub
-        collapsed={collapsed}
-        active={panel === c.id}
-        onClick={() => go(c.id)}
-      />
-    ))}
+{FAQ_CHILDREN.map(c => (
+  <NI
+    key={c.id}
+    icon={c.icon}
+    label={c.label}
+    badge={c.badge}
+    sub
+    collapsed={collapsed}
+    active={panel === c.id}
+    
+    onClick={() => go(c.id)}
 
-    {FAQ_ITEMS.map(item => (
-      <NI
-        key={item.id}
-        icon={item.icon}
-        label={item.label}
-        badge={item.badge}
-        collapsed={collapsed}
-        active={panel === item.id}
-        onClick={() => go(item.id)}
-      />
-    ))}
+    
+  />
 
-    <NI
-      icon="🆕"
-      label="New Updates"
-      collapsed={collapsed}
-      active={panel === '_updates'}
-      onClick={() => go('_updates')}
-    />
+  
+))}
+
+   {!collapsed && (
+  <div style={S.sectionLabel}>
+  💳 BILLING COMPLAINTS
+  </div>
+)}
+
+<NI
+  icon="💳"
+  label="Billing Complaints"
+  badge={faqCounts.billingComplaints}
+  collapsed={collapsed}
+  active={panel === 'billing'}
+  onClick={() => go('billing')}
+/>
+
+{!collapsed && (
+  <div style={S.sectionLabel}>
+  ⚡ GENERAL COMPLAINTS
+  </div>
+)}
+
+<NI
+  icon="⚡"
+  label="General Complaints"
+  badge={faqCounts.generalComplaints}
+  collapsed={collapsed}
+  active={panel === 'general'}
+  onClick={() => go('general')}
+/>
+
+{!collapsed && (
+  <div style={S.sectionLabel}>
+  🔧 SERVICE REQUESTS
+  </div>
+)}
+
+<NI
+  icon="🔧"
+  label="Service Requests"
+  badge={faqCounts.serviceRequests}
+  collapsed={collapsed}
+  active={panel === 'service'}
+  onClick={() => go('service')}
+/>
+
+{!collapsed && (
+  <div style={S.sectionLabel}>
+  💌 FEEDBACK & OTHERS
+  </div>
+)}
+
+<NI
+  icon="💌"
+  label="Feedback & Others"
+  badge={faqCounts.feedback}
+  collapsed={collapsed}
+  active={panel === 'feedback'}
+  onClick={() => go('feedback')}
+/>
+
+
+{!collapsed && (
+  <div style={S.sectionLabel}>
+  🆕 UPDATES
+  </div>
+)}
+
+<NI
+  icon="🆕"
+  label="New Updates"
+  collapsed={collapsed}
+  active={panel === '_updates'}
+  onClick={() => go('_updates')}
+/>
+
   </>
+
+
 )}
 
 {/* RUNAKI AI */}
@@ -578,7 +611,7 @@ function NI({
     : folder
       ? '11px 12px'
       : sub
-        ? '7px 12px 7px 42px'
+        ? '7px 12px 7px 28px'
         : '9px 12px',
       }}
     >
@@ -605,6 +638,17 @@ function NI({
 }
 
 const S = {
+
+
+sectionLabel: {
+  padding: '10px 18px 2px',
+  fontSize: '9px',
+  fontWeight: '800',
+  letterSpacing: '0.14em',
+  textTransform: 'uppercase',
+  color: 'rgba(255,255,255,0.25)',
+},
+
 
   folderNi: {
   background: 'rgba(255,255,255,0.05)',
