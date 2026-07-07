@@ -1,4 +1,5 @@
-  /* eslint-disable */
+ 
+ 
   import React, { useState, useEffect, useCallback, useRef } from 'react';
   import api from '../utils/api';
   import { useAuth } from '../contexts/AuthContext';
@@ -265,12 +266,12 @@
           @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
         `}</style>
         <Sidebar
-    
-panel={panel}
+  panel={panel}
   setPanel={setPanel}
   search={search}
   setSearch={setSearch}
   faqs={faqs}
+  darkMode={darkMode}
 />
 
         <div style={S.body}>
@@ -1677,8 +1678,26 @@ onMouseLeave={(e) => {
   </div>
 );
 }
-  const S = {
-    layout: { display:'flex', height:'100vh', overflow:'hidden', fontFamily:"'Inter','Segoe UI',sans-serif" },
-    body: { flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 },
-    content: { flex:1, overflowY:'auto', padding:'16px', paddingLeft:'16px' },
-  };
+const S = {
+  layout: {
+    display:'flex',
+    height:'100vh',
+    overflow:'hidden',
+    fontFamily:"'Inter','Segoe UI',sans-serif"
+  },
+
+  body: {
+    flex:1,
+    display:'flex',
+    flexDirection:'column',
+    overflow:'hidden',
+    minWidth:0
+  },
+
+  content: {
+    flex:1,
+    overflowY:'auto',
+    padding:'16px',
+    paddingLeft:'16px'
+  },
+};
