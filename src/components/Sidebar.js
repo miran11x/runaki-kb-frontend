@@ -336,16 +336,14 @@ const FAQ_CHILDREN = [
       }}
     >
       <span
-        style={{
-          fontSize:'10px',
-          fontWeight:'700',
-          color:'rgba(255,255,255,.45)',
-          textTransform:'uppercase',
-          letterSpacing:'0.08em'
-        }}
-      >
-        {faqOpen ? 'Hide' : 'Open'}
-      </span>
+  style={{
+    fontSize:'10px',
+    fontWeight:'700',
+color: darkMode ? 'rgba(255,255,255,0.75)' : '#475569',    letterSpacing:'0.08em'
+  }}
+>
+  {faqOpen ? 'Hide' : 'Open'}
+</span>
 
       <span
         style={{
@@ -539,7 +537,7 @@ folder
   
   darkMode={darkMode}
 
-  label="✨ RUNAKI AI"
+  label="💻 RUNAKI AI"
   collapsed={collapsed}
   active={
   ['_ai-kb', '_ai-categorizer']
@@ -559,7 +557,7 @@ folder
         style={{
           fontSize:'10px',
           fontWeight:'700',
-          color:'rgba(255,255,255,.45)',
+          color: darkMode ? 'rgba(255,255,255,.75)' : '#64748b',
           textTransform:'uppercase',
           letterSpacing:'0.08em'
         }}
@@ -643,7 +641,7 @@ folder
         style={{
           fontSize:'10px',
           fontWeight:'700',
-          color:'rgba(255,255,255,.45)',
+          color: darkMode ? 'rgba(255,255,255,.75)' : '#64748b',
           textTransform:'uppercase',
           letterSpacing:'0.08em'
         }}
@@ -738,7 +736,7 @@ folder
         style={{
           fontSize:'10px',
           fontWeight:'700',
-          color:'rgba(255,255,255,.45)',
+          color: darkMode ? 'rgba(255,255,255,.75)' : '#64748b',
           textTransform:'uppercase',
           letterSpacing:'0.08em'
         }}
@@ -817,7 +815,7 @@ folder
         style={{
           fontSize:'10px',
           fontWeight:'700',
-          color:'rgba(255,255,255,.45)',
+          color: darkMode ? 'rgba(255,255,255,.75)' : '#64748b',
           textTransform:'uppercase',
           letterSpacing:'0.08em'
         }}
