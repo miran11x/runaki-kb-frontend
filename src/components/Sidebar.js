@@ -22,6 +22,7 @@ export default function Sidebar({
   darkMode
 }) {
   const { user, logout } = useAuth();
+  
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
@@ -853,7 +854,7 @@ folder
   </>
 )}
 
-{user?.role === 'admin' && (
+{user?.role === 'team_lead' && (
   <>
     <div style={S.groupLabel}>⚙️ Administration</div>
 
