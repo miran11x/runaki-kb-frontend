@@ -68,13 +68,13 @@
     'inq-ussd':'USSD',
 'inq-other':'Other',
 'billing':'Billing Complaints',
-    '_maintenance':'🔧 Maintenance Lookup',
-    'inq-runakirapp':' Runaki App','_ai-kb':'💻 Knowledge Assistant',
-'_ai-categorizer':'🏷️ Case Categorizer',
+    '_maintenance':' Maintenance Lookup',
+    'inq-runakirapp':' Runaki App','_ai-kb':' Knowledge Assistant',
+'_ai-categorizer':' Case Categorizer',
     'general':'General Complaints','service':'Service Requests',
     'feedback':'Feedback & Others','_updates':'New Updates',
     '_restree':'Resolution Tree','_scripts':'Scripts & Processes','_priority':'Case Priorities',
-    '_search':'Search Results','_bookmarks':'⭐ Bookmarks',
+    '_search':'Search Results','_bookmarks':' Bookmarks',
     '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling','_ai':'🤖 RUNAKI AI Assistant',
   };
 
