@@ -62,11 +62,12 @@ export default function Sidebar({
     setToolsOpen(true);
   }
 
-  if (
-    ['_bookmarks', '_evaluations'].includes(panel)
-  ) {
-    setPersonalOpen(true);
-  }
+if (
+  ['_bookmarks'].includes(panel)
+) {
+  setPersonalOpen(true);
+}
+
 }, [panel]);
   const rm = ROLE_META[user?.role] || ROLE_META.agent;
   const faqCounts = useMemo(() => ({
@@ -797,10 +798,7 @@ folder
 
   label="Personal"
   collapsed={collapsed}
-  active={
-  ['_bookmarks','_evaluations']
-    .includes(panel)
-}
+ active={['_bookmarks'].includes(panel)}
   onClick={() => setPersonalOpen(!personalOpen)}
   suffix={
   !collapsed && (
@@ -851,18 +849,6 @@ folder
       collapsed={collapsed}
       active={panel === '_bookmarks'}
       onClick={() => go('_bookmarks')}
-    />
-
-    <NI
-      sub
-      icon="📝"
-      
-  darkMode={darkMode}
-
-      label="My Evaluations"
-      collapsed={collapsed}
-      active={panel === '_evaluations'}
-      onClick={() => go('_evaluations')}
     />
   </>
 )}
