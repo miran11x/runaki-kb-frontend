@@ -86,7 +86,8 @@ function EmptyState({ text }) {
   );
 }
 
-export default function AdminPanel() {
+export default function AdminPanel({ darkMode }) {
+  console.log('AdminPanel darkMode =', darkMode);
   const navigate = useNavigate();
   const [tab, setTab]           = useState('dashboard');
   const [stats, setStats]       = useState(null);
@@ -109,8 +110,6 @@ export default function AdminPanel() {
   const [editForm, setEditForm] = useState({ name:'', email:'', role:'agent', title:'', newPassword:'' });
   const [peakHours, setPeakHours] = useState([]);
   const [weeklyTrends, setWeeklyTrends] = useState([]);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_admin_dark') === '1');
-  const toggleDark = () => { const n = !darkMode; setDarkMode(n); localStorage.setItem('rk_admin_dark', n?'1':'0'); };
 
   // Update Scripts
   const [scripts,    setScripts]    = useState([]);
@@ -309,7 +308,15 @@ export default function AdminPanel() {
   };
 
   return (
-    <div style={{ ...S.layout, background: darkMode ? '#080e18' : '#f0f4ff' }}>
+   
+<div
+  style={{
+    ...S.layout,
+    background: darkMode ? '#080e18' : '#f0f4ff',
+    minHeight: '100vh'
+  }}
+>
+
       <style>{`
         @keyframes pulse{0%,100%{box-shadow:0 0 6px #22c55e}50%{box-shadow:0 0 14px #22c55e}}
         ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:3px}
@@ -975,22 +982,52 @@ export default function AdminPanel() {
 }
 
 const S = {
-  layout:{
-  width:'100%'
+layout:{
+  width:'100%',
+  minHeight:'calc(100vh - 80px)',
 },
+
   body:{
   display:'flex',
   flexDirection:'column',
   minWidth:0
 },
-  tabBar:{ display:'flex', gap:'4px', padding:'12px 28px 0', background:'#0d1526', borderBottom:'1px solid rgba(255,255,255,0.06)', flexShrink:0 },
+ tabBar:{
+  display:'flex',
+  gap:'4px',
+  padding:'12px 28px 0',
+  flexWrap:'wrap',
+  overflowX:'auto',
+  background:'#0d1526',
+  borderBottom:'1px solid rgba(255,255,255,0.06)',
+},
   tab:{ display:'flex', alignItems:'center', gap:'7px', padding:'10px 18px', borderRadius:'12px 12px 0 0', border:'none', background:'transparent', fontSize:'13px', fontWeight:'600', color:'rgba(255,255,255,0.4)', cursor:'pointer', fontFamily:'inherit', position:'relative', transition:'all .15s' },
   tabOn:{ background:'rgba(255,107,53,0.08)', color:'#fff', fontWeight:'800' },
   tabUnderline:{ position:'absolute', bottom:0, left:'20%', right:'20%', height:'3px', background:ORANGE, borderRadius:'3px 3px 0 0' },
-  content:{ flex:1, overflowY:'auto', padding:'24px 28px', overflowX:'hidden' },
-  kpiGrid:{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px', marginBottom:'20px' },
-  row3:{ display:'grid', gridTemplateColumns:'1.2fr 1fr 1fr', gap:'16px', marginBottom:'16px' },
-  row2:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginBottom:'16px' },
+  content:{
+  padding:'24px 28px',
+  overflowX:'hidden',
+  width:'100%',
+  boxSizing:'border-box'
+},
+ kpiGrid:{
+  display:'grid',
+  gridTemplateColumns:'repeat(auto-fit,minmax(250px,1fr))',
+  gap:'16px',
+  marginBottom:'20px'
+},
+ row3:{
+  display:'grid',
+  gridTemplateColumns:'repeat(auto-fit,minmax(350px,1fr))',
+  gap:'16px',
+  marginBottom:'16px'
+},
+ row2:{
+  display:'grid',
+  gridTemplateColumns:'repeat(auto-fit,minmax(450px,1fr))',
+  gap:'16px',
+  marginBottom:'16px'
+},
   table:{ borderRadius:'18px', overflow:'hidden' },
   thead:{ display:'flex', padding:'12px 18px', fontSize:'10px', fontWeight:'800', textTransform:'uppercase', letterSpacing:'0.08em', gap:'8px' },
   trow:{ display:'flex', alignItems:'center', padding:'12px 18px', gap:'8px' },

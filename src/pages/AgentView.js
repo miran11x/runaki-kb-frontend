@@ -296,11 +296,18 @@
 />
 
         <div style={S.body}>
-          <Topbar
-            title={PANEL_LABELS[search ? '_search' : panel] || 'Knowledge Base'}
-            subtitle={search ? `${items.length} results for "${search}"` : `${items.length} topics`}
-            darkMode={darkMode} onToggleDark={toggleDark}
-          />
+         
+<Topbar
+  title={PANEL_LABELS[search ? '_search' : panel] || 'Knowledge Base'}
+  subtitle={
+    search
+      ? `${items.length} results for "${search}"`
+      : subtitleMap[panel] || ''
+  }
+  darkMode={darkMode}
+  onToggleDark={toggleDark}
+/>
+
           <div style={S.content}>
 
             {/* Announcements */}
@@ -374,11 +381,11 @@
             {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
             
 {panel === '_admin' && (
-  <AdminPanel />
+ <AdminPanel darkMode={darkMode} />
 )}
 
 {panel === '_faqeditor' && (
-  <EditorPanel />
+  <EditorPanel darkMode={darkMode} />
 )}
 
            {['_ai', '_ai-kb', '_ai-categorizer'].includes(panel) && (
