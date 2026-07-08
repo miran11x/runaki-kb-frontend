@@ -24,15 +24,7 @@ export default function Sidebar({
   const { user, logout } = useAuth();
   
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
+  const [collapsed, setCollapsed] = useState(true);
 
   const location = useLocation();
   const [faqOpen, setFaqOpen] = useState(true);
@@ -177,7 +169,10 @@ const FAQ_CHILDREN = [
   };
 
   return (
-    <aside
+    <aside  
+onMouseEnter={() => setCollapsed(false)}
+onMouseLeave={() => setCollapsed(true)}
+
   style={{
     ...S.aside,
     background: darkMode
@@ -186,20 +181,7 @@ const FAQ_CHILDREN = [
     borderRight: darkMode
       ? '1px solid rgba(255,255,255,0.06)'
       : '1px solid #e2e8f0',
-    width: collapsed ? '68px' : '260px',
-    ...(isMobile ? {
-      position:'fixed',
-      top:0,
-      left:0,
-      bottom:0,
-      zIndex:1000,
-      transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-      transition:'transform .25s cubic-bezier(0.4,0,0.2,1)',
-      width:'260px',
-      boxShadow: mobileOpen
-        ? '4px 0 30px rgba(34, 30, 30, 0.5)'
-        : 'none'
-    } : {})
+width: collapsed ? '68px' : '260px',
   }}
 >
  
@@ -218,10 +200,9 @@ const FAQ_CHILDREN = [
 </div>
 {/* ── USER CARD ── */}
 <div
-  onClick={() => {
-    navigate('/profile');
-    if (isMobile) setMobileOpen(false);
-  }}
+onClick={() => {
+  navigate('/profile');
+}}
   style={{
     ...S.userCard,
     padding: collapsed ? '12px 0' : '12px 14px',
