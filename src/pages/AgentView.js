@@ -8,7 +8,7 @@
   import toast from 'react-hot-toast';
   import MaintenanceLookup from '../components/MaintenanceLookup';
   import UpdateScripts from '../components/UpdateScripts';
-  import AdminPanel from '../components/AdminPanel';
+  import AdminPanel from './AdminPanel';
   import FAQEditor from '../components/FAQEditor';
 
   const NAVY  = '#0B1120';
