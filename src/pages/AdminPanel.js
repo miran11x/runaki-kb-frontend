@@ -465,7 +465,7 @@ export default function AdminPanel({ darkMode }) {
                 {activeList.length === 0 ? <EmptyState text="No agents online right now" /> : (
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:'10px' }}>
                     {activeList.map(u => (
-                      <div key={u.id} style={{ background: darkMode?'rgba(255,255,255,0.05)':'#f8fafc', borderRadius:'14px', padding:'14px 16px', display:'flex', alignItems:'center', gap:'12px', border: darkMode?'1px solid rgba(255,255,255,0.08)':'1px solid #e2e8f0' }}>
+                      <div key={u.id} style={{ background: darkMode?'rgba(255,255,255,0.05)':'#f8fafc', borderRadius:'12px 12px 0 0', padding:'14px 16px', display:'flex', alignItems:'center', gap:'12px', border: darkMode?'1px solid rgba(255,255,255,0.08)':'1px solid #e2e8f0' }}>
                         <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:ROLE_COLORS[u.role]||'#6366f1', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{u.name[0]}</div>
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ fontSize:'13.5px', fontWeight:'700', color: darkMode?'#f1f5f9':NAVY, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.name}</div>
@@ -604,7 +604,7 @@ export default function AdminPanel({ darkMode }) {
                   {activeList.map(u => (
                     <div key={u.id} style={{ background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', borderRadius:'16px', padding:'18px', display:'flex', alignItems:'center', gap:'14px', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 16px rgba(0,0,0,0.3)':'0 4px 16px rgba(11,17,32,0.06)', position:'relative', overflow:'hidden' }}>
                       <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg,#22c55e,transparent)' }} />
-                      <div style={{ width:'48px', height:'48px', borderRadius:'14px', background:`linear-gradient(135deg,${ROLE_COLORS[u.role]||'#6366f1'},${ROLE_COLORS[u.role]||'#6366f1'}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', fontWeight:'900', color:'#fff', flexShrink:0, boxShadow:`0 4px 12px ${ROLE_COLORS[u.role]||'#6366f1'}40` }}>{u.name?.[0]?.toUpperCase()}</div>
+                      <div style={{ width:'48px', height:'48px', borderRadius:'12px 12px 0 0', background:`linear-gradient(135deg,${ROLE_COLORS[u.role]||'#6366f1'},${ROLE_COLORS[u.role]||'#6366f1'}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', fontWeight:'900', color:'#fff', flexShrink:0, boxShadow:`0 4px 12px ${ROLE_COLORS[u.role]||'#6366f1'}40` }}>{u.name?.[0]?.toUpperCase()}</div>
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:'14px', fontWeight:'700', color: darkMode?'#f1f5f9':NAVY }}>{u.name}</div>
                         <div style={{ fontSize:'11px', color: darkMode?'rgba(255,255,255,0.4)':'#94a3b8', marginTop:'2px' }}>{u.email}</div>
@@ -707,7 +707,7 @@ export default function AdminPanel({ darkMode }) {
                   const steps = typeof flow.steps === 'string' ? JSON.parse(flow.steps) : flow.steps;
                   return (
                     <div key={flow.id} style={{ background: darkMode?'#1a2235':'#fff', borderRadius:'16px', padding:'18px 22px', border:`1px solid ${darkMode?'rgba(255,255,255,0.08)':'#e2e8f0'}`, display:'flex', alignItems:'center', gap:'16px' }}>
-                      <div style={{ width:'48px', height:'48px', borderRadius:'14px', background:`linear-gradient(135deg,${flow.color},${flow.color}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0 }}>{flow.icon}</div>
+                      <div style={{ width:'48px', height:'48px', borderRadius:'12px 12px 0 0', background:`linear-gradient(135deg,${flow.color},${flow.color}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0 }}>{flow.icon}</div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:'14px', fontWeight:'800', color: darkMode?'#e2e8f0':'#0B1120' }}>{flow.title}</div>
                         <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.5)':'#64748b', marginTop:'3px' }}>{flow.description} &bull; {steps.length} steps</div>

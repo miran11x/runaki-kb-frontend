@@ -145,22 +145,64 @@ export default function EditorPanel() {
   <div
     style={{
       height: '100%',
-      background: darkMode ? '#080e18' : '#f0f4ff'
+      background: darkMode
+  ? 'linear-gradient(180deg,#020817 0%,#071226 100%)'
+  : '#f0f4ff'
     }}
   >
       <div style={S.body}>
       
 
-        <div style={S.tabs}>
+        <div
+  style={{
+    ...S.tabs,
+    background: darkMode
+      ? 'linear-gradient(145deg,#0f1623,#111827)'
+      : '#fff',
+    border: darkMode
+      ? '1px solid rgba(255,255,255,0.08)'
+      : '1px solid #e2e8f0',
+    borderRadius: '18px',
+    marginBottom: '20px'
+  }}
+>
           {[['faqs','📖 FAQs'],['tips','💡 Daily Tips'],['notify','🔔 Notify']].map(([k,l]) => (
             <button key={k} onClick={() => setTab(k)}
-              style={{ ...S.tab, ...(tab===k ? S.tabOn : {}) }}>
+              style={{
+  ...S.tab,
+
+  ...(tab === k
+    ? {
+        background: darkMode
+          ? 'rgba(255,107,53,.15)'
+          : '#fff7ed',
+
+        color: darkMode
+          ? '#fff'
+          : NAVY,
+
+        border: darkMode
+          ? '1px solid rgba(255,107,53,.25)'
+          : '1px solid #fed7aa',
+
+        borderRadius: '14px',
+        fontWeight: '800'
+      }
+    : {
+        color: darkMode
+          ? 'rgba(255,255,255,.65)'
+          : '#64748b'
+      })
+}}
+>
               {l}
             </button>
           ))}
         </div>
 
-        <div style={{ ...S.content, background: darkMode ? '#080e18' : '#f0f4ff' }}>
+        <div style={{ ...S.content, background: darkMode
+  ? 'linear-gradient(180deg,#020817 0%,#071226 100%)'
+  : '#f0f4ff' }}>
 
           {/* ── FAQs ── */}
           {tab === 'faqs' && (
@@ -168,8 +210,30 @@ export default function EditorPanel() {
               {/* Controls */}
               <div style={S.controls}>
                 <input placeholder="🔍 Search FAQs..." value={search}
-                  onChange={e => setSearch(e.target.value)} style={S.searchInput} />
-                <select value={catFilter} onChange={e => setCatFilter(e.target.value)} style={S.select}>
+                  onChange={e => setSearch(e.target.value)} style={{
+  ...S.searchInput,
+  background: darkMode
+    ? '#0f1623'
+    : '#fff',
+  border: darkMode
+    ? '1px solid rgba(255,255,255,0.08)'
+    : '1px solid #e2e8f0',
+  color: darkMode
+    ? '#e2e8f0'
+    : NAVY
+}} />
+                <select value={catFilter} onChange={e => setCatFilter(e.target.value)} style={{
+  ...S.select,
+  background: darkMode
+    ? '#0f1623'
+    : '#fff',
+  border: darkMode
+    ? '1px solid rgba(255,255,255,0.08)'
+    : '1px solid #e2e8f0',
+  color: darkMode
+    ? '#e2e8f0'
+    : NAVY
+}}>
                   <option value="All">All Categories</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -362,7 +426,16 @@ loadFaqs();
 
               {/* FAQs Table */}
               <div style={{ ...S.table, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 1px 4px rgba(0,0,0,0.04)' }}>
-                <div style={{ ...S.tableHead, background: darkMode?'rgba(255,255,255,0.04)':'#f8fafc', borderBottom: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8' }}>
+               <div style={{
+  ...S.tableHead,
+  background: darkMode
+    ? 'rgba(255,255,255,0.03)'
+    : '#f8fafc',
+  borderBottom: darkMode
+    ? '1px solid rgba(255,255,255,0.08)'
+    : '1px solid #e2e8f0',
+}}
+>
                   <div style={{flex:3}}>Question</div>
                   <div style={{flex:1.5}}>Category</div>
                   <div style={{flex:1}}>Status</div>
@@ -386,7 +459,9 @@ loadFaqs();
                           {f.is_published?'Live':'Draft'}
                         </span>
                       </div>
-                      <div style={{flex:1,fontSize:'13px',color:'#64748b',fontWeight:'600'}}>{f.views||0}</div>
+                      <div style={{flex:1,fontSize:'13px',color: darkMode
+  ? 'rgba(255,255,255,.65)'
+  : '#64748b',fontWeight:'600'}}>{f.views||0}</div>
                       <div style={{flex:1.5,fontSize:'12px',color:'#94a3b8'}}>{f.created_by_name||'—'}</div>
                       <div style={{flex:1,display:'flex',gap:'5px'}}>
                         <button style={{ ...S.tBtn, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0' }} onClick={()=>{setEditFaq({...f});setIsNew(false);}}>✏️</button>
@@ -405,8 +480,15 @@ loadFaqs();
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'24px'}}>
               {/* Create tip */}
               <div style={{ ...S.card, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 2px 8px rgba(0,0,0,0.04)' }}>
-                <h3 style={S.cardTitle}>💡 Post New Daily Tip</h3>
-                <p style={{fontSize:'13px',color:'#64748b',marginBottom:'20px',lineHeight:'1.6'}}>
+                <h3
+  style={{
+    ...S.cardTitle,
+    color: darkMode ? '#f1f5f9' : NAVY
+  }}
+>💡 Post New Daily Tip</h3>
+                <p style={{fontSize:'13px',color: darkMode
+  ? 'rgba(255,255,255,.65)'
+  : '#64748b',marginBottom:'20px',lineHeight:'1.6'}}>
                   Tips appear as a highlighted banner on the agent FAQ view. Only one tip is active at a time.
                 </p>
                 <form onSubmit={createTip} style={{display:'flex',flexDirection:'column',gap:'14px'}}>
@@ -435,7 +517,12 @@ loadFaqs();
 
               {/* Tips history */}
               <div style={{ ...S.card, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 2px 8px rgba(0,0,0,0.04)' }}>
-                <h3 style={S.cardTitle}>📋 Recent Tips ({tips.length})</h3>
+                <h3
+  style={{
+    ...S.cardTitle,
+    color: darkMode ? '#f1f5f9' : NAVY
+  }}
+>📋 Recent Tips ({tips.length})</h3>
                 <div style={{display:'flex',flexDirection:'column',gap:'10px',marginTop:'8px',maxHeight:'480px',overflowY:'auto'}}>
                   {tips.length === 0
                     ? <div style={{textAlign:'center',padding:'32px',color:'#94a3b8',fontSize:'13px'}}>No tips yet</div>
@@ -445,7 +532,9 @@ loadFaqs();
                           <span style={{fontSize:'12.5px',fontWeight:'800',color:t.is_active?ORANGE:NAVY}}>{t.title}</span>
                           {t.is_active && <span style={S.activeBadge}>● LIVE</span>}
                         </div>
-                        <div style={{fontSize:'12px',color:'#64748b',lineHeight:'1.5',margin:'4px 0'}}>{t.content}</div>
+                        <div style={{fontSize:'12px',color: darkMode
+  ? 'rgba(255,255,255,.65)'
+  : '#64748b',lineHeight:'1.5',margin:'4px 0'}}>{t.content}</div>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                           <div style={{fontSize:'11px',color:'#94a3b8'}}>{t.category} · {t.author} · {new Date(t.created_at).toLocaleDateString()}</div>
                           <div style={{display:'flex',gap:'6px'}}>
@@ -465,8 +554,15 @@ loadFaqs();
           {tab === 'notify' && (
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'24px'}}>
               <div style={{ ...S.card, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 2px 8px rgba(0,0,0,0.04)' }}>
-                <h3 style={S.cardTitle}>🔔 Send Notification</h3>
-                <p style={{fontSize:'13px',color:'#64748b',marginBottom:'20px',lineHeight:'1.6'}}>
+                <h3
+  style={{
+    ...S.cardTitle,
+    color: darkMode ? '#f1f5f9' : NAVY
+  }}
+>🔔 Send Notification</h3>
+                <p style={{fontSize:'13px',color: darkMode
+  ? 'rgba(255,255,255,.65)'
+  : '#64748b',marginBottom:'20px',lineHeight:'1.6'}}>
                   Agents will see this in the notification bell in the top bar.
                 </p>
                 <form onSubmit={sendNotif} style={{display:'flex',flexDirection:'column',gap:'14px'}}>
@@ -493,7 +589,12 @@ loadFaqs();
                 </div>
               </div>
               <div style={{ ...S.card, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 2px 8px rgba(0,0,0,0.04)' }}>
-                <h3 style={S.cardTitle}>📋 Tips for Effective Notifications</h3>
+                <h3
+  style={{
+    ...S.cardTitle,
+    color: darkMode ? '#f1f5f9' : NAVY
+  }}
+>📋 Tips for Effective Notifications</h3>
                 {[
                   { icon: '✅', tip: 'Keep titles short and clear — agents see them in the bell dropdown' },
                   { icon: '📝', tip: 'Mention the specific change: "Added 5 new e-Psûle FAQs"' },
@@ -518,7 +619,14 @@ loadFaqs();
 const S = {
   layout:{display:'flex',height:'100vh',overflow:'hidden',fontFamily:"'Inter','Segoe UI',sans-serif"},
   body:{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minWidth:0},
-  tabs:{display:'flex',gap:'4px',padding:'12px 28px 0'},
+tabs:{
+  display:'flex',
+  alignItems:'center',
+  gap:'10px',
+  padding:'14px 18px',
+  flexWrap:'nowrap',
+  overflowX:'auto'
+},
   tab:{padding:'10px 18px',borderRadius:'10px 10px 0 0',border:'none',background:'transparent',fontSize:'13px',fontWeight:'600',color:'#94a3b8',cursor:'pointer',fontFamily:'inherit'},
   tabOn:{background:BG,color:NAVY,fontWeight:'800',borderBottom:'2px solid '+ORANGE},
   content:{flex:1,overflowY:'auto',padding:'24px 28px'},
@@ -530,7 +638,13 @@ const S = {
 
   table:{borderRadius:'16px',overflow:'hidden'},
   tableHead:{display:'flex',padding:'12px 18px',fontSize:'10.5px',fontWeight:'800',textTransform:'uppercase',letterSpacing:'0.08em'},
-  tableRow:{display:'flex',alignItems:'center',padding:'12px 18px',borderBottom:'1px solid #f1f5f9',gap:'8px'},
+ tableRow:{
+  display:'flex',
+  alignItems:'center',
+  padding:'12px 18px',
+  gap:'8px',
+  borderBottom:'1px solid rgba(255,255,255,0.06)',
+},
   tBtn:{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px',padding:'5px 8px',cursor:'pointer',fontSize:'13px'},
 
   card:{background:'#fff',borderRadius:'16px',padding:'22px 24px',border:'1px solid #e2e8f0',boxShadow:'0 1px 4px rgba(0,0,0,0.04)'},
