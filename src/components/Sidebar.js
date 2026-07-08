@@ -841,7 +841,7 @@ folder
   <>
     <NI
       sub
-      icon="⭐"
+      icon="✨"
       
   darkMode={darkMode}
 

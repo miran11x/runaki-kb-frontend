@@ -8,7 +8,6 @@
   import toast from 'react-hot-toast';
   import MaintenanceLookup from '../components/MaintenanceLookup';
   import UpdateScripts from '../components/UpdateScripts';
-  import MyEvaluations from '../components/MyEvaluations';
 
   const NAVY  = '#0B1120';
   const ORANGE = '#FF6B35';
@@ -248,7 +247,7 @@
 
     const items = panelFaqs();
     const groups = grouped(items);
-    const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_evaluations','_updatescripts','_ai', '_ai-kb', '_ai-categorizer'].includes(panel);
+    const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_updatescripts','_ai', '_ai-kb', '_ai-categorizer'].includes(panel);
 
     if (loading) return (
       <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
@@ -350,7 +349,6 @@
             {panel === '_traccess'  && <TRAccess darkMode={darkMode} DM={DM} />}
             {panel === '_callflows' && <CallFlows darkMode={darkMode} DM={DM} />}
             {panel === '_maintenance'   && <MaintenanceLookup darkMode={darkMode} />}
-            {panel === '_evaluations'   && <MyEvaluations darkMode={darkMode} />}
             {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
            {['_ai', '_ai-kb', '_ai-categorizer'].includes(panel) && (
   <RUNAKIAIAssistant
