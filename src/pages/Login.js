@@ -11,7 +11,16 @@ export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
-  const isMobile = window.innerWidth < 768;
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+useEffect(() => {
+  const handleResize = () => {
+    setIsMobile(window.innerWidth < 768);
+  };
+
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
   const [focused, setFocused] = useState('');
 
   const handleSubmit = async e => {
@@ -22,6 +31,19 @@ export default function Login() {
   };
 
   return (
+  <>
+    <style>{`
+      @keyframes float {
+        from { transform: translateY(0px); }
+        to { transform: translateY(-20px); }
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `}</style>
+        
     <div style={S.page}>
       {/* Animated background */}
       <div style={S.bg}>
@@ -153,13 +175,14 @@ export default function Login() {
             </form>
 
             <div style={S.hint}>
-              🔐 Use your company email · Agents: Wave@WaveID
+              🔐 Use your company credentials
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+  </div>
+  </>
+);
 }
 
 const NAVY = '#0B1120';
@@ -175,14 +198,14 @@ const S = {
   particle: { position: 'absolute', borderRadius: '50%', background: 'rgba(255,107,53,0.15)', animation: 'float 4s ease-in-out infinite alternate' },
 
   wrapper: { display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '1100px', minHeight: '620px', borderRadius: '28px', overflow: 'hidden', boxShadow: '0 50px 120px rgba(0,0,0,0.6)', position: 'relative', zIndex: 1 },
-  wrapperDesktop: { flexDirection: 'row' },
+ 
 
   left: { flex: '1.2', background: 'linear-gradient(145deg,#0d1a35 0%,#0B1120 60%,#0a1628 100%)', padding: '50px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.06)' },
   leftContent: { display: 'flex', flexDirection: 'column', gap: '28px' },
 
   logosRow: { display: 'flex', alignItems: 'center', gap: '20px' },
   logoBox: { background: 'rgba(255,255,255,0.06)', borderRadius: '16px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.08)' },
-  logoImg: { height: '48px', width: 'auto', objectFit: 'contain', maxWidth: '140px' },
+  logoImg: { height: '56px', width: 'auto', objectFit: 'contain', maxWidth: '140px' },
   logoDivider: { width: '1px', height: '40px', background: 'rgba(255,255,255,0.12)' },
 
   tagline: { display: 'flex', flexDirection: 'column', gap: '4px' },
@@ -190,12 +213,12 @@ const S = {
   taglineBottom: { fontSize: '42px', fontWeight: '900', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 },
   taglineBar: { width: '60px', height: '4px', background: `linear-gradient(90deg,${ORANGE},#ff9a6c)`, borderRadius: '2px', marginTop: '12px' },
 
-  desc: { fontSize: '14px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.75, maxWidth: '380px' },
+  desc: { fontSize: '14px', color: 'rgba(255,255,255,0.65)', lineHeight: 1.75, maxWidth: '380px' },
 
   stats: { display: 'flex', gap: '24px' },
   statItem: { display: 'flex', flexDirection: 'column', gap: '2px' },
   statNum: { fontSize: '22px', fontWeight: '800', color: '#fff', letterSpacing: '-0.02em' },
-  statLbl: { fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' },
+  statLbl: { fontSize: '10px', color: 'rgba(255,255,255,0.55)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' },
 
   features: { display: 'flex', flexDirection: 'column', gap: '10px' },
   featureItem: { display: 'flex', alignItems: 'center', gap: '10px' },
@@ -203,10 +226,15 @@ const S = {
   featureText: { fontSize: '13px', color: 'rgba(255,255,255,0.55)', fontWeight: '500' },
 
   right: { flex: 1, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' },
-  formCard: { width: '100%', maxWidth: '380px' },
+  formCard: { width: '100%', maxWidth: '420px' },
 
   formLogos: { display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px', justifyContent: 'center' },
-  formLogo: { height: '38px', width: 'auto', objectFit: 'contain', maxWidth: '120px' },
+ formLogo: {
+  height: '44px',
+  width: 'auto',
+  objectFit: 'contain',
+  maxWidth: '120px'
+},
   formLogoDivider: { width: '1px', height: '28px', background: '#e2e8f0' },
 
   formTitle: { fontSize: '30px', fontWeight: '900', color: NAVY, margin: '0 0 6px', letterSpacing: '-0.03em' },
@@ -216,11 +244,12 @@ const S = {
   label: { fontSize: '12.5px', fontWeight: '700', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' },
   fieldIco: { position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', pointerEvents: 'none' },
   input: { width: '100%', padding: '14px 14px 14px 46px', border: '1.5px solid #e5e7eb', borderRadius: '14px', fontSize: '14px', fontFamily: 'inherit', outline: 'none', background: '#f8fafc', color: '#111827', boxSizing: 'border-box', transition: 'all .2s' },
-  inputOn: { borderColor: ORANGE, background: '#fff', boxShadow: '0 0 0 4px rgba(255,107,53,0.1)' },
+  inputOn: { borderColor: ORANGE, background: '#fff', boxShadow: '0 0 0 4px rgba(255,107,53,0.16)' },
   eyeBtn: { position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '4px' },
 
-  btn: { background: `linear-gradient(135deg,${ORANGE} 0%,#e85d25 100%)`, color: '#fff', border: 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: '800', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em', marginTop: '8px', boxShadow: '0 8px 24px rgba(255,107,53,0.35)', transition: 'all .2s' },
+  btn: { background: `linear-gradient(135deg,${ORANGE} 0%,#e85d25 100%)`, color: '#fff', border: 'none', borderRadius: '14px', padding: '16px', fontSize: '15px', fontWeight: '800', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em', marginTop: '8px', boxShadow: '0 8px 24px rgba(255,107,53,0.35)', transition: 'all .2s' },
   spinner: { width: '18px', height: '18px', border: '2.5px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block', flexShrink: 0 },
+  
 
   hint: { marginTop: '20px', textAlign: 'center', fontSize: '12px', color: '#9ca3af', lineHeight: 1.6 },
 };
