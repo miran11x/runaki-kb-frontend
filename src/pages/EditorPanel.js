@@ -416,15 +416,19 @@ loadFaqs();
 
               {/* FAQs Table */}
               <div style={{ ...S.table, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 1px 4px rgba(0,0,0,0.04)' }}>
-               <div style={{
-  ...S.tableHead,
-  background: darkMode
-    ? 'rgba(255,255,255,0.03)'
-    : '#f8fafc',
-  borderBottom: darkMode
-    ? '1px solid rgba(255,255,255,0.08)'
-    : '1px solid #e2e8f0',
-}}
+              <div
+  style={{
+    ...S.tableHead,
+    background: darkMode
+      ? 'rgba(255,255,255,0.03)'
+      : '#f8fafc',
+    borderBottom: darkMode
+      ? '1px solid rgba(255,255,255,0.08)'
+      : '1px solid #e2e8f0',
+    color: darkMode
+      ? '#e2e8f0'
+      : NAVY
+  }}
 >
                   <div style={{flex:3}}>Question</div>
                   <div style={{flex:1.5}}>Category</div>
