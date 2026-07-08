@@ -84,7 +84,7 @@ export default function App() {
           } />
           <Route path="/editor" element={
             <PrivateRoute roles={['qa_officer','team_lead']}>
-              <EditorPanel darkMode={darkMode} />
+              <EditorPanel />
             </PrivateRoute>
           } />
           <Route path="/admin" element={

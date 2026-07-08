@@ -29,7 +29,8 @@ const emptyFaq = {
   is_published:true
 };
 
-export default function EditorPanel({ darkMode }) {
+export default function EditorPanel() {
+ const darkMode = localStorage.getItem('rk_dark') === '1';
   const navigate = useNavigate();
   const [tab, setTab]         = useState('faqs');
   const [faqs, setFaqs]       = useState([]);
