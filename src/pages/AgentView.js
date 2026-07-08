@@ -9,7 +9,7 @@
   import MaintenanceLookup from '../components/MaintenanceLookup';
   import UpdateScripts from '../components/UpdateScripts';
   import AdminPanel from './AdminPanel';
-  import FAQEditor from '../components/FAQEditor';
+  import EditorPanel from './EditorPanel';
 
   const NAVY  = '#0B1120';
   const ORANGE = '#FF6B35';
@@ -374,11 +374,11 @@
             {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
             
 {panel === '_admin' && (
-  <AdminPanel darkMode={darkMode} />
+  <AdminPanel />
 )}
 
 {panel === '_faqeditor' && (
-  <FAQEditor darkMode={darkMode} />
+  <EditorPanel />
 )}
 
            {['_ai', '_ai-kb', '_ai-categorizer'].includes(panel) && (
