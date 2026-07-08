@@ -65,7 +65,7 @@
   const PANEL_LABELS = {
     'inquiries':'Inquiries','inq-runaki':'Runaki Project','inq-kyc':'KYC',
     'inq-billing':'Billing Inquiries','inq-dunning':'Dunning','inq-epsule':'e-Psûle',
-    'inq-ussd':'USSD',
+    'inq-ussd':'USSD','_callflows':'Call Flows',
 'inq-other':'Other',
 'billing':'Billing Complaints',
     '_maintenance':' Maintenance Lookup',
