@@ -853,6 +853,31 @@ folder
   </>
 )}
 
+{user?.role === 'admin' && (
+  <>
+    <div style={S.groupLabel}>⚙️ Administration</div>
+
+    <NI
+      icon="🛠️"
+      label="Admin Panel"
+      collapsed={collapsed}
+      darkMode={darkMode}
+      active={panel === '_admin'}
+      onClick={() => go('_admin')}
+    />
+
+    <NI
+      icon="📝"
+      label="FAQ Editor"
+      collapsed={collapsed}
+      darkMode={darkMode}
+      active={panel === '_faqeditor'}
+      onClick={() => go('_faqeditor')}
+    />
+  </>
+)}
+
+
       </nav>
 
       {/* ── LOGOUT ── */}
