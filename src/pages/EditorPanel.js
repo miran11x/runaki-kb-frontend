@@ -29,7 +29,7 @@ const emptyFaq = {
   is_published:true
 };
 
-export default function EditorPanel() {
+export default function EditorPanel({ darkMode }) {
   const navigate = useNavigate();
   const [tab, setTab]         = useState('faqs');
   const [faqs, setFaqs]       = useState([]);
@@ -43,21 +43,10 @@ export default function EditorPanel() {
   const [loading, setLoading] = useState(false);
   const [sideSearch, setSideSearch] = useState('');
   const fileInputRef = useRef(null);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rk_editor_dark') === '1');
-  const toggleDark = () => { const n = !darkMode; setDarkMode(n); localStorage.setItem('rk_editor_dark', n?'1':'0'); };
-
   const loadFaqs = useCallback(async () => {
-    const r = await api.get('/faqs/all').catch(() => null);
-    if (r) setFaqs(r.data);
-  }, []);
-
+  const r = await api.get('/faqs/all').catch(() => null);if (r) setFaqs(r.data);}, []);
   const loadTips = useCallback(async () => {
-    const r = await api.get('/tips').catch(() => null);
-    if (r) setTips(r.data);
-  }, []);
-
-  useEffect(() => { loadFaqs(); loadTips(); }, [loadFaqs, loadTips]);
-
+  const r = await api.get('/tips').catch(() => null);if (r) setTips(r.data);}, []);useEffect(() => { loadFaqs(); loadTips(); }, [loadFaqs, loadTips]);
   const saveFaq = async e => {
     e.preventDefault(); setLoading(true);
     console.log('SAVING FAQ', editFaq);
@@ -445,8 +434,16 @@ loadFaqs();
                 </div>
                 {filtered.length === 0
                   ? <div style={{padding:'32px',textAlign:'center',color:'#94a3b8',fontSize:'14px'}}>No FAQs found</div>
-                  : filtered.map(f => (
-                    <div key={f.id} style={S.tableRow}>
+               : filtered.map(f => (
+  <div
+    key={f.id}
+    style={{
+      ...S.tableRow,
+      borderBottom: darkMode
+        ? '1px solid rgba(255,255,255,0.06)'
+        : '1px solid #e2e8f0'
+    }}
+  >
                       <div style={{flex:3}}>
                         <div style={{fontSize:'13.5px',fontWeight:'600',color:darkMode?'#e2e8f0':NAVY,lineHeight:'1.4'}}>{f.question_en}</div>
                         {f.subcategory && <div style={{fontSize:'11px',color:'#94a3b8',marginTop:'2px'}}>{f.subcategory}</div>}
@@ -529,7 +526,11 @@ loadFaqs();
                     : tips.map(t => (
                       <div key={t.id} style={{...S.tipItem,...(t.is_active?S.tipItemActive:{})}}>
                         <div style={S.tipItemHead}>
-                          <span style={{fontSize:'12.5px',fontWeight:'800',color:t.is_active?ORANGE:NAVY}}>{t.title}</span>
+                          <span style={{fontSize:'12.5px',fontWeight:'800',color:t.is_active
+  ? ORANGE
+  : darkMode
+    ? '#f1f5f9'
+    : NAVY}}>{t.title}</span>
                           {t.is_active && <span style={S.activeBadge}>● LIVE</span>}
                         </div>
                         <div style={{fontSize:'12px',color: darkMode
@@ -580,7 +581,19 @@ loadFaqs();
                     {loading ? 'Sending...' : '🔔 Send to All Agents'}
                   </button>
                 </form>
-                <div style={{marginTop:'18px',padding:'14px',background:'#f0f9ff',borderRadius:'12px',border:'1px solid #bae6fd'}}>
+               <div
+  style={{
+    marginTop:'18px',
+    padding:'14px',
+    background: darkMode
+      ? 'rgba(14,165,233,.08)'
+      : '#f0f9ff',
+    borderRadius:'12px',
+    border: darkMode
+      ? '1px solid rgba(14,165,233,.15)'
+      : '1px solid #bae6fd'
+  }}
+>
                   <div style={{fontSize:'12px',fontWeight:'800',color:'#0369a1',marginBottom:'6px'}}>📧 Send via Outlook</div>
                   <a href={`mailto:agents@highperformanceco.net?subject=${encodeURIComponent(notifForm.title||'KB Update')}&body=${encodeURIComponent(notifForm.message||'')}`}
                     style={{display:'block',textAlign:'center',padding:'9px',background:'#0072C6',color:'#fff',borderRadius:'10px',textDecoration:'none',fontSize:'12px',fontWeight:'700',marginTop:'8px'}}>
@@ -602,9 +615,14 @@ loadFaqs();
                   { icon: '🎯', tip: 'Use Daily Tips for general best practices and reminders' },
                   { icon: '🔔', tip: 'Use Notifications for urgent or time-sensitive updates' },
                 ].map((item, i) => (
-                  <div key={i} style={{display:'flex',gap:'12px',padding:'12px 0',borderBottom:'1px solid #f1f5f9'}}>
+                  <div key={i} style={{display:'flex',gap:'12px',padding:'12px 0',borderBottom: darkMode
+  ? '1px solid rgba(255,255,255,.06)'
+  : '1px solid #f1f5f9'
+}}>
                     <span style={{fontSize:'18px',flexShrink:0}}>{item.icon}</span>
-                    <span style={{fontSize:'13px',color:'#475569',lineHeight:'1.6'}}>{item.tip}</span>
+                    <span style={{fontSize:'13px',color: darkMode
+  ? 'rgba(255,255,255,.75)'
+  : '#475569',lineHeight:'1.6'}}>{item.tip}</span>
                   </div>
                 ))}
               </div>
@@ -643,7 +661,6 @@ tabs:{
   alignItems:'center',
   padding:'12px 18px',
   gap:'8px',
-  borderBottom:'1px solid rgba(255,255,255,0.06)',
 },
   tBtn:{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px',padding:'5px 8px',cursor:'pointer',fontSize:'13px'},
 
