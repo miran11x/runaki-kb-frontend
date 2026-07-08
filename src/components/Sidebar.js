@@ -537,7 +537,7 @@ folder
   
   darkMode={darkMode}
 
-  label="💻 RUNAKI AI"
+  label="RUNAKI AI"
   collapsed={collapsed}
   active={
   ['_ai-kb', '_ai-categorizer']
@@ -584,7 +584,7 @@ folder
 {aiOpen && (
   <>
     <NI
-  icon="🧠"
+  icon="💻"
   
   darkMode={darkMode}
 
