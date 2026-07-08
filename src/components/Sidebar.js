@@ -41,6 +41,7 @@ export default function Sidebar({
   const [opsOpen, setOpsOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
+  const [systemOpen, setSystemOpen] = useState(true);
   const [hasActiveScript, setHasActiveScript] = useState(false);
     useEffect(() => {
 
@@ -853,12 +854,69 @@ folder
     />
   </>
 )}
-
-{user?.role === 'team_lead' && (
+{!collapsed && (
   <>
-    <div style={S.groupLabel}>⚙️ Administration</div>
+    <div
+      style={{
+        height: '1px',
+        margin: '14px 16px 10px',
+        background: darkMode
+          ? 'rgba(255,255,255,0.08)'
+          : '#e2e8f0'
+      }}
+    />
+  </>
+)}
 
+<NI
+  folder
+  icon="⚙️"
+  label="System"
+  collapsed={collapsed}
+  darkMode={darkMode}
+  active={['_admin', '_faqeditor'].includes(panel)}
+  onClick={() => setSystemOpen(!systemOpen)}
+  suffix={
+    !collapsed && (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}
+      >
+        <span
+          style={{
+            fontSize: '10px',
+            fontWeight: '700',
+            color: darkMode
+              ? 'rgba(255,255,255,.75)'
+              : '#64748b'
+          }}
+        >
+          {systemOpen ? 'Hide' : 'Open'}
+        </span>
+
+        <span
+          style={{
+            transform: systemOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'all .2s ease',
+            fontSize: '18px',
+            fontWeight: '900',
+            color: '#FF6B35'
+          }}
+        >
+          ▶
+        </span>
+      </div>
+    )
+  }
+/>
+
+{systemOpen && (
+  <>
     <NI
+      sub
       icon="🛠️"
       label="Admin Panel"
       collapsed={collapsed}
@@ -868,6 +926,7 @@ folder
     />
 
     <NI
+      sub
       icon="📝"
       label="FAQ Editor"
       collapsed={collapsed}
@@ -877,8 +936,6 @@ folder
     />
   </>
 )}
-
-
       </nav>
 
       {/* ── LOGOUT ── */}

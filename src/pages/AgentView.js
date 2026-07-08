@@ -8,6 +8,8 @@
   import toast from 'react-hot-toast';
   import MaintenanceLookup from '../components/MaintenanceLookup';
   import UpdateScripts from '../components/UpdateScripts';
+  import AdminPanel from '../components/AdminPanel';
+  import FAQEditor from '../components/FAQEditor';
 
   const NAVY  = '#0B1120';
   const ORANGE = '#FF6B35';
@@ -58,6 +60,8 @@
     '_callflows':  () => false,
     '_maintenance': () => false,
     '_ai': () => false,
+    '_admin': () => false,
+    '_faqeditor': () => false,
     'inq-runakirapp': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase() === 'runaki app',
   };
 
@@ -74,7 +78,9 @@
     'feedback':'Feedback & Others','_updates':'New Updates',
     '_restree':'Resolution Tree','_scripts':'Scripts & Processes','_priority':'Case Priorities',
     '_search':'Search Results','_bookmarks':' Bookmarks',
-    '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling','_ai':'🤖 RUNAKI AI Assistant',
+    '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling','_ai':'🤖 RUNAKI AI Assistant', 
+'_admin':'Admin Panel',
+'_faqeditor':'FAQ Editor',
   };
 
   export default function AgentView() {
@@ -247,7 +253,23 @@
 
     const items = panelFaqs();
     const groups = grouped(items);
-    const isSpecial = ['_restree','_scripts','_priority','_kyc','_holdunhold','_traccess','_callflows','_maintenance','_updatescripts','_ai', '_ai-kb', '_ai-categorizer'].includes(panel);
+    const isSpecial = [
+  '_restree',
+  '_scripts',
+  '_priority',
+  '_kyc',
+  '_holdunhold',
+  '_traccess',
+  '_callflows',
+  '_maintenance',
+  '_updatescripts',
+  '_ai',
+  '_ai-kb',
+  '_ai-categorizer',
+  '_admin',
+  '_faqeditor'
+].includes(panel);
+
 
     if (loading) return (
       <div style={{ display:'flex', height:'100vh', background:DM.bg, fontFamily:"'Inter',sans-serif", alignItems:'center', justifyContent:'center' }}>
@@ -350,6 +372,15 @@
             {panel === '_callflows' && <CallFlows darkMode={darkMode} DM={DM} />}
             {panel === '_maintenance'   && <MaintenanceLookup darkMode={darkMode} />}
             {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
+            
+{panel === '_admin' && (
+  <AdminPanel darkMode={darkMode} />
+)}
+
+{panel === '_faqeditor' && (
+  <FAQEditor darkMode={darkMode} />
+)}
+
            {['_ai', '_ai-kb', '_ai-categorizer'].includes(panel) && (
   <RUNAKIAIAssistant
     darkMode={darkMode}
