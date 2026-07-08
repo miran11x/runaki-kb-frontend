@@ -302,7 +302,7 @@
   subtitle={
     search
       ? `${items.length} results for "${search}"`
-      : subtitleMap[panel] || ''
+      :''
   }
   darkMode={darkMode}
   onToggleDark={toggleDark}
