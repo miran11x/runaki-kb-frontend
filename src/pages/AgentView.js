@@ -69,7 +69,7 @@
 'inq-other':'Other',
 'billing':'Billing Complaints',
     '_maintenance':'🔧 Maintenance Lookup',
-    'inq-runakirapp':'📱 Runaki App','_ai-kb':'🧠 Knowledge Assistant',
+    'inq-runakirapp':' Runaki App','_ai-kb':'💻 Knowledge Assistant',
 '_ai-categorizer':'🏷️ Case Categorizer',
     'general':'General Complaints','service':'Service Requests',
     'feedback':'Feedback & Others','_updates':'New Updates',
