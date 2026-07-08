@@ -314,7 +314,15 @@ export default function AdminPanel() {
         @keyframes pulse{0%,100%{box-shadow:0 0 6px #22c55e}50%{box-shadow:0 0 14px #22c55e}}
         ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:3px}
       `}</style>
-      <Sidebar panel={null} setPanel={() => navigate('/')} search={''} setSearch={() => {}} />
+     
+<Sidebar
+  panel="_admin"
+  setPanel={() => navigate('/')}
+  search=""
+  setSearch={() => {}}
+  darkMode={darkMode}
+/>
+
       <div style={S.body}>
         <Topbar title="Admin Panel" subtitle="System analytics & management" darkMode={darkMode} onToggleDark={toggleDark} />
         <div style={{ ...S.tabBar, background: darkMode ? '#0d1526' : '#fff', borderBottomColor: darkMode ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}>

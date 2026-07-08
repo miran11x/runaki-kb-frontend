@@ -3,8 +3,6 @@ import * as XLSX from 'xlsx';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import Sidebar from '../components/Sidebar';
-import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
 
 const API = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';
@@ -143,23 +141,16 @@ export default function EditorPanel() {
   return matchCat && matchSearch;
 });
 
-  return (
-    <div style={{ ...S.layout, background: darkMode ? '#080e18' : '#f0f4ff' }}>
-      <Sidebar
-  panel={null}
-  setPanel={() => navigate('/')}
-  search={sideSearch}
-  setSearch={setSideSearch}
-  faqs={faqs}
-/>
+ return (
+  <div
+    style={{
+      height: '100%',
+      background: darkMode ? '#080e18' : '#f0f4ff'
+    }}
+  >
       <div style={S.body}>
-        <Topbar
-          title="FAQ Editor"
-          subtitle={`${faqs.filter(f=>f.is_published).length} published · ${faqs.filter(f=>!f.is_published).length} drafts`}
-          darkMode={darkMode} onToggleDark={toggleDark}
-        />
+      
 
-        {/* Tabs */}
         <div style={S.tabs}>
           {[['faqs','📖 FAQs'],['tips','💡 Daily Tips'],['notify','🔔 Notify']].map(([k,l]) => (
             <button key={k} onClick={() => setTab(k)}

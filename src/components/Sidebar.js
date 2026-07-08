@@ -320,10 +320,10 @@ const FAQ_CHILDREN = [
   label="FAQs"
   badge={faqs.length}
   collapsed={collapsed}
-  active={
+active={
   faqOpen &&
   (
-    panel.startsWith('inq-') ||
+    panel?.startsWith('inq-') ||
     ['billing','general','service','feedback','_updates']
       .includes(panel)
   )
