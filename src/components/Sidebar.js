@@ -539,7 +539,7 @@ folder
   
   darkMode={darkMode}
 
-  label="✨ RUNAKI AI PRO"
+  label="✨ RUNAKI AI"
   collapsed={collapsed}
   active={
   ['_ai-kb', '_ai-categorizer']
