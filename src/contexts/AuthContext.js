@@ -21,23 +21,30 @@ export const AuthProvider = ({ children }) => {
     return () => clearInterval(t);
   }, [user, ping]);
 
-  const login = async (identifier, password) => {
-    setLoading(true);
-    try {
-await axios.post('/auth/login', {
-  identifier,
-  password
-});
+const login = async (identifier, password) => {
+  setLoading(true);
 
-      localStorage.setItem('rk_token', res.data.token);
-      localStorage.setItem('rk_user', JSON.stringify(res.data.user));
-      setUser(res.data.user);
-      return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err.response?.data?.error || 'Login failed' };
-    } finally { setLoading(false); }
-  };
+  try {
+    const res = await api.post('/auth/login', {
+      identifier,
+      password,
+    });
 
+    localStorage.setItem('rk_token', res.data.token);
+    localStorage.setItem('rk_user', JSON.stringify(res.data.user));
+
+    setUser(res.data.user);
+
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err.response?.data?.error || 'Login failed',
+    };
+  } finally {
+    setLoading(false);
+  }
+};
   const logout = async () => {
     await api.post('/auth/logout').catch(() => {});
     localStorage.removeItem('rk_token');
