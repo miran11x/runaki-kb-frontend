@@ -8,9 +8,21 @@ import LogoDark from '../assets/runaki-dark.svg';
 const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
 const ROLE_META = {
-  team_lead: { label: 'Team Lead', color: '#a78bfa', bg: 'rgba(167,139,250,0.18)' },
-  qa_officer: { label: 'QA Officer', color: '#34d399', bg: 'rgba(52,211,153,0.18)' },
-  agent: { label: 'Agent', color: '#60a5fa', bg: 'rgba(96,165,250,0.18)' },
+  admin: {
+    label: 'Administrator',
+    color: '#ef4444',
+    bg: 'rgba(239,68,68,0.18)'
+  },
+  editor: {
+    label: 'Content Editor',
+    color: '#34d399',
+    bg: 'rgba(52,211,153,0.18)'
+  },
+  agent: {
+    label: 'Agent',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.18)'
+  }
 };
 
 export default function Sidebar({

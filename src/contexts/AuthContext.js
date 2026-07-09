@@ -21,10 +21,14 @@ export const AuthProvider = ({ children }) => {
     return () => clearInterval(t);
   }, [user, ping]);
 
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
+await axios.post('/auth/login', {
+  identifier,
+  password
+});
+
       localStorage.setItem('rk_token', res.data.token);
       localStorage.setItem('rk_user', JSON.stringify(res.data.user));
       setUser(res.data.user);

@@ -45,7 +45,7 @@ export default function Topbar({ title, subtitle, rkLogo, hpLogo, darkMode, onTo
 
   useEffect(() => {
     loadNotifs();
-    if (user?.role === 'team_lead' || user?.role === 'qa_officer') {
+    if (user?.role === 'admin' || user?.role === 'editor') {
       api.get('/users/active-count').then(r => setActiveCount(r.data.count)).catch(() => {});
       const t = setInterval(() => {
         api.get('/users/active-count').then(r => setActiveCount(r.data.count)).catch(() => {});

@@ -9,7 +9,10 @@ const HP_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5Z
 export default function Login() {
   const { login, loading } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({
+  identifier: '',
+  password: ''
+});
   const [showPass, setShowPass] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -25,7 +28,7 @@ useEffect(() => {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    const res = await login(form.email, form.password);
+    const res = await login(form.identifier, form.password);
     if (res.ok) { toast.success('Welcome back!'); navigate('/'); }
     else toast.error(res.error);
   };
@@ -126,20 +129,20 @@ useEffect(() => {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div style={S.field}>
-                <label style={S.label}>Email address</label>
+                <label style={S.label}>Email or Wave ID</label>
                 <div style={{ position: 'relative' }}>
-                  <span style={S.fieldIco}>✉️</span>
-                  <input
-                    type="email"
-                    placeholder="name@highperformanceco.net"
-                    value={form.email}
-                    onChange={e => setForm({ ...form, email: e.target.value })}
-                    onFocus={() => setFocused('email')}
-                    onBlur={() => setFocused('')}
-                    style={{ ...S.input, ...(focused === 'email' ? S.inputOn : {}) }}
-                    required
-                  />
-                </div>
+            <span style={S.fieldIco}>👤</span>
+<input
+  type="text"
+  placeholder="Email or Wave ID"
+  value={form.identifier}
+  onChange={e => setForm({ ...form, identifier: e.target.value })}
+  onFocus={() => setFocused('email')}
+  onBlur={() => setFocused('')}
+  style={{ ...S.input, ...(focused === 'email' ? S.inputOn : {}) }}
+  required
+/>
+                  </div>
               </div>
 
               <div style={S.field}>

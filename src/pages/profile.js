@@ -10,8 +10,8 @@ const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
 
 const ROLE_COLORS = {
-  agent: '#3b82f6', team_lead: '#8b5cf6',
-  qa_officer: '#10b981', supervisor: '#ec4899',
+  agent: '#3b82f6', admin: '#8b5cf6',
+  editor: '#10b981', supervisor: '#ec4899',
 };
 
 export default function Profile() {

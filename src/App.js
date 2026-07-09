@@ -82,16 +82,22 @@ export default function App() {
           <Route path="/" element={
             <PrivateRoute><AgentView /></PrivateRoute>
           } />
-          <Route path="/editor" element={
-            <PrivateRoute roles={['qa_officer','team_lead']}>
-              <EditorPanel />
-            </PrivateRoute>
-          } />
-          <Route path="/admin" element={
-            <PrivateRoute roles={['team_lead']}>
-              <AdminPanel />
-            </PrivateRoute>
-          } />
+          <Route
+  path="/editor"
+  element={
+    <PrivateRoute roles={['editor','admin']}>
+      <EditorPanel />
+    </PrivateRoute>
+  }
+/>
+        <Route
+  path="/admin"
+  element={
+    <PrivateRoute roles={['admin']}>
+      <AdminPanel />
+    </PrivateRoute>
+  }
+/>
           <Route path="/profile" element={
             <PrivateRoute><Profile /></PrivateRoute>
           } />
