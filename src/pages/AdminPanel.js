@@ -943,7 +943,7 @@ export default function AdminPanel({ darkMode }) {
             <div style={{ maxWidth:640 }}>
               <div style={{ fontSize:18, fontWeight:800, color:darkMode?'#f1f5f9':NAVY, marginBottom:6 }}>🔧 Maintenance Mode</div>
               <div style={{ fontSize:13, color:darkMode?'rgba(255,255,255,0.4)':'#64748b', marginBottom:28, lineHeight:1.6 }}>
-                When turned ON, agents will see a maintenance screen instead of the KB. Your team (Editors and Administrators) can still access everything normally.
+                When turned ON, agents will see a maintenance screen instead of the KB. Your management team (Team Leads and QA Officers) can still access everything normally.
               </div>
 
               {/* Status card */}
