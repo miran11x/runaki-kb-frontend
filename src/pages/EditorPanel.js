@@ -42,6 +42,7 @@ export default function EditorPanel() {
   const [notifForm, setNotifForm] = useState({ title:'', message:'' });
   const [tipForm, setTipForm] = useState({ title:'', content:'', category:'General' });
   const [loading, setLoading] = useState(false);
+  const [selectedFaqs, setSelectedFaqs] = useState([]);
   const [sideSearch, setSideSearch] = useState('');
   const fileInputRef = useRef(null);
   const loadFaqs = useCallback(async () => {
@@ -60,11 +61,53 @@ export default function EditorPanel() {
   };
 
   const deleteFaq = async id => {
-    if (!window.confirm('Delete this FAQ?')) return;
-    await api.delete(`/faqs/${id}`);
-    toast.success('Deleted'); loadFaqs();
-  };
+  if (!window.confirm('Delete this FAQ?')) return;
 
+  await api.delete(`/faqs/${id}`);
+  toast.success('Deleted');
+  loadFaqs();
+};
+
+const toggleFaq = (id) => {
+  setSelectedFaqs(prev =>
+    prev.includes(id)
+      ? prev.filter(x => x !== id)
+      : [...prev, id]
+  );
+};
+
+const toggleAllFaqs = () => {
+  if (selectedFaqs.length === filtered.length) {
+    setSelectedFaqs([]);
+  } else {
+    setSelectedFaqs(filtered.map(f => f.id));
+  }
+};
+
+const bulkDeleteFaqs = async () => {
+  if (!selectedFaqs.length) return;
+
+  if (
+    !window.confirm(
+      `⚠️ Permanently delete ${selectedFaqs.length} FAQs?\n\nThis cannot be undone.`
+    )
+  ) return;
+
+  try {
+    await api.post('/faqs/bulk-delete', {
+      ids: selectedFaqs
+    });
+
+    toast.success(
+      `${selectedFaqs.length} FAQs deleted`
+    );
+
+    setSelectedFaqs([]);
+    loadFaqs();
+  } catch {
+    toast.error('Failed to delete FAQs');
+  }
+};
   const togglePublish = async faq => {
     await api.put(`/faqs/${faq.id}`, { ...faq, is_published: !faq.is_published });
     toast.success(faq.is_published ? 'Unpublished' : 'Published'); loadFaqs();
@@ -228,6 +271,17 @@ export default function EditorPanel() {
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
                <div style={{ display: 'flex', gap: '10px' }}>
+                {selectedFaqs.length > 0 && (
+  <button
+    onClick={bulkDeleteFaqs}
+    style={{
+      ...S.addBtn,
+      background:'#ef4444'
+    }}
+  >
+    🗑 Delete ({selectedFaqs.length})
+  </button>
+)}
   <button
     style={S.addBtn}
     onClick={() => {
@@ -430,7 +484,18 @@ loadFaqs();
       : NAVY
   }}
 >
-                  <div style={{flex:3}}>Question</div>
+                  <div style={{ width:'50px' }}>
+  <input
+    type="checkbox"
+    checked={
+      filtered.length > 0 &&
+      selectedFaqs.length === filtered.length
+    }
+    onChange={toggleAllFaqs}
+  />
+</div>
+
+<div style={{flex:3}}>Question</div>
                   <div style={{flex:1.5}}>Category</div>
                   <div style={{flex:1}}>Status</div>
                   <div style={{flex:1}}>Views</div>
@@ -443,12 +508,22 @@ loadFaqs();
   <div
     key={f.id}
     style={{
-      ...S.tableRow,
-      borderBottom: darkMode
-        ? '1px solid rgba(255,255,255,0.06)'
-        : '1px solid #e2e8f0'
-    }}
+  ...S.tableRow,
+  background: selectedFaqs.includes(f.id)
+    ? 'rgba(59,130,246,0.08)'
+    : 'transparent',
+  borderBottom: darkMode
+    ? '1px solid rgba(255,255,255,0.06)'
+    : '1px solid #e2e8f0'
+}} 
   >
+    <div style={{ width:'50px' }}>
+  <input
+    type="checkbox"
+    checked={selectedFaqs.includes(f.id)}
+    onChange={() => toggleFaq(f.id)}
+  />
+</div>
                       <div style={{flex:3}}>
                         <div style={{fontSize:'13.5px',fontWeight:'600',color:darkMode?'#e2e8f0':NAVY,lineHeight:'1.4'}}>{f.question_en}</div>
                         {f.subcategory && <div style={{fontSize:'11px',color:'#94a3b8',marginTop:'2px'}}>{f.subcategory}</div>}
