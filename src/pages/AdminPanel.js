@@ -11,13 +11,14 @@ import EvaluationsUpload from '../components/EvaluationsUpload';
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
 const ROLE_COLORS = {
-  admin:'#ef4444',
-  editor:'#10b981',
+  team_lead:'#ef4444',
+  qa_officer:'#10b981',
   agent:'#3b82f6'
 };
+
 const ROLE_LABELS = {
-  admin:'Administrator',
-  editor:'Content Editor',
+  team_lead:'Team Lead',
+  qa_officer:'QA Officer',
   agent:'Agent'
 };
 
@@ -243,20 +244,30 @@ export default function AdminPanel({ darkMode }) {
   const colorMap = { 'Agent':'#3b82f6','Team Lead':'#8b5cf6','QA Officer':'#10b981','Team Coordinator':'#f59e0b','Supervisor':'#ec4899','Trainer':'#06b6d4' };
 
   const roleData = (() => {
-    if (!users.length) return [];
-    const counts = {};
-    users.forEach(u => {
-      if (u.title === 'Admin') return;
-      const label = u.role === 'agent' ? 'Agent'
-        : u.role === 'admin' && u.title?.toLowerCase().includes('supervisor') ? 'Supervisor'
-        : u.role === 'admin' ? 'Team Lead'
-        : u.title?.toLowerCase().includes('coordinator') ? 'Team Coordinator'
-        : u.title?.toLowerCase().includes('trainer') ? 'Trainer'
-        : 'QA Officer';
-      counts[label] = (counts[label]||0) + 1;
-    });
-    return Object.entries(counts).map(([name, value]) => ({ name, value, color: colorMap[name]||'#94a3b8' }));
-  })();
+  const counts = {};
+
+  users.forEach(u => {
+    counts[u.role] = (counts[u.role] || 0) + 1;
+  });
+
+  const labels = {
+    agent: 'Agent',
+    team_lead: 'Team Lead',
+    qa_officer: 'QA Officer'
+  };
+
+  const colors = {
+    agent: '#3b82f6',
+    team_lead: '#8b5cf6',
+    qa_officer: '#10b981'
+  };
+
+  return Object.keys(counts).map(role => ({
+    name: labels[role] || role,
+    value: counts[role],
+    color: colors[role] || '#94a3b8'
+  }));
+})();
 
   const barData = topFAQs.slice(0,6).map(f => ({ name: f.question_en.substring(0,22)+'…', views: f.views }));
 
@@ -498,9 +509,10 @@ export default function AdminPanel({ darkMode }) {
                 </div>
                 <select value={uFilter} onChange={e => setUFilter(e.target.value)} style={{ padding:'11px 14px', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', borderRadius:'12px', fontSize:'13px', fontFamily:'inherit', outline:'none', background: darkMode?'rgba(255,255,255,0.05)':'#fff', cursor:'pointer', color: darkMode?'#f1f5f9':NAVY }}>
                   <option value="all">All Roles</option>
-                  <option value="agent">Agents</option> 
-                  <option value="editor">Editors</option>
-                  <option value="admin">Administrators</option>
+                  <option value="agent">Agents</option>
+<option value="team_lead">Team Leads</option>
+<option value="qa_officer">QA Officers</option>
+
                 </select>
                 <button style={{ background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, color:'#fff', border:'none', borderRadius:'12px', padding:'11px 22px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', boxShadow:`0 4px 12px ${ORANGE}40` }} onClick={() => setShowAdd(true)}>+ Add User</button>
               </div>
@@ -519,9 +531,9 @@ export default function AdminPanel({ darkMode }) {
                       <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
                         <label style={S.mLabel}>Role</label>
                         <select value={newUser.role} onChange={e => setNewUser({...newUser,role:e.target.value})} style={S.mInput}>
-                          <option value="agent">Agent</option>
-<option value="editor">Editor</option>
-<option value="admin">Administrator</option>
+                       <option value="agent">Agent</option>
+<option value="team_lead">Team Lead</option>
+<option value="qa_officer">QA Officer</option>
                         </select>
                       </div>
                       <div style={{ display:'flex', gap:'10px', marginTop:'6px' }}>
@@ -545,8 +557,8 @@ export default function AdminPanel({ darkMode }) {
                     <div style={{ flex:1.2 }}>
                       <select value={u.role} onChange={e=>changeRole(u,e.target.value)} style={{ background:ROLE_COLORS[u.role]+'18', color:ROLE_COLORS[u.role], border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:'10px', fontWeight:'800', padding:'4px 10px', borderRadius:'100px', outline:'none' }}>
                         <option value="agent">Agent</option>
-<option value="editor">Editor</option>
-<option value="admin">Administrator</option>
+<option value="team_lead">Team Lead</option>
+<option value="qa_officer">QA Officer</option>
                       </select>
                     </div>
                     <div style={{ flex:1 }}><span style={{ padding:'4px 10px', borderRadius:'100px', fontSize:'11px', fontWeight:'700', background:u.is_active?'#f0fdf4':'#fef2f2', color:u.is_active?'#16a34a':'#dc2626' }}>{u.is_active?'Active':'Inactive'}</span></div>
@@ -588,9 +600,9 @@ export default function AdminPanel({ darkMode }) {
                     <div style={{ fontSize:'11px', fontWeight:'800', color: darkMode?'rgba(255,255,255,0.5)':NAVY, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'6px' }}>Role</div>
                     <select value={editForm.role} onChange={e => setEditForm({...editForm,role:e.target.value})}
                       style={{ width:'100%', padding:'10px 14px', border: darkMode?'1.5px solid rgba(255,255,255,0.1)':'1.5px solid #e2e8f0', borderRadius:'10px', fontSize:'14px', fontFamily:'inherit', outline:'none', background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, boxSizing:'border-box' }}>
-                     <option value="agent">Agent</option>
-<option value="editor">Editor</option>
-<option value="admin">Administrator</option>
+                  <option value="agent">Agent</option>
+<option value="team_lead">Team Lead</option>
+<option value="qa_officer">QA Officer</option>
                     </select>
                   </div>
                 </div>
