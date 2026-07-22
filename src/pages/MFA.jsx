@@ -26,10 +26,14 @@ export default function MFA() {
     try {
       setLoading(true);
 
-      const res = await api.post('/auth/mfa/login', {
-  challengeToken: state.challengeToken,
+const res = await api.post('/auth/mfa/login', {
+  challengeToken,
   code
 });
+
+localStorage.setItem('rk_token', res.data.token);
+
+window.location.href = '/';
 
       localStorage.setItem('rk_token', res.data.token);
       localStorage.setItem(
