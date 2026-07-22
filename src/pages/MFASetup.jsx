@@ -22,8 +22,8 @@ export default function MFASetup() {
 const verifyMFA = async () => {
   try {
     await api.post('/auth/mfa/verify', {
-      token
-    });
+  code: token
+});
 
     toast.success('MFA Enabled');
   } catch (err) {
