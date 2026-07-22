@@ -10,6 +10,8 @@ import EditorPanel from './pages/EditorPanel';
 import Profile from './pages/profile';
 import MFA from './pages/MFA';
 import MaintenanceScreen from './components/MaintenanceScreen';
+import MFASetup from './pages/MFASetup';
+
 
 
 const API = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';
@@ -79,12 +81,27 @@ export default function App() {
           }}
         />
         <MaintenanceGate>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-<Route path="/mfa" element={<MFA />} />
-          <Route path="/" element={
-            <PrivateRoute><AgentView /></PrivateRoute>
-          } />
+       <Routes>
+  <Route path="/login" element={<Login />} />
+  <Route path="/mfa" element={<MFA />} />
+
+  <Route
+    path="/mfa-setup"
+    element={
+      <PrivateRoute>
+        <MFASetup />
+      </PrivateRoute>
+    }
+  />
+
+  <Route
+    path="/"
+    element={
+      <PrivateRoute>
+        <AgentView />
+      </PrivateRoute>
+    }
+  />
           <Route
   path="/editor"
   element={
