@@ -13,6 +13,7 @@ export default function MFASetup() {
       setQrCode(res.data.qrCode);
       toast.success('QR Code generated');
     } catch (err) {
+      console.error(err);
       toast.error('Failed to generate QR');
     }
   };
@@ -20,11 +21,12 @@ export default function MFASetup() {
   const verifyMFA = async () => {
     try {
       await api.post('/auth/mfa/verify', {
-        token
+        token,
       });
 
       toast.success('MFA Enabled');
     } catch (err) {
+      console.error(err);
       toast.error(
         err.response?.data?.error || 'Verification failed'
       );
@@ -42,7 +44,17 @@ export default function MFASetup() {
       {qrCode && (
         <>
           <div style={{ marginTop: 20 }}>
-            {qrCode}
+            <img
+              src={qrCode}
+              alt="MFA QR Code"
+              style={{
+                width: 250,
+                height: 250,
+                background: '#fff',
+                padding: 10,
+                border: '1px solid #ddd',
+              }}
+            />
           </div>
 
           <div style={{ marginTop: 20 }}>
