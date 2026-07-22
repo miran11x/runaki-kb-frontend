@@ -9,6 +9,7 @@ export default function MFASetup() {
   const setupMFA = async () => {
     try {
       const res = await api.post('/auth/mfa/setup');
+
       setQrCode(res.data.qrCode);
       toast.success('QR Code generated');
     } catch (err) {
