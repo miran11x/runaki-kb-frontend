@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function MFASetup() {
   const [qrCode, setQrCode] = useState('');
@@ -18,20 +19,21 @@ export default function MFASetup() {
     }
   };
 
-  const verifyMFA = async () => {
-    try {
-      await api.post('/auth/mfa/verify', {
-        token,
-      });
+const verifyMFA = async () => {
+  try {
+    await api.post('/auth/mfa/verify', {
+      token
+    });
 
-      toast.success('MFA Enabled');
-    } catch (err) {
-      console.error(err);
-      toast.error(
-        err.response?.data?.error || 'Verification failed'
-      );
-    }
-  };
+    toast.success('MFA Enabled');
+  } catch (err) {
+    console.error(err);
+
+    toast.error(
+      err.response?.data?.error || 'Verification failed'
+    );
+  }
+};
 
   return (
     <div style={{ padding: 30 }}>
