@@ -8,7 +8,9 @@ import AgentView from './pages/AgentView';
 import AdminPanel from './pages/AdminPanel';
 import EditorPanel from './pages/EditorPanel';
 import Profile from './pages/profile';
+import MFA from './pages/MFA';
 import MaintenanceScreen from './components/MaintenanceScreen';
+
 
 const API = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';
 
@@ -79,6 +81,7 @@ export default function App() {
         <MaintenanceGate>
         <Routes>
           <Route path="/login" element={<Login />} />
+<Route path="/mfa" element={<MFA />} />
           <Route path="/" element={
             <PrivateRoute><AgentView /></PrivateRoute>
           } />

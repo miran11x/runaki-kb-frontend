@@ -27,11 +27,31 @@ useEffect(() => {
   const [focused, setFocused] = useState('');
 
   const handleSubmit = async e => {
-    e.preventDefault();
-    const res = await login(form.identifier, form.password);
-    if (res.ok) { toast.success('Welcome back!'); navigate('/'); }
-    else toast.error(res.error);
-  };
+  e.preventDefault();
+
+  const res = await login(
+    form.identifier,
+    form.password
+  );
+
+  if (!res.ok) {
+    toast.error(res.error);
+    return;
+  }
+
+if (res.mfaRequired) {
+  navigate('/mfa', {
+    state: {
+  challengeToken: res.challengeToken
+}
+  });
+
+  return;
+}
+
+  toast.success('Welcome back!');
+  navigate('/');
+};
 
   return (
   <>

@@ -26,16 +26,24 @@ const login = async (identifier, password) => {
 
   try {
     const res = await api.post('/auth/login', {
-      identifier,
-      password,
-    });
+  identifier,
+  password,
+});
 
-    localStorage.setItem('rk_token', res.data.token);
-    localStorage.setItem('rk_user', JSON.stringify(res.data.user));
+if (res.data.mfaRequired) {
+  return {
+    ok: true,
+    mfaRequired: true,
+    challengeToken: res.data.challengeToken
+  };
+}
 
-    setUser(res.data.user);
+localStorage.setItem('rk_token', res.data.token);
+localStorage.setItem('rk_user', JSON.stringify(res.data.user));
 
-    return { ok: true };
+setUser(res.data.user);
+
+return { ok: true };
   } catch (err) {
     return {
       ok: false,
