@@ -288,7 +288,7 @@ onClick={() => {
 
         {/* FEEDBACK CENTER */}
 <NI
-  icon="📋"
+  icon="💬"
   darkMode={darkMode}
   label="Feedback Center"
   badge={0}
