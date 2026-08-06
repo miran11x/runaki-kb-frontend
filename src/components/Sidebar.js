@@ -784,6 +784,17 @@ folder
   </>
 )}
 
+{/* FEEDBACK CENTER */}
+<NI
+  icon="📋"
+  darkMode={darkMode}
+  label="Feedback Center"
+  badge={0}
+  collapsed={collapsed}
+  active={panel === '_feedback'}
+  onClick={() => go('_feedback')}
+/>
+
 {/* PERSONAL */}
 <NI
 folder

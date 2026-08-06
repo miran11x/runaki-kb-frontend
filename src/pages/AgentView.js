@@ -80,7 +80,7 @@
     '_search':'Search Results','_bookmarks':' Bookmarks',
     '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling','_ai':'🤖 RUNAKI AI Assistant', 
 '_admin':'Admin Panel',
-'_faqeditor':'FAQ Editor',
+'_faqeditor':'FAQ Editor','_feedback':'Feedback Center',
   };
 
   export default function AgentView() {
@@ -254,6 +254,7 @@
     const items = panelFaqs();
     const groups = grouped(items);
     const isSpecial = [
+      '_feedback',
   '_restree',
   '_scripts',
   '_priority',
@@ -386,6 +387,28 @@
 
 {panel === '_faqeditor' && (
   <EditorPanel darkMode={darkMode} />
+)}
+
+{panel === '_feedback' && (
+  <div
+    style={{
+      background: DM.cardBg,
+      borderRadius: '20px',
+      padding: '24px',
+      border: `1px solid ${DM.border}`
+    }}
+  >
+    <h2>📋 Feedback Center</h2>
+
+    <p
+      style={{
+        color: DM.subText,
+        marginTop: '10px'
+      }}
+    >
+      No feedback available yet.
+    </p>
+  </div>
 )}
 
            {['_ai', '_ai-kb', '_ai-categorizer'].includes(panel) && (
