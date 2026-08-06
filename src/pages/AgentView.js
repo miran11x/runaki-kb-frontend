@@ -392,22 +392,46 @@
 {panel === '_feedback' && (
   <div
     style={{
-      background: DM.cardBg,
-      borderRadius: '20px',
-      padding: '24px',
-      border: `1px solid ${DM.border}`
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '16px'
     }}
   >
-    <h2>📋 Feedback Center</h2>
-
-    <p
+    <div
       style={{
-        color: DM.subText,
-        marginTop: '10px'
+        background: DM.cardBg,
+        border: `1px solid ${DM.border}`,
+        borderRadius: '20px',
+        padding: '24px'
       }}
     >
-      No feedback available yet.
-    </p>
+      <h2 style={{ margin: 0 }}>💬 Feedback Center</h2>
+
+      <p
+        style={{
+          color: DM.subText,
+          marginTop: '10px'
+        }}
+      >
+        Unread Feedback: 0
+      </p>
+    </div>
+
+    <div
+      style={{
+        background: DM.cardBg,
+        border: `1px solid ${DM.border}`,
+        borderRadius: '20px',
+        padding: '24px',
+        textAlign: 'center'
+      }}
+    >
+      <h3>No feedback available yet</h3>
+
+      <p style={{ color: DM.subText }}>
+        Feedback will automatically appear when an evaluation score is below 30.
+      </p>
+    </div>
   </div>
 )}
 
