@@ -286,6 +286,17 @@ onClick={() => {
       {/* ── NAV ── */}
       <nav style={S.nav}>
 
+        {/* FEEDBACK CENTER */}
+<NI
+  icon="📋"
+  darkMode={darkMode}
+  label="Feedback Center"
+  badge={0}
+  collapsed={collapsed}
+  active={panel === '_feedback'}
+  onClick={() => go('_feedback')}
+/>
+
         {/* Update Scripts — top of sidebar with red badge when active */}
         {!collapsed && <div
   style={{
@@ -783,17 +794,6 @@ folder
     />
   </>
 )}
-
-{/* FEEDBACK CENTER */}
-<NI
-  icon="📋"
-  darkMode={darkMode}
-  label="Feedback Center"
-  badge={0}
-  collapsed={collapsed}
-  active={panel === '_feedback'}
-  onClick={() => go('_feedback')}
-/>
 
 {/* PERSONAL */}
 <NI
