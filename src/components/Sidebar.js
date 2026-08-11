@@ -45,8 +45,12 @@ useEffect(() => {
     "Categories:",
     faqs.map(f => f.category)
   );
-}, [faqs]);
 
+  console.log(
+    "Unique Categories:",
+    [...new Set(faqs.map(f => f.category))]
+  );
+}, [faqs]);
   const { user, logout } = useAuth();
   
   const navigate = useNavigate();
