@@ -1,7 +1,14 @@
  
  
-  import React, { useState, useEffect, useCallback, useRef } from 'react';
-  import api from '../utils/api';
+   import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo
+} from 'react';
+
+import api from '../utils/api';
   import { useAuth } from '../contexts/AuthContext';
   import Sidebar from '../components/Sidebar';
   import Topbar from '../components/Topbar';
@@ -28,85 +35,123 @@
   };
 
   const PANEL_FILTER = {
-    'inquiries':   f => f.category === 'Inquiries',
-    'inq-runaki':  f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('runaki'),
-    'inq-kyc':     f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('kyc'),
-    'inq-billing': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('billing'),
-    'inq-dunning': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('dunning'),
-    'inq-epsule':  f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase().includes('psule'),
-   'inq-ussd': f =>
-  f.category === 'Inquiries' &&
-  (f.subcategory || '').toLowerCase().includes('ussd'),
+  inquiries: f => f.category === 'Inquiries',
+  billing: f => f.category === 'Billing Complaints',
+  general: f => f.category === 'General Complaints',
+  service: f => f.category === 'Service Requests',
+  feedback: f => f.category === 'Feedback & Others',
 
-'inq-other': f => {
-  return (
-    f.category === 'Inquiries' &&
-    (f.subcategory || '').toLowerCase().includes('other')
-  );
-},
-
-'inq-solar': f =>
-  f.category === 'Inquiries' &&
-  (f.subcategory || '').toLowerCase().includes('solar'),
-    'billing':     f => f.category === 'Billing Complaints',
-    'general':     f => f.category === 'General Complaints',
-    'service':     f => f.category === 'Service Requests',
-    'feedback':    f => f.category === 'Feedback & Others',
-    '_updates':    f => f.category === 'New Updates',
-    '_bookmarks':  () => false,
-    '_kyc':        () => false,
-    '_holdunhold': () => false,
-    '_traccess':   () => false,
-    '_callflows':  () => false,
-    '_maintenance': () => false,
-    '_ai': () => false,
-    '_admin': () => false,
-    '_faqeditor': () => false,
-    'inq-runakirapp': f => f.category === 'Inquiries' && (f.subcategory||'').toLowerCase() === 'runaki app',
-  };
+  _updates: () => false,
+  _bookmarks: () => false,
+  _kyc: () => false,
+  _holdunhold: () => false,
+  _traccess: () => false,
+  _callflows: () => false,
+  _maintenance: () => false,
+  _ai: () => false,
+  _admin: () => false,
+  _faqeditor: () => false,
+};
 
   const PANEL_LABELS = {
-    'inquiries':'Inquiries','inq-runaki':'Runaki Project','inq-kyc':'KYC',
-    'inq-billing':'Billing Inquiries','inq-dunning':'Dunning','inq-epsule':'e-Psûle',
-    'inq-ussd':'USSD','_callflows':'Call Flows',
-'inq-other':'Other',
-'billing':'Billing Complaints',
-    '_maintenance':' Maintenance Lookup',
-    'inq-runakirapp':' Runaki App','_ai-kb':' Knowledge Assistant',
-'_ai-categorizer':' Case Categorizer',
-    'general':'General Complaints','service':'Service Requests',
-    'feedback':'Feedback & Others','_updates':'New Updates',
-    '_restree':'Resolution Tree','_scripts':'Scripts & Processes','_priority':'Case Priorities',
-    '_search':'Search Results','_bookmarks':' Bookmarks',
-    '_kyc':'KYC Platform Outputs','_holdunhold':'Hold & Unhold Process','_traccess':'TR Access Scheduling','_ai':'🤖 RUNAKI AI Assistant', 
-'_admin':'Admin Panel',
-'_faqeditor':'FAQ Editor','_feedback':'Feedback Center',
-  };
+  inquiries: 'Inquiries',
+  billing: 'Billing Complaints',
+  general: 'General Complaints',
+  service: 'Service Requests',
+  feedback: 'Feedback & Others',
 
-  export default function AgentView() {
-    const { logout } = useAuth();
-    const [faqs, setFaqs]           = useState([]);
-    const [tip, setTip]             = useState(null);
-    const [loading, setLoading]     = useState(true);
-    const [panel, setPanel]         = useState('billing');
-    const [lang, setLang]           = useState('en');
-    const [search, setSearch]       = useState('');
-    const [open, setOpen]           = useState({});
-    const [bookmarks, setBookmarks] = useState([]);
-    const [ratings, setRatings]     = useState({});
-    const [announcements, setAnnouncements] = useState([]);
-    const [feedback, setFeedback] = useState([]);
-    const [darkMode, setDarkMode]   = useState(() => localStorage.getItem('rk_dark') === '1');
-    const inactivityTimer           = useRef(null);
+  '_callflows':'Call Flows',
+  '_maintenance':' Maintenance Lookup',
+  '_ai-kb':' Knowledge Assistant',
+  '_ai-categorizer':' Case Categorizer',
+  '_updates':'New Updates',
+  '_restree':'Resolution Tree',
+  '_scripts':'Scripts & Processes',
+  '_priority':'Case Priorities',
+  '_search':'Search Results',
+  '_bookmarks':' Bookmarks',
+  '_kyc':'KYC Platform Outputs',
+  '_holdunhold':'Hold & Unhold Process',
+  '_traccess':'TR Access Scheduling',
+  '_ai':'🤖 RUNAKI AI Assistant',
+  '_admin':'Admin Panel',
+  '_faqeditor':'FAQ Editor',
+  '_feedback':'Feedback Center',
+};
 
-    // Dark mode colors
-    const DM = darkMode ? {
-      bg:'#0f1623', cardBg:'#1a2235', border:'rgba(255,255,255,0.08)',
-      text:'#e2e8f0', subText:'rgba(255,255,255,0.5)', shadow:'0 2px 8px rgba(0,0,0,0.4)'
-    } : {
-      bg:BG, cardBg:'#fff', border:'#e2e8f0',
-      text:NAVY, subText:'#64748b', shadow:'0 2px 8px rgba(0,0,0,0.05)'
-    };
+const buildResolutionTree = (faqs) => {
+  const tree = {};
+
+  faqs.forEach(faq => {
+    const category = faq.category || 'Uncategorized';
+    const subcategory = faq.subcategory || 'General';
+    const thirdLevel = faq.third_level || null;
+
+    if (!tree[category]) {
+      tree[category] = {};
+    }
+
+    if (!tree[category][subcategory]) {
+      tree[category][subcategory] = {};
+    }
+
+    if (thirdLevel) {
+      if (!tree[category][subcategory][thirdLevel]) {
+        tree[category][subcategory][thirdLevel] = [];
+      }
+
+      tree[category][subcategory][thirdLevel].push(faq);
+    } else {
+      if (!tree[category][subcategory]._faqs) {
+        tree[category][subcategory]._faqs = [];
+      }
+
+      tree[category][subcategory]._faqs.push(faq);
+    }
+  });
+
+  return tree;
+};
+
+export default function AgentView() {
+  const { logout } = useAuth();
+
+  const [faqs, setFaqs] = useState([]);
+  const [tip, setTip] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [panel, setPanel] = useState('inquiries');
+  const [lang, setLang] = useState('en');
+  const [search, setSearch] = useState('');
+  const [open, setOpen] = useState({});
+  const [bookmarks, setBookmarks] = useState([]);
+  const [ratings, setRatings] = useState({});
+  const [announcements, setAnnouncements] = useState([]);
+  const [feedback, setFeedback] = useState([]);
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem('rk_dark') === '1'
+  );
+
+  const inactivityTimer = useRef(null);
+
+  // Dark mode colors
+  const DM = darkMode
+    ? {
+        bg:'#0f1623',
+        cardBg:'#1a2235',
+        border:'rgba(255,255,255,0.08)',
+        text:'#e2e8f0',
+        subText:'rgba(255,255,255,0.5)',
+        shadow:'0 2px 8px rgba(0,0,0,0.4)'
+      }
+    : {
+        bg:BG,
+        cardBg:'#fff',
+        border:'#e2e8f0',
+        text:NAVY,
+        subText:'#64748b',
+        shadow:'0 2px 8px rgba(0,0,0,0.05)'
+      };
+
 
     // Auto logout on inactivity
     const resetTimer = useCallback(() => {
@@ -247,19 +292,34 @@ setFaqs(fr.data);
       return fn ? faqs.filter(fn) : [];
     };
 
-    const grouped = items => {
-      const g = {};
-      items.forEach(f => {
-        const k = f.subcategory || 'General';
-        if (!g[k]) g[k] = [];
-        g[k].push(f);
-      });
-      return g;
-    };
+const grouped = items => {
+  const g = {};
+
+  items.forEach(f => {
+    const sub = f.subcategory || 'General';
+    const third = f.third_level || '';
+
+    const key =
+      third && third !== '-'
+        ? `${sub} › ${third}`
+        : sub;
+
+    if (!g[key]) g[key] = [];
+    g[key].push(f);
+  });
+
+  return g;
+};
 
     const items = panelFaqs();
-    const groups = grouped(items);
-    const isSpecial = [
+const groups = grouped(items);
+
+const resolutionTree = useMemo(
+  () => buildResolutionTree(faqs),
+  [faqs]
+);
+
+const isSpecial = [
       '_feedback',
   '_restree',
   '_scripts',
@@ -369,7 +429,7 @@ setFaqs(fr.data);
                 ))}
                 {search && (
                   <button style={{ marginLeft:'auto', background:'#fef2f2', border:'1px solid #fecaca', color:'#ef4444', borderRadius:'100px', padding:'6px 14px', fontSize:'12px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}
-                    onClick={() => { setSearch(''); setPanel('billing'); }}>
+                    onClick={() => { setSearch(''); setPanel('inquiries'); }}>
                     ✕ Clear
                   </button>
                 )}
@@ -377,7 +437,13 @@ setFaqs(fr.data);
             )}
 
             {/* Special panels */}
-            {panel === '_restree'  && <ResolutionTree darkMode={darkMode} DM={DM} />}
+            {panel === '_restree' &&
+  <ResolutionTree
+    darkMode={darkMode}
+    DM={DM}
+    tree={resolutionTree}
+  />
+}
             {panel === '_scripts'  && <Scripts darkMode={darkMode} DM={DM} />}
             {panel === '_priority' && <Priority darkMode={darkMode} DM={DM} />}
             {panel === '_kyc'       && <KYCPlatform darkMode={darkMode} DM={DM} />}
@@ -555,7 +621,7 @@ setFaqs(fr.data);
       </div>
     );
   }
-
+ 
 
   function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRating, onRate, darkMode, DM }) {
 
@@ -657,67 +723,13 @@ setFaqs(fr.data);
     );
   }
 
-  function ResolutionTree({ darkMode, DM }) {
+  function ResolutionTree({
+  darkMode,
+  DM,
+  tree
+}) {
     const [expanded, setExpanded] = React.useState({});
     const tog = key => setExpanded(p => ({ ...p, [key]: !p[key] }));
-
-    const TREE = [
-      {
-        n:1, t:'Inquiries', g:'linear-gradient(135deg,#6366f1,#4f46e5)', color:'#6366f1',
-        children: [
-          { label:'KYC' },
-          { label:'Runaki Project', children:[{label:'Rollout'},{label:'Smart Meters'},{label:'Private Generators'}] },
-          { label:'Billing Inquiries', children:[{label:'Tariff'},{label:'Discounts'},{label:'Bill Amount'},{label:'Consumption'},{label:'Payment Location'}] },
-          { label:'Dunning', children:[{label:'Process'},{label:'Amount/Date'}] },
-          { label:'E-Psûle' },
-          { label:'USSD' },
-        ]
-      },
-      {
-        n:2, t:'Billing Complaints', g:'linear-gradient(135deg,#ef4444,#dc2626)', color:'#ef4444',
-        children: [
-          { label:'High Bill/High Debt' },
-          { label:'Bill Not Received' },
-          { label:'Wrong Tariff' },
-          { label:'Zero Bill' },
-          { label:'Other Billing' },
-        ]
-      },
-      {
-        n:3, t:'General Complaints', g:'linear-gradient(135deg,#8b5cf6,#7c3aed)', color:'#8b5cf6',
-        children: [
-          { label:'Outage', children:[{label:'Planned'},{label:'Unplanned'},{label:'Non-Payment'},{label:'SM Issue'}] },
-          { label:'Message Not Received', children:[{label:'Not KYCed'},{label:'No Readings'}] },
-          { label:'USSD Code' },
-          { label:'Fraud' },
-          { label:'Block Comms' },
-          { label:'Private Generators' },
-        ]
-      },
-      {
-        n:4, t:'Service Requests', g:'linear-gradient(135deg,#10b981,#059669)', color:'#10b981',
-        note:'⚠️ Redirected to CO',
-        children: [
-          { label:'Smart Meter', children:[{label:'Linking'},{label:'Installation'}] },
-          { label:'Data Amendment' },
-          { label:'Move In' },
-          { label:'Move Out' },
-          { label:'Temp Disconnection' },
-          { label:'Debt Clearance' },
-          { label:'Instalment Contract' },
-          { label:'Change Holder' },
-          { label:'TR Access', children:[{label:'Warning Leaflet'},{label:'Disconnection Leaflet'}] },
-        ]
-      },
-      {
-        n:5, t:'Feedback & Others', g:'linear-gradient(135deg,#f59e0b,#d97706)', color:'#f59e0b',
-        children: [
-          { label:'Feedback' },
-          { label:'Others' },
-        ]
-      },
-    ];
-
     const TreeNode = ({ node, depth, parentKey, color }) => {
       const key = `${parentKey}-${node.label}`;
       const isOpen = expanded[key];
@@ -794,29 +806,55 @@ setFaqs(fr.data);
         </div>
         <div style={{ fontSize:'13px', fontWeight:'800', color:DM.subText, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'12px' }}>📞 Call Category Tree</div>
         <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'16px', alignItems:'flex-start' }}>
-          {TREE.map(col => (
-            <div key={col.n} style={{ flex:1, minWidth:'170px' }}>
-              <div style={{ background:col.g, color:'#fff', padding:'10px 12px', borderRadius:'14px', fontWeight:'800', fontSize:'11.5px', marginBottom:'8px', display:'flex', alignItems:'center', gap:'8px', boxShadow:'0 4px 12px rgba(0,0,0,0.15)' }}>
-                <span style={{ background:'rgba(255,255,255,0.2)', borderRadius:'50%', width:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'900', flexShrink:0 }}>{col.n}</span>
-                {col.t}
-              </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:'0' }}>
-                {col.children.map((node, i) => (
-                  <TreeNode key={i} node={node} depth={0} parentKey={`col${col.n}`} color={col.color} />
-                ))}
-              </div>
-              {col.note && (
-                <div style={{ fontSize:'11px', color:ORANGE, fontWeight:'700', padding:'6px 10px', background: darkMode?'rgba(255,107,53,0.1)':'#fff7ed', borderRadius:'9px', marginTop:'6px', border:'1px solid #fed7aa' }}>
-                  {col.note}
-                </div>
-              )}
-            </div>
-          ))}
+          {Object.entries(tree).map(
+  ([category, subcategories]) => (
+    <div
+      key={category}
+      style={{
+        flex: 1,
+        minWidth: '220px'
+      }}
+    >
+      <div
+        style={{
+          background:
+            'linear-gradient(135deg,#0B1120,#1e293b)',
+          color: '#fff',
+          padding: '10px 12px',
+          borderRadius: '14px',
+          fontWeight: '800',
+          marginBottom: '8px'
+        }}
+      >
+        {category}
+      </div>
+
+      {Object.entries(subcategories).map(
+        ([subcategory, thirdLevels]) => (
+          <div key={subcategory}>
+            <TreeNode
+              node={{
+                label: subcategory,
+                children: Object.keys(thirdLevels)
+                  .filter(k => k !== '_faqs')
+                  .map(k => ({
+                    label: k
+                  }))
+              }}
+              depth={0}
+              parentKey={category}
+              color="#6366f1"
+            />
+          </div>
+        )
+      )}
+    </div>
+  )
+)}
         </div>
       </div>
     );
-  }
-
+}
   function Scripts({ darkMode, DM }) {
     const scripts = [
       { t:'👋 Greeting', s:'Good [morning/afternoon/evening], thank you for calling Runaki. My name is [name], how may I assist you today?' },
@@ -838,9 +876,8 @@ setFaqs(fr.data);
           </div>
         ))}
       </div>
-    );
-  }
-
+);
+}
   function Priority({ DM, darkMode }) {
     const levels = [
       {
@@ -1648,7 +1685,7 @@ background: DM.cardBg,
           {quickActions.map(item => (
             <button
               key={item}
-             onClick={() => {
+        onClick={() => {
   setQuestion(item);
   askAI(item);
 }}

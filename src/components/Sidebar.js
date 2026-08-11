@@ -75,60 +75,11 @@ if (
 }
 
 }, [panel]);
-  const rm = ROLE_META[user?.role] || ROLE_META.agent;
-  const faqCounts = useMemo(() => ({
+const rm = ROLE_META[user?.role] || ROLE_META.agent;
+ const faqCounts = useMemo(() => ({
   inquiries: faqs.filter(
     f => f.category === 'Inquiries'
   ).length,
-
-  runakiApp: faqs.filter(
-    f =>
-      f.category === 'Inquiries' &&
-      (f.subcategory || '').toLowerCase() === 'runaki app'
-  ).length,
-
-  runaki: faqs.filter(
-  f =>
-    f.category === 'Inquiries' &&
-    (f.subcategory || '').toLowerCase().includes('runaki') &&
-    (f.subcategory || '').toLowerCase() !== 'runaki app'
-).length,
-
-  kyc: faqs.filter(
-    f =>
-      f.category === 'Inquiries' &&
-      (f.subcategory || '').toLowerCase().includes('kyc')
-  ).length,
-
-  billingInquiries: faqs.filter(
-    f =>
-      f.category === 'Inquiries' &&
-      (f.subcategory || '').toLowerCase().includes('billing')
-  ).length,
-
-  dunning: faqs.filter(
-    f =>
-      f.category === 'Inquiries' &&
-      (f.subcategory || '').toLowerCase().includes('dunning')
-  ).length,
-
-  epsule: faqs.filter(
-    f =>
-      f.category === 'Inquiries' &&
-      (f.subcategory || '').toLowerCase().includes('psule')
-  ).length,
-
-  ussd: faqs.filter(
-    f =>
-      f.category === 'Inquiries' &&
-      (f.subcategory || '').toLowerCase().includes('ussd')
-  ).length,
-
-  other: faqs.filter(
-  f =>
-    f.category === 'Inquiries' &&
-    (f.subcategory || '').toLowerCase().includes('other')
-).length,
 
   billingComplaints: faqs.filter(
     f => f.category === 'Billing Complaints'
@@ -146,15 +97,6 @@ if (
     f => f.category === 'Feedback & Others'
   ).length,
 }), [faqs]);
-const FAQ_CHILDREN = [
-  { id:'inq-runakirapp', icon:'📱', label:'Runaki App', badge:faqCounts.runakiApp },
-  { id:'inq-runaki', icon:'🏗️', label:'Runaki Project', badge:faqCounts.runaki },
-  { id:'inq-kyc', icon:'🪪', label:'KYC', badge:faqCounts.kyc },
-  { id:'inq-billing', icon:'💳', label:'Billing Inquiries', badge:faqCounts.billingInquiries },
-  { id:'inq-dunning', icon:'⚠️', label:'Dunning', badge:faqCounts.dunning },
-  { id:'inq-epsule', icon:'📱', label:'e-Psûle', badge:faqCounts.epsule },
-  { id:'inq-ussd', icon:'📲', label:'USSD', badge:faqCounts.ussd },
-  { id:'inq-other', icon:'📌', label:'Other', badge:faqCounts.other },];
 
   useEffect(() => {
     const BASE = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';
@@ -285,7 +227,15 @@ background:
   }}
 />
           {search && (
-            <button style={S.searchClear} onClick={() => { setSearch(''); setPanel('billing'); }}>✕</button>
+            <button
+  style={S.searchClear}
+  onClick={() => {
+    setSearch('');
+    setPanel('inquiries');
+  }}
+>
+  ✕
+</button>
           )}
         </div>
       )}
@@ -332,11 +282,14 @@ background:
   collapsed={collapsed}
 active={
   faqOpen &&
-  (
-    panel?.startsWith('inq-') ||
-    ['billing','general','service','feedback','_updates']
-      .includes(panel)
-  )
+  [
+    'inquiries',
+    'billing',
+    'general',
+    'service',
+    'feedback',
+    '_updates'
+  ].includes(panel)
 }
   onClick={() => setFaqOpen(!faqOpen)}
  suffix={
@@ -392,27 +345,15 @@ color: darkMode ? 'rgba(255,255,255,0.75)' : '#475569',    letterSpacing:'0.08em
   </div>
 )}
 
-{FAQ_CHILDREN.map(c => (
-  <NI
-    key={c.id}
-    icon={c.icon}
-    label={c.label}
-    badge={c.badge}
-    
+<NI
+  icon="📘"
+  label="Inquiries"
+  badge={faqCounts.inquiries}
   darkMode={darkMode}
-
-    sub
-    collapsed={collapsed}
-    active={panel === c.id}
-    
-    onClick={() => go(c.id)}
-
-    
-  />
-
-  
-))}
-
+  collapsed={collapsed}
+  active={panel === 'inquiries'}
+  onClick={() => go('inquiries')}
+/>
    {!collapsed && (
   <div
   style={{
