@@ -256,26 +256,33 @@ onClick={() => {
         <div style={S.searchWrap}>
           <span style={S.searchIco}>🔍</span>
           <input
-  placeholder="Quick search..."
+  placeholder="Search FAQs, KYC, Billing..."
   value={search}
   onChange={e => {
-
     setSearch(e.target.value);
 
     if (e.target.value && panel !== '_search') {
       setPanel('_search');
     }
   }}
+  onFocus={(e) => {
+    e.target.style.boxShadow =
+      '0 0 0 4px rgba(255,107,53,.18)';
+  }}
+  onBlur={(e) => {
+    e.target.style.boxShadow =
+      '0 4px 14px rgba(255,107,53,.15)';
+  }}
   style={{
-  ...S.searchInput,
-  background: darkMode
-    ? 'rgba(255,255,255,.07)'
-    : '#ffffff',
-  border: darkMode
-    ? '1px solid rgba(255,255,255,.1)'
-    : '1px solid #dbeafe',
-  color: darkMode ? '#fff' : '#0B1120'
-}}
+    ...S.searchInput,
+background:
+  darkMode
+    ? 'rgba(255,255,255,.10)'
+    : '#fff7ed',
+    border: `2px solid ${ORANGE}`,
+    color: darkMode ? '#fff' : '#0B1120',
+    boxShadow: '0 4px 14px rgba(255,107,53,.15)'
+  }}
 />
           {search && (
             <button style={S.searchClear} onClick={() => { setSearch(''); setPanel('billing'); }}>✕</button>
@@ -1132,19 +1139,47 @@ folderActive: {
 },
   roleBadge: { fontSize:'9.5px', fontWeight:'800', padding:'3px 9px', borderRadius:'100px', textTransform:'uppercase', letterSpacing:'0.07em', display:'inline-block' },
 
-  searchWrap: { margin:'10px 10px 4px', position:'relative', display:'flex', alignItems:'center' },
-  searchIco: { position:'absolute', left:'11px', fontSize:'12px', pointerEvents:'none', opacity:0.4 },
-  searchInput: {
-  width:'100%',
-  padding:'8px 28px 8px 30px',
-  borderRadius:'10px',
-  fontSize:'12.5px',
-  fontFamily:'inherit',
-  outline:'none',
-  boxSizing:'border-box'
+searchWrap: {
+  margin: '12px 12px 8px',
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+  background: 'rgba(255,107,53,.05)',
+  padding: '4px',
+  borderRadius: '18px',
 },
-  searchClear: { position:'absolute', right:'9px', background:'none', border:'none', color:'rgba(255,255,255,0.35)', cursor:'pointer', fontSize:'11px' },
-
+searchIco: {
+  position: 'absolute',
+  left: '14px',
+  fontSize: '16px',
+  pointerEvents: 'none',
+  zIndex: 2,
+  opacity: 0.8
+},
+  searchInput: {
+  width: '100%',
+  height: '48px',
+  padding: '10px 38px 10px 42px',
+  borderRadius: '14px',
+  fontSize: '13px',
+  fontWeight: '600',
+  fontFamily: 'inherit',
+  outline: 'none',
+  boxSizing: 'border-box',
+  border: `2px solid ${ORANGE}`,
+  boxShadow: '0 4px 14px rgba(255,107,53,.15)',
+  transition: 'all .2s ease'
+},
+  searchClear: {
+  position: 'absolute',
+  right: '12px',
+  background: 'none',
+  border: 'none',
+  color: '#FF6B35',
+  cursor: 'pointer',
+  fontSize: '14px',
+  fontWeight: '700'
+},
   nav: { flex:1, overflowY:'auto', overflowX:'hidden', padding:'6px 0' },
   groupLabel: { padding:'10px 14px 3px', fontSize:'9px', fontWeight:'800', textTransform:'uppercase', letterSpacing:'0.15em', color:'rgba(255,255,255,0.28)', whiteSpace:'nowrap' },
 
