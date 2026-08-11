@@ -160,7 +160,8 @@
   console.error('Feedback load failed:', err);
   return { data: [] };
 })]);
-      setFaqs(fr.data);
+      console.log('Agent FAQs:', fr.data);
+setFaqs(fr.data);
 
 
   if (tr.data) setTip(tr.data);
