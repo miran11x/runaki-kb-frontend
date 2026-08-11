@@ -95,6 +95,7 @@
     const [bookmarks, setBookmarks] = useState([]);
     const [ratings, setRatings]     = useState({});
     const [announcements, setAnnouncements] = useState([]);
+    const [feedback, setFeedback] = useState([]);
     const [darkMode, setDarkMode]   = useState(() => localStorage.getItem('rk_dark') === '1');
     const inactivityTimer           = useRef(null);
 
@@ -149,13 +150,16 @@
 
     const load = useCallback(async () => {
       try {
-        const [fr, tr, br, rr, ar] = await Promise.all([
-          api.get('/faqs'),
-          api.get('/tips/latest').catch(() => ({ data: null })),
-          api.get('/bookmarks/ids').catch(() => ({ data: [] })),
-          api.get('/ratings/mine/all').catch(() => ({ data: [] })),
-          api.get('/announcements').catch(() => ({ data: [] })),
-        ]);
+      const [fr, tr, br, rr, ar, feedbackRes] = await Promise.all([
+  api.get('/faqs'),
+  api.get('/tips/latest').catch(() => ({ data: null })),
+  api.get('/bookmarks/ids').catch(() => ({ data: [] })),
+  api.get('/ratings/mine/all').catch(() => ({ data: [] })),
+  api.get('/announcements').catch(() => ({ data: [] })),
+  api.get('/feedback/my-feedback').catch(err => {
+  console.error('Feedback load failed:', err);
+  return { data: [] };
+})]);
       setFaqs(fr.data);
 
 
@@ -165,6 +169,7 @@
         rr.data.forEach(r => { rmap[r.faq_id] = r.helpful; });
         setRatings(rmap);
         setAnnouncements(ar.data);
+        setFeedback(feedbackRes.data || []);
       } catch (err) {
         console.error('Load error:', err);
       } finally { setLoading(false); }
@@ -413,25 +418,66 @@
           marginTop: '10px'
         }}
       >
-        Unread Feedback: 0
+        Unread Feedback:{' '}
+        {feedback.filter(f => f.status !== 'acknowledged').length}
       </p>
     </div>
 
-    <div
-      style={{
-        background: DM.cardBg,
-        border: `1px solid ${DM.border}`,
-        borderRadius: '20px',
-        padding: '24px',
-        textAlign: 'center'
-      }}
-    >
-      <h3>No feedback available yet</h3>
+    {feedback.length === 0 ? (
+      <div
+        style={{
+          background: DM.cardBg,
+          border: `1px solid ${DM.border}`,
+          borderRadius: '20px',
+          padding: '24px',
+          textAlign: 'center'
+        }}
+      >
+        <h3>No feedback available yet</h3>
 
-      <p style={{ color: DM.subText }}>
-        Feedback will automatically appear when an evaluation score is below 30.
-      </p>
-    </div>
+        <p style={{ color: DM.subText }}>
+          Feedback will automatically appear when an evaluation score is below 30.
+        </p>
+      </div>
+    ) : (
+      feedback.map(item => (
+        <div
+          key={item.id}
+          style={{
+            background: DM.cardBg,
+            border: `1px solid ${DM.border}`,
+            borderRadius: '20px',
+            padding: '24px'
+          }}
+        >
+          <h3>💬 Evaluation Feedback</h3>
+
+          <p>
+            <strong>Score:</strong> {item.score}/30
+          </p>
+
+          <p>
+            <strong>Status:</strong> {item.status}
+          </p>
+
+          {item.feedback_text && (
+            <p>
+              <strong>Feedback:</strong> {item.feedback_text}
+            </p>
+          )}
+
+          <div
+            style={{
+              marginTop: '12px',
+              color: DM.subText,
+              fontSize: '12px'
+            }}
+          >
+            {new Date(item.created_at).toLocaleString()}
+          </div>
+        </div>
+      ))
+    )}
   </div>
 )}
 

@@ -291,7 +291,6 @@ onClick={() => {
   icon="💬"
   darkMode={darkMode}
   label="Feedback Center"
-  badge={0}
   collapsed={collapsed}
   active={panel === '_feedback'}
   onClick={() => go('_feedback')}
