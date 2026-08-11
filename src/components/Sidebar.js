@@ -1,9 +1,11 @@
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import React, { useState, useEffect, useMemo } from 'react';
 import LogoLight from '../assets/runaki-light.svg';
 import LogoDark from '../assets/runaki-dark.svg';
+
 
 const NAVY = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -33,6 +35,18 @@ export default function Sidebar({
   faqs = [],
   darkMode
 }) {
+
+console.log("FAQ Count:", faqs.length);
+
+useEffect(() => {
+  console.log("Sidebar FAQs:", faqs);
+
+  console.log(
+    "Categories:",
+    faqs.map(f => f.category)
+  );
+}, [faqs]);
+
   const { user, logout } = useAuth();
   
   const navigate = useNavigate();
