@@ -254,23 +254,37 @@ background:
 />
 
         {/* Update Scripts — top of sidebar with red badge when active */}
-        {!collapsed && <div
+       <div
   style={{
-    ...S.groupLabel,
-    color: darkMode
-      ? 'rgba(255,255,255,0.28)'
-      : '#64748b'
+    position: 'relative',
+    display: 'inline-block',
+    width: '100%'
   }}
->📢 Notices</div>}
-        <div style={{ position:'relative', display:'inline-block', width:'100%' }}>
-          <NI icon="📋" label="Update Scripts" collapsed={collapsed} 
-  darkMode={darkMode}
+>
+  <NI
+    icon="📋"
+    label="Update Scripts"
+    collapsed={collapsed}
+    darkMode={darkMode}
+    active={panel === '_updatescripts'}
+    onClick={() => go('_updatescripts')}
+  />
 
-            active={panel==='_updatescripts'} onClick={() => go('_updatescripts')} />
-          {hasActiveScript && panel !== '_updatescripts' && (
-            <div style={{ position:'absolute', top:8, right: collapsed?6:12, width:8, height:8, borderRadius:'50%', background:'#ef4444', boxShadow:'0 0 6px #ef4444' }} />
-          )}
-        </div>
+  {hasActiveScript && panel !== '_updatescripts' && (
+    <div
+      style={{
+        position: 'absolute',
+        top: 8,
+        right: collapsed ? 6 : 12,
+        width: 8,
+        height: 8,
+        borderRadius: '50%',
+        background: '#ef4444',
+        boxShadow: '0 0 6px #ef4444'
+      }}
+    />
+  )}
+</div>
 <NI
   folder
   icon="📚"
@@ -328,162 +342,67 @@ color: darkMode ? 'rgba(255,255,255,0.75)' : '#475569',    letterSpacing:'0.08em
 />
 
 {faqOpen && (
-  
-
-  
   <>
-{!collapsed && (
-  <div
-  style={{
-    ...S.sectionLabel,
-    color: darkMode
-      ? 'rgba(255,255,255,0.25)'
-      : '#64748b'
-  }}
->
-  💬 INQUIRIES
-  </div>
-)}
+    <NI
+      icon="📘"
+      label="Inquiries"
+      badge={faqCounts.inquiries}
+      darkMode={darkMode}
+      collapsed={collapsed}
+      active={panel === 'inquiries'}
+      onClick={() => go('inquiries')}
+    />
 
-<NI
-  icon="📘"
-  label="Inquiries"
-  badge={faqCounts.inquiries}
-  darkMode={darkMode}
-  collapsed={collapsed}
-  active={panel === 'inquiries'}
-  onClick={() => go('inquiries')}
-/>
-   {!collapsed && (
-  <div
-  style={{
-    ...S.sectionLabel,
-    color: darkMode
-      ? 'rgba(255,255,255,0.25)'
-      : '#64748b'
-  }}
->
-  💳 BILLING COMPLAINTS
-  </div>
-)}
+    <NI
+      icon="💳"
+      label="Billing Complaints"
+      badge={faqCounts.billingComplaints}
+      darkMode={darkMode}
+      collapsed={collapsed}
+      active={panel === 'billing'}
+      onClick={() => go('billing')}
+    />
 
-<NI
-  icon="💳"
-  
-  darkMode={darkMode}
+    <NI
+      icon="⚡"
+      label="General Complaints"
+      badge={faqCounts.generalComplaints}
+      darkMode={darkMode}
+      collapsed={collapsed}
+      active={panel === 'general'}
+      onClick={() => go('general')}
+    />
 
-  label="Billing Complaints"
-  badge={faqCounts.billingComplaints}
-  collapsed={collapsed}
-  active={panel === 'billing'}
-  onClick={() => go('billing')}
-/>
+    <NI
+      icon="🔧"
+      label="Service Requests"
+      badge={faqCounts.serviceRequests}
+      darkMode={darkMode}
+      collapsed={collapsed}
+      active={panel === 'service'}
+      onClick={() => go('service')}
+    />
 
-{!collapsed && (
-  <div
-  style={{
-    ...S.sectionLabel,
-    color: darkMode
-      ? 'rgba(255,255,255,0.25)'
-      : '#64748b'
-  }}
->
-  ⚡ GENERAL COMPLAINTS
-  </div>
-)}
+    <NI
+      icon="💌"
+      label="Feedback & Others"
+      badge={faqCounts.feedback}
+      darkMode={darkMode}
+      collapsed={collapsed}
+      active={panel === 'feedback'}
+      onClick={() => go('feedback')}
+    />
 
-<NI
-  icon="⚡"
-  
-  darkMode={darkMode}
-
-  label="General Complaints"
-  badge={faqCounts.generalComplaints}
-  collapsed={collapsed}
-  active={panel === 'general'}
-  onClick={() => go('general')}
-/>
-
-{!collapsed && (
-  <div
-  style={{
-    ...S.sectionLabel,
-    color: darkMode
-      ? 'rgba(255,255,255,0.25)'
-      : '#64748b'
-  }}
->
-  🔧 SERVICE REQUESTS
-  </div>
-)}
-
-<NI
-  icon="🔧"
-  
-  darkMode={darkMode}
-
-  label="Service Requests"
-  badge={faqCounts.serviceRequests}
-  collapsed={collapsed}
-  active={panel === 'service'}
-  onClick={() => go('service')}
-/>
-
-{!collapsed && (
-  <div
-  style={{
-    ...S.sectionLabel,
-    color: darkMode
-      ? 'rgba(255,255,255,0.25)'
-      : '#64748b'
-  }}
->
-  💌 FEEDBACK & OTHERS
-  </div>
-)}
-
-<NI
-  icon="💌"
-  
-  darkMode={darkMode}
-
-  label="Feedback & Others"
-  badge={faqCounts.feedback}
-  collapsed={collapsed}
-  active={panel === 'feedback'}
-  onClick={() => go('feedback')}
-/>
-
-
-{!collapsed && (
-  <div
-  style={{
-    ...S.sectionLabel,
-    color: darkMode
-      ? 'rgba(255,255,255,0.25)'
-      : '#64748b'
-  }}
->
-  🆕 UPDATES
-  </div>
-)}
-
-<NI
-  icon="🆕"
-  
-  darkMode={darkMode}
-
-  label="New Updates"
-  collapsed={collapsed}
-  active={panel === '_updates'}
-  onClick={() => go('_updates')}
-/>
-
+    <NI
+      icon="🆕"
+      label="New Updates"
+      darkMode={darkMode}
+      collapsed={collapsed}
+      active={panel === '_updates'}
+      onClick={() => go('_updates')}
+    />
   </>
-
-
 )}
-
 {/* RUNAKI AI */}
 <NI
 folder
@@ -948,63 +867,74 @@ function NI({
     : folder
       ? '11px 12px'
       : sub
-        ? '7px 12px 7px 28px'
+        ? '7px 12px 7px 32px'
         : '9px 12px',
       }}
     >
       <span style={{ fontSize: collapsed ? '18px' : '15px', flexShrink:0, width:'22px', textAlign:'center' }}>{icon}</span>
-      {!collapsed && (
-        <>
-          <span style={{
-            flex:1, fontSize:'13px',fontWeight: folder ? '700' : active ? '700' : '500',
-            color: active
-  ? (darkMode ? '#fff' : '#0B1120')
-  : darkMode
-    ? 'rgba(255,255,255,0.7)'
-    : '#475569',
+     {!collapsed && (
+  <>
+    <span
+      style={{
+        flex: 1,
+        fontSize: sub ? '12px' : '13px',
+        fontWeight: sub
+          ? '500'
+          : folder
+            ? '700'
+            : active
+              ? '700'
+              : '500',
+        color: active
+          ? (darkMode ? '#fff' : '#0B1120')
+          : darkMode
+            ? 'rgba(255,255,255,0.7)'
+            : '#475569',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        textAlign: 'left'
+      }}
+    >
+      {label}
+    </span>
 
-            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textAlign:'left'
-          }}>{label}</span>
-          {badge !== undefined && (
-            <span style={{
-              fontSize:'10px', fontWeight:'700', padding:'2px 8px', borderRadius:'100px', flexShrink:0,
-             background:
-  badge > 0
-    ? 'rgba(255,107,53,0.18)'
-    : darkMode
-      ? 'rgba(255,255,255,0.08)'
-      : '#f1f5f9',
+    {badge !== undefined && (
+      <span
+        style={{
+          fontSize: '10px',
+          fontWeight: '700',
+          padding: '2px 8px',
+          borderRadius: '100px',
+          flexShrink: 0,
+          background:
+            badge > 0
+              ? 'rgba(255,107,53,0.18)'
+              : darkMode
+                ? 'rgba(255,255,255,0.08)'
+                : '#f1f5f9',
+          color:
+            badge > 0
+              ? '#FF6B35'
+              : darkMode
+                ? 'rgba(255,255,255,0.45)'
+                : '#64748b',
+          minWidth: '24px',
+          textAlign: 'center'
+        }}
+      >
+        {badge}
+      </span>
+    )}
 
-color:
-  badge > 0
-    ? '#FF6B35'
-    : darkMode
-      ? 'rgba(255,255,255,0.45)'
-      : '#64748b',
-
-fontWeight:'800',
-minWidth:'24px',
-textAlign:'center',
-            }}>{badge}</span>
-          )}
-          {suffix}
-        </>
-      )}
+    {suffix}
+  </>
+)}
     </button>
   );
 }
-
 const S = {
 
-
-sectionLabel: {
-  padding: '10px 18px 2px',
-  fontSize: '9px',
-  fontWeight: '800',
-  letterSpacing: '0.14em',
-  textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.25)',
-},
 
 
 folderNi: {
@@ -1040,16 +970,6 @@ folderActive: {
     borderBottom:'1px solid rgba(255,255,255,0.07)',
     background:'linear-gradient(135deg,rgba(255,107,53,0.06) 0%,transparent 60%)',
   },
-  logoFull: {
-    width:'150px', height:'auto', objectFit:'contain',
-    flexShrink:0,
-  },
-  logoCollapsed: {
-    width:'36px', height:'auto', objectFit:'contain',
-    margin:'0 auto',
-  },
-
-    brandSub: { fontSize:'9px', color:'rgba(255,255,255,0.3)', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.08em', whiteSpace:'nowrap' },
 
   userCard: {
     display:'flex', alignItems:'center', gap:'10px',
@@ -1122,11 +1042,9 @@ searchIco: {
   fontWeight: '700'
 },
   nav: { flex:1, overflowY:'auto', overflowX:'hidden', padding:'6px 0' },
-  groupLabel: { padding:'10px 14px 3px', fontSize:'9px', fontWeight:'800', textTransform:'uppercase', letterSpacing:'0.15em', color:'rgba(255,255,255,0.28)', whiteSpace:'nowrap' },
-
-  ni: {
+   ni: {
     display:'flex', alignItems:'center', gap:'9px',
-    width:'calc(100% - 14px)', margin:'1px 7px',
+    width:'calc(100% - 14px)', margin:'4px 7px',
     borderRadius:'10px', border:'none', background:'transparent',
     cursor:'pointer', fontFamily:'inherit', transition:'all .2s ease',
     boxSizing:'border-box', overflow:'hidden', whiteSpace:'nowrap',
