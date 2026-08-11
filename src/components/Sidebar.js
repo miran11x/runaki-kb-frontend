@@ -96,23 +96,23 @@ if (
 const rm = ROLE_META[user?.role] || ROLE_META.agent;
  const faqCounts = useMemo(() => ({
   inquiries: faqs.filter(
-    f => f.category === 'Inquiries'
+    f => f.category?.toLowerCase() === 'inquiries'
   ).length,
 
   billingComplaints: faqs.filter(
-    f => f.category === 'Billing Complaints'
+    f => f.category?.toLowerCase().includes('billing')
   ).length,
 
   generalComplaints: faqs.filter(
-    f => f.category === 'General Complaints'
+    f => f.category?.toLowerCase() === 'general complaints'
   ).length,
 
   serviceRequests: faqs.filter(
-    f => f.category === 'Service Requests'
+    f => f.category?.toLowerCase().includes('service')
   ).length,
 
   feedback: faqs.filter(
-    f => f.category === 'Feedback & Others'
+    f => f.category?.toLowerCase().includes('feedback')
   ).length,
 }), [faqs]);
 
