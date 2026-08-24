@@ -36,21 +36,7 @@ export default function Sidebar({
   darkMode
 }) {
 
-console.log("FAQ Count:", faqs.length);
-
-useEffect(() => {
-  console.log("Sidebar FAQs:", faqs);
-
-  console.log(
-    "Categories:",
-    faqs.map(f => f.category)
-  );
-
-  console.log(
-    "Unique Categories:",
-    [...new Set(faqs.map(f => f.category))]
-  );
-}, [faqs]);
+ 
   const { user, logout } = useAuth();
   
   const navigate = useNavigate();
@@ -486,17 +472,6 @@ folder
   onClick={() => go('_ai-kb')}
 />
 
-    <NI
-      icon="🏷️"
-      
-  darkMode={darkMode}
-
-      label="Case Categorizer"
-      sub
-      collapsed={collapsed}
-      active={panel === '_ai-categorizer'}
-      onClick={() => go('_ai-categorizer')}
-    />
   </>
 )}
 
