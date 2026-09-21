@@ -1,6 +1,4 @@
- 
- 
-   import React, {
+import React, {
   useState,
   useEffect,
   useCallback,
@@ -43,6 +41,7 @@ import api from '../utils/api';
 
   _updates: () => false,
   _bookmarks: () => false,
+  _shortlisted: () => false,
   _kyc: () => false,
   _holdunhold: () => false,
   _traccess: () => false,
@@ -70,6 +69,7 @@ import api from '../utils/api';
   '_priority':'Case Priorities',
   '_search':'Search Results',
   '_bookmarks':' Bookmarks',
+  '_shortlisted':"Shortlisted FAQ's",
   '_kyc':'KYC Platform Outputs',
   '_holdunhold':'Hold & Unhold Process',
   '_traccess':'TR Access Scheduling',
@@ -114,7 +114,7 @@ const buildResolutionTree = (faqs) => {
 };
 
 export default function AgentView() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const [faqs, setFaqs] = useState([]);
   const [tip, setTip] = useState(null);
@@ -245,6 +245,14 @@ setFaqs(fr.data);
       } catch { toast.error('Failed'); }
     };
 
+    const toggleShortlist = async (faqId) => {
+      try {
+        const r = await api.patch(`/faqs/${faqId}/shortlist`);
+        setFaqs(prev => prev.map(f => f.id === faqId ? { ...f, is_shortlisted: r.data.is_shortlisted } : f));
+        toast.success(r.data.is_shortlisted ? 'Added to Shortlisted FAQ\'s 📌' : 'Removed from Shortlisted FAQ\'s');
+      } catch { toast.error('Failed'); }
+    };
+
     const rateFaq = async (faqId, helpful) => {
       try {
         await api.post(`/ratings/${faqId}`, { helpful });
@@ -262,6 +270,7 @@ setFaqs(fr.data);
     const panelFaqs = () => {
 
       if (panel === '_bookmarks') return faqs.filter(f => bookmarks.includes(f.id));
+      if (panel === '_shortlisted') return faqs.filter(f => f.is_shortlisted);
       if (search) {
 
     const q = search.toLowerCase();
@@ -400,7 +409,7 @@ const isSpecial = [
             )}
 
             {/* Daily Tip Banner */}
-            {tip && !isSpecial && !search && panel !== '_bookmarks' && (
+            {tip && !isSpecial && !search && panel !== '_bookmarks' && panel !== '_shortlisted' && (
               <div style={{ background: darkMode ? 'linear-gradient(135deg,#1a1200,#2d1a00)' : 'linear-gradient(135deg,#fff7ed,#fff3e8)', border:`1px solid ${ORANGE}40`, borderRadius:'18px', padding:'20px 24px', marginBottom:'22px', display:'flex', alignItems:'flex-start', gap:'18px', position:'relative', overflow:'hidden', boxShadow:`0 4px 20px ${ORANGE}18` }}>
                 <div style={{ position:'absolute', top:'-40px', right:'-40px', width:'160px', height:'160px', background:`${ORANGE}18`, borderRadius:'50%', filter:'blur(30px)', pointerEvents:'none' }} />
                 <div style={{ width:'48px', height:'48px', background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, borderRadius:'14px', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:`0 4px 14px ${ORANGE}35`, fontSize:'24px' }}>💡</div>
@@ -565,6 +574,15 @@ const isSpecial = [
               </div>
             )}
 
+            {/* Shortlisted FAQ's empty */}
+            {panel === '_shortlisted' && items.length === 0 && (
+              <div style={{ textAlign:'center', padding:'70px 40px', background:DM.cardBg, borderRadius:'20px', border:`1px solid ${DM.border}` }}>
+                <div style={{ fontSize:'52px', marginBottom:'14px' }}>📌</div>
+                <div style={{ fontSize:'20px', fontWeight:'800', color:DM.text, marginBottom:'8px' }}>No shortlisted FAQs yet</div>
+                <div style={{ fontSize:'14px', color:DM.subText }}>Your QA team hasn't pinned any FAQs here yet</div>
+              </div>
+            )}
+
             {/* FAQ content */}
             {!isSpecial && items.length > 0 && (
               Object.entries(groups).map(([sub, subItems]) => {
@@ -580,6 +598,8 @@ const isSpecial = [
                       {subItems.map(f => (
                         <FAQCard key={f.id} faq={f} lang={lang} isOpen={open[f.id]} onToggle={() => tog(f.id)}
                           isBookmarked={bookmarks.includes(f.id)} onBookmark={() => toggleBookmark(f.id)}
+                          canShortlist={user?.role === 'qa_officer' || user?.role === 'team_lead'}
+                          isShortlisted={!!f.is_shortlisted} onShortlist={() => toggleShortlist(f.id)}
                           myRating={ratings[f.id]} onRate={h => rateFaq(f.id, h)}
                           darkMode={darkMode} DM={DM} />
                       ))}
@@ -590,7 +610,7 @@ const isSpecial = [
             )}
 
             {/* Empty state */}
-            {!isSpecial && !loading && items.length === 0 && panel !== '_bookmarks' && (
+            {!isSpecial && !loading && items.length === 0 && panel !== '_bookmarks' && panel !== '_shortlisted' && (
               <div style={{ textAlign:'center', padding:'70px 40px', background:DM.cardBg, borderRadius:'20px', border:`1px solid ${DM.border}` }}>
                <div style={{ fontSize:'64px', marginBottom:'14px' }}>
   {search ? '🔍' : '📂'}
@@ -623,7 +643,7 @@ const isSpecial = [
   }
  
 
-  function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, myRating, onRate, darkMode, DM }) {
+  function FAQCard({ faq, lang, isOpen, onToggle, isBookmarked, onBookmark, canShortlist, isShortlisted, onShortlist, myRating, onRate, darkMode, DM }) {
 
 
     const meta = CAT_META[faq.category] || {
@@ -670,6 +690,12 @@ const isSpecial = [
           
           </div>
           <div style={{ display:'flex', gap:'6px', alignItems:'center', flexShrink:0 }}>
+            {/* Shortlist pin — QA officer / team lead only */}
+            {canShortlist && (
+              <button onClick={e => { e.stopPropagation(); onShortlist(); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'14px', padding:'2px', color: isShortlisted ? '#FF6B35' : DM.subText, transition:'all .15s' }} title={isShortlisted ? 'Remove from Shortlisted FAQ\'s' : 'Add to Shortlisted FAQ\'s'}>
+                📌
+              </button>
+            )}
             {/* Bookmark button */}
             <button onClick={e => { e.stopPropagation(); onBookmark(); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'14px', padding:'2px', color: isBookmarked ? '#f59e0b' : DM.subText, transition:'all .15s' }} title="Bookmark">
               {isBookmarked ? '⭐' : '☆'}

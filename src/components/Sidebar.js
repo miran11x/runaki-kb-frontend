@@ -1,4 +1,3 @@
-
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -146,15 +145,27 @@ width: collapsed ? '68px' : '260px',
 
 {/* ── BRAND ── */}
 <div style={S.brand}>
-  <img
-    src={darkMode ? LogoDark : LogoLight}
-    alt="Runaki"
+  <div
     style={{
-      height: 48,
-
-      width: 'auto',
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      height: collapsed ? 30 : 48,
+      width: collapsed ? 34 : 'auto',
+      transition: 'height .2s ease, width .2s ease',
     }}
-  />
+  >
+    <img
+      src={darkMode ? LogoDark : LogoLight}
+      alt="Runaki"
+      style={{
+        height: collapsed ? 30 : 48,
+        width: 'auto',
+        flexShrink: 0,
+        transition: 'height .2s ease',
+      }}
+    />
+  </div>
 </div>
 {/* ── USER CARD ── */}
 <div
@@ -247,15 +258,15 @@ background:
       {/* ── NAV ── */}
       <nav style={S.nav}>
 
-        {/* FEEDBACK CENTER */}
-<NI
-  icon="💬"
-  darkMode={darkMode}
-  label="Feedback Center"
-  collapsed={collapsed}
-  active={panel === '_feedback'}
-  onClick={() => go('_feedback')}
-/>
+        {/* Shortlisted FAQ's — top-received FAQs, curated by QA/team lead, visible to all agents */}
+        <NI
+          icon="📌"
+          darkMode={darkMode}
+          label="Shortlisted FAQ's"
+          collapsed={collapsed}
+          active={panel === '_shortlisted'}
+          onClick={() => go('_shortlisted')}
+        />
 
         {/* Update Scripts — top of sidebar with red badge when active */}
        <div

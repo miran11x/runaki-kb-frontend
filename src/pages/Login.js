@@ -8,27 +8,66 @@ const RK_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAACpCAYAAACRd
 const HP_LOGO = "data:image/png;base64,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";
 
 
+const ORANGE = '#FF6B35';
+const BLUE = '#3b82f6';
+const PURPLE = '#8b5cf6';
+const GREEN = '#10b981';
+const AMBER = '#f59e0b';
+const CARD_BG = 'linear-gradient(145deg,#0f1623,#111827)';
+const PAGE_BG = '#0a0f1a';
+const TEXT = '#F4F6F5';
+const MUTED = '#8b98a6';
+const BORDER = 'rgba(255,255,255,0.08)';
+
+function BookIcon({ color }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  );
+}
+function GridIcon({ color }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+function GlobeIcon({ color }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20" />
+    </svg>
+  );
+}
+function UsersIcon({ color }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
 function UserIcon() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+      <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
     </svg>
   );
 }
 function LockIcon() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="11" width="16" height="10" rx="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      <rect x="4" y="11" width="16" height="10" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
   );
 }
 function EyeIcon() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
-      <circle cx="12" cy="12" r="3" />
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" /><circle cx="12" cy="12" r="3" />
     </svg>
   );
 }
@@ -40,11 +79,33 @@ function EyeOffIcon() {
     </svg>
   );
 }
-function CheckIcon() {
+function CheckIcon({ color }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color || '#fff'} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 6 9 17l-5-5" />
     </svg>
+  );
+}
+
+function StatCard({ icon, color, num, label, live }) {
+  return (
+    <div style={{ position: 'relative', overflow: 'hidden', background: CARD_BG, border: `1px solid ${color}25`, borderRadius: '16px', padding: '16px 18px', minWidth: '132px' }}>
+      <div style={{ position: 'absolute', top: '-24px', right: '-24px', width: '90px', height: '90px', background: `radial-gradient(circle,${color}22 0%,transparent 70%)`, borderRadius: '50%', pointerEvents: 'none' }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ width: '38px', height: '38px', borderRadius: '10px', border: `1.5px solid ${color}45`, boxShadow: `0 0 12px ${color}30, inset 0 0 10px ${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `radial-gradient(circle,${color}18,transparent)` }}>
+          {icon}
+        </div>
+        {live && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', fontWeight: 800, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: GREEN, boxShadow: `0 0 6px ${GREEN}`, animation: 'pulse 2s infinite' }} />
+            Live
+          </div>
+        )}
+      </div>
+      <div style={{ fontSize: '22px', fontWeight: 800, color: TEXT, marginTop: '12px', fontVariantNumeric: 'tabular-nums' }}>{num}</div>
+      <div style={{ fontSize: '12px', color: MUTED, marginTop: '2px' }}>{label}</div>
+      <div style={{ position: 'absolute', bottom: 0, left: '18%', right: '18%', height: '2px', background: `linear-gradient(90deg,transparent,${color}90,transparent)`, borderRadius: '2px' }} />
+    </div>
   );
 }
 
@@ -53,61 +114,54 @@ export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ identifier: '', password: '' });
   const [showPass, setShowPass] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
   const [focused, setFocused] = useState('');
   const [stats, setStats] = useState({ totalFAQs: null, totalCategories: null, totalUsers: null });
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 900);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    // Live counts for the panel — falls back to a dash if the API is unreachable,
-    // never to a stale hardcoded number.
     api.get('/public/stats').then(res => setStats(res.data)).catch(() => {});
   }, []);
 
   const handleSubmit = async e => {
     e.preventDefault();
-
     const res = await login(form.identifier, form.password);
-
-    if (!res.ok) {
-      toast.error(res.error);
-      return;
-    }
-
-    if (res.mfaRequired) {
-      navigate('/mfa', { state: { challengeToken: res.challengeToken } });
-      return;
-    }
-
+    if (!res.ok) { toast.error(res.error); return; }
+    if (res.mfaRequired) { navigate('/mfa', { state: { challengeToken: res.challengeToken } }); return; }
     toast.success('Welcome back!');
     navigate('/');
   };
 
   const statBlocks = [
-    { n: stats.totalFAQs != null ? `${stats.totalFAQs}+` : '—', l: 'Topics' },
-    { n: stats.totalCategories != null ? String(stats.totalCategories) : '—', l: 'Categories' },
-    { n: 'EN / KU / AR', l: 'Languages' },
-    { n: stats.totalUsers != null ? String(stats.totalUsers) : '—', l: 'Agents' },
+    { icon: <BookIcon color={BLUE} />, color: BLUE, num: stats.totalFAQs != null ? `${stats.totalFAQs}+` : '—', label: 'Topics' },
+    { icon: <GridIcon color={PURPLE} />, color: PURPLE, num: stats.totalCategories != null ? String(stats.totalCategories) : '—', label: 'Categories' },
+    { icon: <GlobeIcon color={AMBER} />, color: AMBER, num: 'EN / KU / AR', label: 'Languages' },
+    { icon: <UsersIcon color={GREEN} />, color: GREEN, num: stats.totalUsers != null ? String(stats.totalUsers) : '—', label: 'Agents', live: true },
   ];
 
   const features = [
-    'Role-based access control',
-    'Bilingual EN / Kurdish content',
-    'Daily tips from your team lead',
-    'Real-time update notifications',
+    { t: 'Role-based access control', c: BLUE },
+    { t: 'Bilingual EN / Kurdish content', c: PURPLE },
+    { t: 'Daily tips from your team lead', c: AMBER },
+    { t: 'Real-time update notifications', c: GREEN },
   ];
+
+  const waveColors = [ORANGE, BLUE, PURPLE, GREEN, AMBER];
 
   return (
     <>
       <style>{`
+        html, body, #root { height: 100%; margin: 0; padding: 0; }
         @keyframes wave { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+        @keyframes drift { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(30px,-20px); } }
       `}</style>
 
       <div style={S.page}>
@@ -115,56 +169,65 @@ export default function Login() {
 
           {/* Left — branding panel */}
           <div style={{ ...S.left, display: isMobile ? 'none' : 'flex' }}>
-            <div style={S.leftTop}>
-              <div style={S.logosRow}>
-                <div style={S.logoBox}><img src={RK_LOGO} alt="Runaki" style={S.logoImg} /></div>
-                <div style={S.logoDivider} />
-                <div style={S.logoBox}><img src={HP_LOGO} alt="High Performance" style={S.logoImg} /></div>
+            <div style={{ ...S.blob, top: '-120px', left: '-100px', background: `radial-gradient(circle,${BLUE}30,transparent 70%)`, animationDelay: '0s' }} />
+            <div style={{ ...S.blob, bottom: '-140px', right: '-80px', background: `radial-gradient(circle,${PURPLE}25,transparent 70%)`, animationDelay: '2s' }} />
+            <div style={S.dotGrid} />
+
+            <div style={S.leftInner}>
+              <div style={S.leftTop}>
+                <div style={S.logosRow}>
+                  <div style={S.logoBox}><img src={RK_LOGO} alt="Runaki" style={S.logoImg} /></div>
+                  <div style={S.logoDivider} />
+                  <div style={S.logoBox}><img src={HP_LOGO} alt="High Performance" style={S.logoImg} /></div>
+                </div>
+
+                <h1 style={S.headline}>Agent Knowledge Base</h1>
+
+                <p style={S.desc}>
+                  The reference your team pulls up mid-call — scripts, FAQs
+                  and procedures for Runaki's Sorani, Badini and Arabic queues.
+                </p>
+
+                <div style={S.stats}>
+                  {statBlocks.map((s, i) => <StatCard key={i} {...s} />)}
+                </div>
+
+                <div style={S.features}>
+                  {features.map(f => (
+                    <div key={f.t} style={S.featureItem}>
+                      <span style={{ ...S.featureCheck, background: `${f.c}20`, boxShadow: `0 0 8px ${f.c}40` }}><CheckIcon color={f.c} /></span>
+                      <span>{f.t}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <h1 style={S.headline}>Agent Knowledge Base</h1>
-
-              <p style={S.desc}>
-                The reference your team pulls up mid-call — scripts, FAQs
-                and procedures for Runaki's Sorani, Badini and Arabic queues.
-              </p>
-
-              <div style={S.stats}>
-                {statBlocks.map((s, i) => (
-                  <div key={i} style={S.statItem}>
-                    <div style={S.statNum}>{s.n}</div>
-                    <div style={S.statLbl}>{s.l}</div>
-                  </div>
-                ))}
+              {/* Live call waveform */}
+              <div style={S.waveform} aria-hidden="true">
+                {[...Array(40)].map((_, i) => {
+                  const c = waveColors[i % waveColors.length];
+                  return (
+                    <span
+                      key={i}
+                      style={{
+                        ...S.waveBar,
+                        background: c,
+                        boxShadow: `0 0 6px ${c}80`,
+                        height: `${14 + (i % 7) * 7}px`,
+                        animationDelay: `${(i % 8) * 0.1}s`,
+                      }}
+                    />
+                  );
+                })}
               </div>
-
-              <div style={S.features}>
-                {features.map(f => (
-                  <div key={f} style={S.featureItem}>
-                    <span style={S.featureCheck}><CheckIcon /></span>
-                    <span>{f}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Live call waveform — the one deliberate motion element */}
-            <div style={S.waveform} aria-hidden="true">
-              {[...Array(32)].map((_, i) => (
-                <span
-                  key={i}
-                  style={{
-                    ...S.waveBar,
-                    height: `${16 + (i % 6) * 8}px`,
-                    animationDelay: `${(i % 8) * 0.11}s`,
-                  }}
-                />
-              ))}
             </div>
           </div>
 
           {/* Right — form */}
           <div style={S.right}>
+            <div style={{ ...S.blob, top: '-100px', right: '-100px', background: `radial-gradient(circle,${ORANGE}20,transparent 70%)`, animationDelay: '1s' }} />
+            <div style={S.dotGrid} />
+
             <div style={S.formCard}>
               <div style={S.formLogos}>
                 <img src={RK_LOGO} alt="Runaki" style={S.formLogo} />
@@ -172,10 +235,15 @@ export default function Login() {
                 <img src={HP_LOGO} alt="HP" style={S.formLogo} />
               </div>
 
+              <div style={S.statusRow}>
+                <span style={S.statusDot} />
+                <span>System online</span>
+              </div>
+
               <h2 style={S.formTitle}>Sign in</h2>
               <p style={S.formSub}>Use your Runaki KB account to continue</p>
 
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginTop: '8px' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginTop: '10px' }}>
                 <div style={S.field}>
                   <label style={S.label}>Email or Wave ID</label>
                   <div style={{ position: 'relative' }}>
@@ -238,62 +306,55 @@ export default function Login() {
   );
 }
 
-const CHARCOAL = '#0D1214';
-const LEFT_PANEL = '#10171A';
-const FORM_PANEL = '#161E21';
-const INPUT_BG = '#1C2528';
-const ORANGE = '#FF6B35';
-const TEAL = '#3FDDC0';
-const TEXT = '#F4F6F5';
-const MUTED = '#93A1A6';
-const BORDER = 'rgba(255,255,255,0.08)';
-
 const S = {
-  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: CHARCOAL, fontFamily: "'Inter','Segoe UI',sans-serif", padding: '16px' },
+  page: { width: '100vw', height: '100vh', background: PAGE_BG, fontFamily: "'Inter','Segoe UI',sans-serif", overflow: 'hidden' },
+  wrapper: { display: 'flex', width: '100%', height: '100%' },
 
-  wrapper: { display: 'flex', width: '100%', maxWidth: '1120px', minHeight: '640px', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.55)', border: `1px solid ${BORDER}` },
-
-  left: { flex: '1.15', background: LEFT_PANEL, padding: '52px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRight: `1px solid ${BORDER}` },
+  left: { flex: '1.15', position: 'relative', background: `linear-gradient(160deg,#0d1420,#0a0f1a)`, overflow: 'hidden', borderRight: `1px solid ${BORDER}` },
+  leftInner: { position: 'relative', zIndex: 1, height: '100%', padding: '52px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box', overflowY: 'auto' },
   leftTop: { display: 'flex', flexDirection: 'column' },
 
-  logosRow: { display: 'flex', alignItems: 'center', gap: '14px' },
-  logoBox: { background: '#fff', borderRadius: '10px', padding: '8px 10px', display: 'flex', alignItems: 'center' },
-  logoImg: { height: '22px', width: 'auto', display: 'block' },
-  logoDivider: { width: '1px', height: '22px', background: BORDER },
+  blob: { position: 'absolute', width: '360px', height: '360px', borderRadius: '50%', filter: 'blur(10px)', animation: 'drift 12s ease-in-out infinite', pointerEvents: 'none' },
+  dotGrid: { position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '26px 26px', pointerEvents: 'none' },
 
-  headline: { fontSize: '42px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.08, color: TEXT, marginTop: '36px', marginBottom: 0 },
-  desc: { color: MUTED, fontSize: '15px', lineHeight: 1.65, maxWidth: '380px', marginTop: '16px' },
+  logosRow: { display: 'flex', alignItems: 'center', gap: '18px' },
+  logoBox: { background: '#fff', borderRadius: '14px', padding: '14px 18px', display: 'flex', alignItems: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.35)' },
+  logoImg: { height: '38px', width: 'auto', display: 'block' },
+  logoDivider: { width: '1px', height: '34px', background: BORDER },
 
-  stats: { display: 'flex', gap: '30px', flexWrap: 'wrap', marginTop: '34px' },
-  statItem: { display: 'flex', flexDirection: 'column', gap: '4px' },
-  statNum: { fontSize: '24px', fontWeight: 800, color: TEXT, fontVariantNumeric: 'tabular-nums' },
-  statLbl: { fontSize: '12.5px', color: MUTED },
+  headline: { fontSize: '48px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.06, color: TEXT, marginTop: '38px', marginBottom: 0 },
+  desc: { color: MUTED, fontSize: '15.5px', lineHeight: 1.65, maxWidth: '420px', marginTop: '16px' },
 
-  features: { display: 'flex', flexDirection: 'column', gap: '13px', marginTop: '34px' },
-  featureItem: { display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', color: TEXT, opacity: 0.92 },
-  featureCheck: { color: TEAL, display: 'flex' },
+  stats: { display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '32px' },
 
-  waveform: { display: 'flex', alignItems: 'flex-end', gap: '4px', height: '48px', opacity: 0.5, marginTop: '32px' },
-  waveBar: { width: '4px', borderRadius: '2px', background: `linear-gradient(180deg, ${ORANGE}, ${TEAL})`, animation: 'wave 1.6s ease-in-out infinite', transformOrigin: 'bottom' },
+  features: { display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '32px' },
+  featureItem: { display: 'flex', alignItems: 'center', gap: '11px', fontSize: '14.5px', color: TEXT, opacity: 0.95 },
+  featureCheck: { width: '22px', height: '22px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 
-  right: { flex: '1', background: FORM_PANEL, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' },
-  formCard: { width: '100%', maxWidth: '380px', animation: 'fadeUp 0.45s ease' },
+  waveform: { display: 'flex', alignItems: 'flex-end', gap: '4px', height: '52px', marginTop: '20px', opacity: 0.85 },
+  waveBar: { width: '4px', borderRadius: '2px', animation: 'wave 1.6s ease-in-out infinite', transformOrigin: 'bottom' },
 
-  formLogos: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' },
-  formLogo: { height: '20px', width: 'auto' },
-  formLogoDivider: { width: '1px', height: '18px', background: BORDER },
+  right: { flex: '1', position: 'relative', background: `linear-gradient(160deg,#0e1620,#0a0f1a)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  formCard: { position: 'relative', zIndex: 1, width: '100%', maxWidth: '410px', animation: 'fadeUp 0.45s ease', background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: '24px', padding: '40px 38px', boxShadow: '0 32px 90px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)' },
 
-  formTitle: { fontSize: '25px', fontWeight: 800, color: TEXT, letterSpacing: '-0.01em', margin: 0 },
+  formLogos: { display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '22px' },
+  formLogo: { height: '30px', width: 'auto' },
+  formLogoDivider: { width: '1px', height: '24px', background: BORDER },
+
+  statusRow: { display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', fontWeight: 700, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' },
+  statusDot: { width: '7px', height: '7px', borderRadius: '50%', background: GREEN, boxShadow: `0 0 8px ${GREEN}`, animation: 'pulse 2s infinite', display: 'inline-block' },
+
+  formTitle: { fontSize: '27px', fontWeight: 800, color: TEXT, letterSpacing: '-0.01em', margin: 0 },
   formSub: { color: MUTED, fontSize: '14px', marginTop: '6px', marginBottom: '4px' },
 
   field: { display: 'flex', flexDirection: 'column', gap: '6px' },
   label: { fontSize: '13px', color: MUTED, fontWeight: 500 },
   fieldIco: { position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: MUTED, display: 'flex', pointerEvents: 'none' },
-  input: { width: '100%', boxSizing: 'border-box', background: INPUT_BG, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '12px 14px 12px 42px', color: TEXT, fontSize: '14.5px', outline: 'none', transition: 'border-color .15s, background .15s' },
-  inputOn: { borderColor: ORANGE, background: '#1F2A2E' },
+  input: { width: '100%', boxSizing: 'border-box', background: '#151d27', border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '12px 14px 12px 42px', color: TEXT, fontSize: '14.5px', outline: 'none', transition: 'border-color .15s, box-shadow .15s' },
+  inputOn: { borderColor: ORANGE, boxShadow: `0 0 0 3px ${ORANGE}25` },
   eyeBtn: { position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: '4px', display: 'flex' },
 
-  btn: { marginTop: '4px', padding: '13px', borderRadius: '10px', border: 'none', background: ORANGE, color: '#fff', fontWeight: 700, fontSize: '15px', cursor: 'pointer', transition: 'opacity .15s' },
+  btn: { marginTop: '4px', padding: '13px', borderRadius: '10px', border: 'none', background: `linear-gradient(135deg,${ORANGE},#ff9a6c)`, color: '#fff', fontWeight: 700, fontSize: '15px', cursor: 'pointer', transition: 'opacity .15s', boxShadow: `0 8px 24px ${ORANGE}40` },
   spinner: { width: '16px', height: '16px', border: '2.5px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block', flexShrink: 0 },
 
   hint: { marginTop: '22px', textAlign: 'center', fontSize: '12.5px', color: MUTED, lineHeight: 1.6 },
