@@ -89,21 +89,21 @@ function CheckIcon({ color }) {
 
 function StatCard({ icon, color, num, label, live }) {
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', background: CARD_BG, border: `1px solid ${color}25`, borderRadius: '16px', padding: '16px 18px', minWidth: '132px' }}>
+    <div style={{ position: 'relative', overflow: 'hidden', background: CARD_BG, border: `1px solid ${color}25`, borderRadius: '14px', padding: '12px 12px', minWidth: 0 }}>
       <div style={{ position: 'absolute', top: '-24px', right: '-24px', width: '90px', height: '90px', background: `radial-gradient(circle,${color}22 0%,transparent 70%)`, borderRadius: '50%', pointerEvents: 'none' }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ width: '38px', height: '38px', borderRadius: '10px', border: `1.5px solid ${color}45`, boxShadow: `0 0 12px ${color}30, inset 0 0 10px ${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `radial-gradient(circle,${color}18,transparent)` }}>
+        <div style={{ width: '30px', height: '30px', borderRadius: '9px', border: `1.5px solid ${color}45`, boxShadow: `0 0 10px ${color}30, inset 0 0 8px ${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `radial-gradient(circle,${color}18,transparent)`, flexShrink: 0 }}>
           {icon}
         </div>
         {live && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', fontWeight: 800, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: GREEN, boxShadow: `0 0 6px ${GREEN}`, animation: 'pulse 2s infinite' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '8px', fontWeight: 800, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: GREEN, boxShadow: `0 0 6px ${GREEN}`, animation: 'pulse 2s infinite' }} />
             Live
           </div>
         )}
       </div>
-      <div style={{ fontSize: '22px', fontWeight: 800, color: TEXT, marginTop: '12px', fontVariantNumeric: 'tabular-nums' }}>{num}</div>
-      <div style={{ fontSize: '12px', color: MUTED, marginTop: '2px' }}>{label}</div>
+      <div style={{ fontSize: '17px', fontWeight: 800, color: TEXT, marginTop: '10px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{num}</div>
+      <div style={{ fontSize: '11px', color: MUTED, marginTop: '2px' }}>{label}</div>
       <div style={{ position: 'absolute', bottom: 0, left: '18%', right: '18%', height: '2px', background: `linear-gradient(90deg,transparent,${color}90,transparent)`, borderRadius: '2px' }} />
     </div>
   );
@@ -162,6 +162,9 @@ export default function Login() {
         @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
         @keyframes drift { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(30px,-20px); } }
+        .rk-left-panel::-webkit-scrollbar { width: 5px; }
+        .rk-left-panel::-webkit-scrollbar-track { background: transparent; }
+        .rk-left-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
       `}</style>
 
       <div style={S.page}>
@@ -173,7 +176,7 @@ export default function Login() {
             <div style={{ ...S.blob, bottom: '-140px', right: '-80px', background: `radial-gradient(circle,${PURPLE}25,transparent 70%)`, animationDelay: '2s' }} />
             <div style={S.dotGrid} />
 
-            <div style={S.leftInner}>
+            <div className="rk-left-panel" style={S.leftInner}>
               <div style={S.leftTop}>
                 <div style={S.logosRow}>
                   <div style={S.logoBox}><img src={RK_LOGO} alt="Runaki" style={S.logoImg} /></div>
@@ -311,27 +314,27 @@ const S = {
   wrapper: { display: 'flex', width: '100%', height: '100%' },
 
   left: { flex: '1.15', position: 'relative', background: `linear-gradient(160deg,#0d1420,#0a0f1a)`, overflow: 'hidden', borderRight: `1px solid ${BORDER}` },
-  leftInner: { position: 'relative', zIndex: 1, height: '100%', padding: '52px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box', overflowY: 'auto' },
+  leftInner: { position: 'relative', zIndex: 1, height: '100%', padding: '40px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box', overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.15) transparent' },
   leftTop: { display: 'flex', flexDirection: 'column' },
 
   blob: { position: 'absolute', width: '360px', height: '360px', borderRadius: '50%', filter: 'blur(10px)', animation: 'drift 12s ease-in-out infinite', pointerEvents: 'none' },
   dotGrid: { position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '26px 26px', pointerEvents: 'none' },
 
   logosRow: { display: 'flex', alignItems: 'center', gap: '18px' },
-  logoBox: { background: '#fff', borderRadius: '14px', padding: '14px 18px', display: 'flex', alignItems: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.35)' },
-  logoImg: { height: '38px', width: 'auto', display: 'block' },
+  logoBox: { background: '#fff', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.35)' },
+  logoImg: { height: '30px', width: 'auto', display: 'block' },
   logoDivider: { width: '1px', height: '34px', background: BORDER },
 
-  headline: { fontSize: '48px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.06, color: TEXT, marginTop: '38px', marginBottom: 0 },
-  desc: { color: MUTED, fontSize: '15.5px', lineHeight: 1.65, maxWidth: '420px', marginTop: '16px' },
+  headline: { fontSize: '38px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.08, color: TEXT, marginTop: '26px', marginBottom: 0 },
+  desc: { color: MUTED, fontSize: '14.5px', lineHeight: 1.6, maxWidth: '420px', marginTop: '12px' },
 
-  stats: { display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '32px' },
+  stats: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginTop: '22px' },
 
-  features: { display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '32px' },
-  featureItem: { display: 'flex', alignItems: 'center', gap: '11px', fontSize: '14.5px', color: TEXT, opacity: 0.95 },
+  features: { display: 'flex', flexDirection: 'column', gap: '11px', marginTop: '22px' },
+  featureItem: { display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px', color: TEXT, opacity: 0.95 },
   featureCheck: { width: '22px', height: '22px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 
-  waveform: { display: 'flex', alignItems: 'flex-end', gap: '4px', height: '52px', marginTop: '20px', opacity: 0.85 },
+  waveform: { display: 'flex', alignItems: 'flex-end', gap: '4px', height: '40px', marginTop: '16px', opacity: 0.85 },
   waveBar: { width: '4px', borderRadius: '2px', animation: 'wave 1.6s ease-in-out infinite', transformOrigin: 'bottom' },
 
   right: { flex: '1', position: 'relative', background: `linear-gradient(160deg,#0e1620,#0a0f1a)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
