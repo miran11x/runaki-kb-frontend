@@ -162,9 +162,6 @@ export default function Login() {
         @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
         @keyframes drift { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(30px,-20px); } }
-        .rk-left-panel::-webkit-scrollbar { width: 5px; }
-        .rk-left-panel::-webkit-scrollbar-track { background: transparent; }
-        .rk-left-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
       `}</style>
 
       <div style={S.page}>
@@ -176,20 +173,16 @@ export default function Login() {
             <div style={{ ...S.blob, bottom: '-140px', right: '-80px', background: `radial-gradient(circle,${PURPLE}25,transparent 70%)`, animationDelay: '2s' }} />
             <div style={S.dotGrid} />
 
-            <div className="rk-left-panel" style={S.leftInner}>
+            <div style={S.leftInner}>
               <div style={S.leftTop}>
-                <div style={S.logosRow}>
-                  <div style={S.logoBox}><img src={RK_LOGO} alt="Runaki" style={S.logoImg} /></div>
-                  <div style={S.logoDivider} />
-                  <div style={S.logoBox}><img src={HP_LOGO} alt="High Performance" style={S.logoImg} /></div>
-                </div>
-
                 <h1 style={S.headline}>Agent Knowledge Base</h1>
 
                 <p style={S.desc}>
-                  The reference your team pulls up mid-call — scripts, FAQs
-                  and procedures for Runaki's Sorani, Badini and Arabic queues.
+                  Everything you need mid-call, in one place — verified scripts,
+                  FAQs and procedures for Runaki's Sorani, Badini and Arabic queues,
+                  kept current by your QA team.
                 </p>
+
 
                 <div style={S.stats}>
                   {statBlocks.map((s, i) => <StatCard key={i} {...s} />)}
@@ -314,16 +307,12 @@ const S = {
   wrapper: { display: 'flex', width: '100%', height: '100%' },
 
   left: { flex: '1.15', position: 'relative', background: `linear-gradient(160deg,#0d1420,#0a0f1a)`, overflow: 'hidden', borderRight: `1px solid ${BORDER}` },
-  leftInner: { position: 'relative', zIndex: 1, height: '100%', padding: '40px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box', overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.15) transparent' },
+  leftInner: { position: 'relative', zIndex: 1, height: '100%', padding: '56px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '36px', boxSizing: 'border-box', overflow: 'hidden' },
   leftTop: { display: 'flex', flexDirection: 'column' },
 
   blob: { position: 'absolute', width: '360px', height: '360px', borderRadius: '50%', filter: 'blur(10px)', animation: 'drift 12s ease-in-out infinite', pointerEvents: 'none' },
   dotGrid: { position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '26px 26px', pointerEvents: 'none' },
 
-  logosRow: { display: 'flex', alignItems: 'center', gap: '18px' },
-  logoBox: { background: '#fff', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.35)' },
-  logoImg: { height: '30px', width: 'auto', display: 'block' },
-  logoDivider: { width: '1px', height: '34px', background: BORDER },
 
   headline: { fontSize: '38px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.08, color: TEXT, marginTop: '26px', marginBottom: 0 },
   desc: { color: MUTED, fontSize: '14.5px', lineHeight: 1.6, maxWidth: '420px', marginTop: '12px' },
@@ -340,9 +329,9 @@ const S = {
   right: { flex: '1', position: 'relative', background: `linear-gradient(160deg,#0e1620,#0a0f1a)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   formCard: { position: 'relative', zIndex: 1, width: '100%', maxWidth: '410px', animation: 'fadeUp 0.45s ease', background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: '24px', padding: '40px 38px', boxShadow: '0 32px 90px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)' },
 
-  formLogos: { display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '22px' },
-  formLogo: { height: '30px', width: 'auto' },
-  formLogoDivider: { width: '1px', height: '24px', background: BORDER },
+  formLogos: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '18px', marginBottom: '26px' },
+  formLogo: { height: '52px', width: 'auto' },
+  formLogoDivider: { width: '1px', height: '38px', background: BORDER },
 
   statusRow: { display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', fontWeight: 700, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' },
   statusDot: { width: '7px', height: '7px', borderRadius: '50%', background: GREEN, boxShadow: `0 0 8px ${GREEN}`, animation: 'pulse 2s infinite', display: 'inline-block' },
