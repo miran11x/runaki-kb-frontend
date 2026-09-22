@@ -330,7 +330,7 @@ const S = {
   formCard: { position: 'relative', zIndex: 1, width: '100%', maxWidth: '410px', animation: 'fadeUp 0.45s ease', background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: '24px', padding: '40px 38px', boxShadow: '0 32px 90px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)' },
 
   formLogos: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '22px', marginBottom: '28px' },
-  formLogo: { height: '140px', width: '85', display: 'block', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.45))' },
+  formLogo: { height: '72px', width: 'auto', display: 'block', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.45))' },
   formLogoDivider: { width: '1px', height: '46px', background: BORDER },
 
   statusRow: { display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', fontWeight: 700, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' },
