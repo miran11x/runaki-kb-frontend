@@ -105,7 +105,7 @@ export default function AdminPanel({ darkMode }) {
   const [activity, setActivity] = useState([]);
   const [topFAQs, setTopFAQs]   = useState([]);
   const [showAdd, setShowAdd]   = useState(false);
-  const [newUser, setNewUser]   = useState({ name:'', email:'', password:'', role:'agent', title:'' });
+  const [newUser, setNewUser]   = useState({ name:'', email:'', password:'', role:'agent', title:'', wave_id:'' });
   const [loading, setLoading]   = useState(false);
   const [uSearch, setUSearch]   = useState('');
   const [uFilter, setUFilter]   = useState('all');
@@ -116,7 +116,7 @@ export default function AdminPanel({ darkMode }) {
   const [cfEditSteps, setCfEditSteps] = useState([]);
   const [cfForm, setCfForm] = useState({ title:'', icon:'📞', color:'#3b82f6', description:'', note:'' });
   const [editUser, setEditUser] = useState(null);
-  const [editForm, setEditForm] = useState({ name:'', email:'', role:'agent', title:'', newPassword:'' });
+  const [editForm, setEditForm] = useState({ name:'', email:'', role:'agent', title:'', wave_id:'', newPassword:'' });
   const [peakHours, setPeakHours] = useState([]);
   const [weeklyTrends, setWeeklyTrends] = useState([]);
 
@@ -224,16 +224,96 @@ export default function AdminPanel({ darkMode }) {
       await api.post('/users', newUser);
       toast.success('User created!');
       setShowAdd(false);
-      setNewUser({ name:'', email:'', password:'', role:'agent', title:'' });
+      setNewUser({ name:'', email:'', password:'', role:'agent', title:'', wave_id:'' });
       load();
     } catch (err) { toast.error(err.response?.data?.error || 'Failed'); }
     finally { setLoading(false); }
   };
   const toggleActive = async u => { await api.patch(`/users/${u.id}`, { is_active: !u.is_active }); toast.success(u.is_active?'Deactivated':'Activated'); load(); };
   const deleteUser = async id => { if (!window.confirm('Delete this user?')) return; await api.delete(`/users/${id}`); toast.success('Deleted'); load(); };
+
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [bulkText, setBulkText] = useState('');
+  const [bulkResult, setBulkResult] = useState(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const parseBulkAgents = (text) => {
+    // One agent per line: Name, Email, WaveID, Title (Title optional)
+    return text.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+      const parts = line.split(',').map(p => p.trim());
+      return { name: parts[0] || '', email: parts[1] || '', wave_id: parts[2] || '', title: parts[3] || '' };
+    }).filter(a => a.name && a.wave_id);
+  };
+
+  const runBulkImport = async () => {
+    const agents = parseBulkAgents(bulkText);
+    if (!agents.length) { toast.error('No valid rows found — each line needs at least Name, Email, WaveID'); return; }
+    setBulkBusy(true);
+    setBulkResult(null);
+    try {
+      const r = await api.post('/users/bulk-agents', { agents });
+      setBulkResult(r.data);
+      toast.success(r.data.summary);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Bulk import failed');
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const [showBulkStaff, setShowBulkStaff] = useState(false);
+  const [bulkStaffText, setBulkStaffText] = useState('');
+  const [bulkStaffResult, setBulkStaffResult] = useState(null);
+  const [bulkStaffBusy, setBulkStaffBusy] = useState(false);
+
+  const parseBulkStaff = (text) => {
+    // One person per line: Name, Email, Title — all get FAQ editor access (qa_officer), never admin
+    return text.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+      const parts = line.split(',').map(p => p.trim());
+      return { name: parts[0] || '', email: parts[1] || '', title: parts[2] || '' };
+    }).filter(s => s.name && s.email);
+  };
+
+  const runBulkStaffImport = async () => {
+    const staff = parseBulkStaff(bulkStaffText);
+    if (!staff.length) { toast.error('No valid rows found — each line needs at least Name, Email'); return; }
+    setBulkStaffBusy(true);
+    setBulkStaffResult(null);
+    try {
+      const r = await api.post('/users/bulk-staff', { staff });
+      setBulkStaffResult(r.data);
+      toast.success(r.data.summary);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Bulk import failed');
+    } finally {
+      setBulkStaffBusy(false);
+    }
+  };
+
+  const [showDeleteAllAgents, setShowDeleteAllAgents] = useState(false);
+  const [deleteAllConfirmText, setDeleteAllConfirmText] = useState('');
+  const [deleteAllBusy, setDeleteAllBusy] = useState(false);
+
+  const runDeleteAllAgents = async () => {
+    if (deleteAllConfirmText !== 'DELETE') return;
+    setDeleteAllBusy(true);
+    try {
+      const r = await api.delete('/users/bulk-agents', { data: { confirm: true } });
+      toast.success(`Deleted ${r.data.deletedCount} agent accounts`);
+      setShowDeleteAllAgents(false);
+      setDeleteAllConfirmText('');
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Bulk delete failed');
+    } finally {
+      setDeleteAllBusy(false);
+    }
+  };
   const saveEditUser = async () => {
     if (!editUser) return;
-    const payload = { name: editForm.name, email: editForm.email, role: editForm.role, title: editForm.title };
+    const payload = { name: editForm.name, email: editForm.email, role: editForm.role, title: editForm.title, wave_id: editForm.wave_id };
     if (editForm.newPassword) payload.password = editForm.newPassword;
     await api.patch(`/users/${editUser.id}`, payload).catch(() => {});
     toast.success('User updated!'); setEditUser(null); load();
@@ -515,6 +595,9 @@ export default function AdminPanel({ darkMode }) {
 
                 </select>
                 <button style={{ background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, color:'#fff', border:'none', borderRadius:'12px', padding:'11px 22px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', boxShadow:`0 4px 12px ${ORANGE}40` }} onClick={() => setShowAdd(true)}>+ Add User</button>
+                <button style={{ background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setBulkText(''); setBulkResult(null); setShowBulkImport(true); }}>📋 Bulk Import Agents</button>
+                <button style={{ background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setBulkStaffText(''); setBulkStaffResult(null); setShowBulkStaff(true); }}>👔 Bulk Import Staff</button>
+                <button style={{ background: darkMode?'rgba(239,68,68,0.12)':'#fef2f2', color:'#ef4444', border: darkMode?'1px solid rgba(239,68,68,0.25)':'1px solid #fecaca', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setDeleteAllConfirmText(''); setShowDeleteAllAgents(true); }}>🗑️ Delete All Agents</button>
               </div>
               <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8', marginBottom:'12px', fontWeight:'600' }}>Showing {filtered.length} of {users.length} users</div>
               {showAdd && (
@@ -536,6 +619,10 @@ export default function AdminPanel({ darkMode }) {
 <option value="qa_officer">QA Officer</option>
                         </select>
                       </div>
+                      <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+                        <label style={S.mLabel}>Wave ID {newUser.role === 'agent' ? '(required — used to log in)' : '(optional)'}</label>
+                        <input type="text" placeholder="e.g. 10432" value={newUser.wave_id} onChange={e => setNewUser({...newUser, wave_id:e.target.value})} style={S.mInput} required={newUser.role === 'agent'} />
+                      </div>
                       <div style={{ display:'flex', gap:'10px', marginTop:'6px' }}>
                         <button type="submit" disabled={loading} style={S.mBtn}>{loading?'Creating…':'Create User'}</button>
                         <button type="button" onClick={() => setShowAdd(false)} style={S.mBtnSec}>Cancel</button>
@@ -544,8 +631,158 @@ export default function AdminPanel({ darkMode }) {
                   </div>
                 </div>
               )}
+
+              {/* ── BULK IMPORT AGENTS ── */}
+              {showBulkImport && (
+                <div style={S.overlay}>
+                  <div style={{ ...S.modal, maxWidth:'560px' }}>
+                    <div style={S.modalHead}><h3 style={S.modalTitle}>📋 Bulk Import Agents</h3><button style={S.modalClose} onClick={() => setShowBulkImport(false)}>✕</button></div>
+
+                    <div style={{ fontSize:'12.5px', color: darkMode?'rgba(255,255,255,0.5)':'#64748b', marginBottom:'12px', lineHeight:1.6 }}>
+                      One agent per line: <strong>Name, Email, WaveID, Title</strong> (Title optional).<br/>
+                      Role is always set to Agent and status to Active. Each agent logs in with their Wave ID and the password <code style={{ background: darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', padding:'2px 6px', borderRadius:'4px' }}>Wave@&lt;WaveID&gt;</code>.<br/>
+                      Example: <code style={{ background: darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', padding:'2px 6px', borderRadius:'4px' }}>Ahmed Karim, ahmed.karim@highperformanceco.net, 10432, Outbound Agent</code>
+                    </div>
+
+                    <textarea
+                      value={bulkText}
+                      onChange={e => setBulkText(e.target.value)}
+                      placeholder={'Ahmed Karim, ahmed.karim@highperformanceco.net, 10432, Outbound Agent\nSara Hussein, sara.hussein@highperformanceco.net, 10433, Inbound Agent\nDilan Omar, dilan.omar@highperformanceco.net, 10434'}
+                      rows={10}
+                      style={{ ...S.mInput, fontFamily:'monospace', fontSize:'13px', resize:'vertical', width:'100%', boxSizing:'border-box' }}
+                    />
+
+                    <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.4)':'#94a3b8', marginTop:'8px' }}>
+                      {parseBulkAgents(bulkText).length} valid row{parseBulkAgents(bulkText).length === 1 ? '' : 's'} detected
+                    </div>
+
+                    {bulkResult && (
+                      <div style={{ marginTop:'14px', padding:'12px 14px', borderRadius:'10px', background: darkMode?'rgba(16,185,129,0.1)':'#f0fdf4', border: darkMode?'1px solid rgba(16,185,129,0.25)':'1px solid #bbf7d0', fontSize:'13px', color: darkMode?'#f1f5f9':NAVY }}>
+                        <strong>{bulkResult.summary}</strong>
+                        {bulkResult.skipped.length > 0 && (
+                          <div style={{ marginTop:'6px', fontSize:'12px', color: darkMode?'rgba(255,255,255,0.5)':'#64748b' }}>
+                            Skipped (already exist): {bulkResult.skipped.map(s => s.wave_id).join(', ')}
+                          </div>
+                        )}
+                        {bulkResult.failed.length > 0 && (
+                          <div style={{ marginTop:'6px', fontSize:'12px', color:'#ef4444' }}>
+                            Failed: {bulkResult.failed.map(f => `${f.name || f.wave_id} (${f.reason})`).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div style={{ display:'flex', gap:'10px', marginTop:'16px' }}>
+                      <button type="button" disabled={bulkBusy} onClick={runBulkImport} style={S.mBtn}>{bulkBusy ? 'Importing…' : `Import ${parseBulkAgents(bulkText).length} Agents`}</button>
+                      <button type="button" onClick={() => setShowBulkImport(false)} style={S.mBtnSec}>Close</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── BULK IMPORT STAFF (QA / Coordinator / Trainer — FAQ editor access, never admin) ── */}
+              {showBulkStaff && (
+                <div style={S.overlay}>
+                  <div style={{ ...S.modal, maxWidth:'620px' }}>
+                    <div style={S.modalHead}><h3 style={S.modalTitle}>👔 Bulk Import Staff</h3><button style={S.modalClose} onClick={() => setShowBulkStaff(false)}>✕</button></div>
+
+                    <div style={{ fontSize:'12.5px', color: darkMode?'rgba(255,255,255,0.5)':'#64748b', marginBottom:'12px', lineHeight:1.6 }}>
+                      One person per line: <strong>Name, Email, Title</strong> — e.g. QA Officer, Team Coordinator, Training Officer.<br/>
+                      Every account created here gets <strong>FAQ Editor access only — never Admin Panel</strong>, regardless of title.<br/>
+                      Each gets a strong random password, shown once below after import — copy it out immediately and share it securely with that person.<br/>
+                      Example: <code style={{ background: darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', padding:'2px 6px', borderRadius:'4px' }}>Neamat Anwar Kareem, neamat.anwar@highperformanceco.net, Quality Officer</code>
+                    </div>
+
+                    <textarea
+                      value={bulkStaffText}
+                      onChange={e => setBulkStaffText(e.target.value)}
+                      placeholder={'Neamat Anwar Kareem, neamat.anwar@highperformanceco.net, Quality Officer\nSizar Muhsin, sizar.muhsin@highperformanceco.net, Training Officer'}
+                      rows={10}
+                      style={{ ...S.mInput, fontFamily:'monospace', fontSize:'13px', resize:'vertical', width:'100%', boxSizing:'border-box' }}
+                    />
+
+                    <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.4)':'#94a3b8', marginTop:'8px' }}>
+                      {parseBulkStaff(bulkStaffText).length} valid row{parseBulkStaff(bulkStaffText).length === 1 ? '' : 's'} detected
+                    </div>
+
+                    {bulkStaffResult && (
+                      <div style={{ marginTop:'14px', padding:'12px 14px', borderRadius:'10px', background: darkMode?'rgba(16,185,129,0.1)':'#f0fdf4', border: darkMode?'1px solid rgba(16,185,129,0.25)':'1px solid #bbf7d0', fontSize:'13px', color: darkMode?'#f1f5f9':NAVY }}>
+                        <strong>{bulkStaffResult.summary}</strong>
+
+                        {bulkStaffResult.created.length > 0 && (
+                          <div style={{ marginTop:'10px' }}>
+                            <div style={{ fontSize:'11px', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.05em', color: darkMode?'rgba(255,255,255,0.4)':'#94a3b8', marginBottom:'6px' }}>
+                              Generated passwords — copy these now, shown only once
+                            </div>
+                            <div style={{ maxHeight:'220px', overflowY:'auto', display:'flex', flexDirection:'column', gap:'4px' }}>
+                              {bulkStaffResult.created.map(c => (
+                                <div key={c.email} style={{ fontFamily:'monospace', fontSize:'12px', background: darkMode?'rgba(255,255,255,0.05)':'#fff', padding:'6px 10px', borderRadius:'6px', display:'flex', justifyContent:'space-between', gap:'10px' }}>
+                                  <span>{c.name} — {c.email}</span>
+                                  <strong>{c.password}</strong>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {bulkStaffResult.skipped.length > 0 && (
+                          <div style={{ marginTop:'10px', fontSize:'12px', color: darkMode?'rgba(255,255,255,0.5)':'#64748b' }}>
+                            Skipped (already exist): {bulkStaffResult.skipped.map(s => s.email).join(', ')}
+                          </div>
+                        )}
+                        {bulkStaffResult.failed.length > 0 && (
+                          <div style={{ marginTop:'6px', fontSize:'12px', color:'#ef4444' }}>
+                            Failed: {bulkStaffResult.failed.map(f => `${f.name || f.email} (${f.reason})`).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div style={{ display:'flex', gap:'10px', marginTop:'16px' }}>
+                      <button type="button" disabled={bulkStaffBusy} onClick={runBulkStaffImport} style={S.mBtn}>{bulkStaffBusy ? 'Importing…' : `Import ${parseBulkStaff(bulkStaffText).length} Staff`}</button>
+                      <button type="button" onClick={() => setShowBulkStaff(false)} style={S.mBtnSec}>Close</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── DELETE ALL AGENTS (destructive) ── */}
+              {showDeleteAllAgents && (
+                <div style={S.overlay}>
+                  <div style={{ ...S.modal, maxWidth:'440px' }}>
+                    <div style={S.modalHead}><h3 style={{ ...S.modalTitle, color:'#ef4444' }}>🗑️ Delete All Agents</h3><button style={S.modalClose} onClick={() => setShowDeleteAllAgents(false)}>✕</button></div>
+
+                    <div style={{ fontSize:'13.5px', color: darkMode?'rgba(255,255,255,0.6)':'#475569', lineHeight:1.6, marginBottom:'14px' }}>
+                      This permanently deletes <strong>every account with role Agent</strong> — {users.filter(u=>u.role==='agent').length} accounts.
+                      QA Officer and Team Lead accounts are never touched by this action. This cannot be undone.
+                    </div>
+
+                    <label style={S.mLabel}>Type DELETE to confirm</label>
+                    <input
+                      type="text"
+                      value={deleteAllConfirmText}
+                      onChange={e => setDeleteAllConfirmText(e.target.value)}
+                      placeholder="DELETE"
+                      style={{ ...S.mInput, marginTop:'6px' }}
+                    />
+
+                    <div style={{ display:'flex', gap:'10px', marginTop:'16px' }}>
+                      <button
+                        type="button"
+                        disabled={deleteAllConfirmText !== 'DELETE' || deleteAllBusy}
+                        onClick={runDeleteAllAgents}
+                        style={{ ...S.mBtn, background: deleteAllConfirmText === 'DELETE' ? '#ef4444' : '#94a3b8', cursor: deleteAllConfirmText === 'DELETE' ? 'pointer' : 'not-allowed' }}
+                      >
+                        {deleteAllBusy ? 'Deleting…' : 'Permanently Delete All Agents'}
+                      </button>
+                      <button type="button" onClick={() => setShowDeleteAllAgents(false)} style={S.mBtnSec}>Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div style={{ ...S.table, background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 4px 24px rgba(11,17,32,0.06)' }}>
-                <div style={{ ...S.thead, background: darkMode?'rgba(255,255,255,0.04)':'#f8fafc', borderBottom: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8' }}>{['Name','Email','Title','Role','Status','Last Seen','Actions'].map((h,i)=><div key={i} style={{ flex:[2,2.5,1.5,1.2,1,1.8,1][i], fontSize:'10px' }}>{h}</div>)}</div>
+                <div style={{ ...S.thead, background: darkMode?'rgba(255,255,255,0.04)':'#f8fafc', borderBottom: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8' }}>{['Name','Email','Wave ID','Title','Role','Status','Last Seen','Actions'].map((h,i)=><div key={i} style={{ flex:[2,2.5,1,1.5,1.2,1,1.8,1][i], fontSize:'10px' }}>{h}</div>)}</div>
                 {filtered.map(u => (
                   <div key={u.id} style={{ ...S.trow, borderBottom: darkMode?'1px solid rgba(255,255,255,0.05)':'1px solid #f1f5f9' }}>
                     <div style={{ flex:2, display:'flex', alignItems:'center', gap:'10px' }}>
@@ -553,6 +790,7 @@ export default function AdminPanel({ darkMode }) {
                       <span style={{ fontSize:'13.5px', fontWeight:'600', color: darkMode?'#f1f5f9':NAVY, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.name}</span>
                     </div>
                     <div style={{ flex:2.5, fontSize:'12px', color: darkMode?'rgba(255,255,255,0.4)':'#64748b', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.email}</div>
+                    <div style={{ flex:1, fontSize:'12px', color: darkMode?'rgba(255,255,255,0.4)':'#64748b', fontFamily:'monospace' }}>{u.wave_id||'—'}</div>
                     <div style={{ flex:1.5, fontSize:'12px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8' }}>{u.title||'—'}</div>
                     <div style={{ flex:1.2 }}>
                       <select value={u.role} onChange={e=>changeRole(u,e.target.value)} style={{ background:ROLE_COLORS[u.role]+'18', color:ROLE_COLORS[u.role], border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:'10px', fontWeight:'800', padding:'4px 10px', borderRadius:'100px', outline:'none' }}>
@@ -565,7 +803,7 @@ export default function AdminPanel({ darkMode }) {
                     <div style={{ flex:1.8, fontSize:'11px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8' }}>{u.last_seen?new Date(u.last_seen).toLocaleString():'Never'}</div>
                     <div style={{ flex:1, display:'flex', gap:'5px' }}>
                       <button style={{ ...S.tBtn, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0' }} onClick={() => toggleActive(u)}>{u.is_active?'🔒':'🔓'}</button>
-                      <button style={{ ...S.tBtn, background: darkMode?'rgba(59,130,246,0.12)':'#eff6ff', border: darkMode?'1px solid rgba(59,130,246,0.2)':'1px solid #bfdbfe', color:'#3b82f6' }} onClick={() => { setEditUser(u); setEditForm({ name:u.name, email:u.email, role:u.role, title:u.title||'', newPassword:'' }); }}>✏️</button>
+                      <button style={{ ...S.tBtn, background: darkMode?'rgba(59,130,246,0.12)':'#eff6ff', border: darkMode?'1px solid rgba(59,130,246,0.2)':'1px solid #bfdbfe', color:'#3b82f6' }} onClick={() => { setEditUser(u); setEditForm({ name:u.name, email:u.email, role:u.role, title:u.title||'', wave_id:u.wave_id||'', newPassword:'' }); }}>✏️</button>
                       <button style={{ ...S.tBtn, background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', color:'#ef4444' }} onClick={() => deleteUser(u.id)}>🗑️</button>
                     </div>
                   </div>
@@ -587,6 +825,7 @@ export default function AdminPanel({ darkMode }) {
                     { label:'Full Name', key:'name', type:'text', placeholder:'Full name' },
                     { label:'Email', key:'email', type:'email', placeholder:'email@highperformanceco.net' },
                     { label:'Job Title', key:'title', type:'text', placeholder:'e.g. QA Officer, Team Lead...' },
+                    { label:'Wave ID', key:'wave_id', type:'text', placeholder:'e.g. 10432' },
                     { label:'New Password (leave blank to keep)', key:'newPassword', type:'password', placeholder:'Enter new password or leave empty' },
                   ].map(f => (
                     <div key={f.key}>
