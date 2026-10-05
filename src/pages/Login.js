@@ -13,6 +13,7 @@ const BLUE = '#3b82f6';
 const PURPLE = '#8b5cf6';
 const GREEN = '#10b981';
 const AMBER = '#f59e0b';
+const SLATE = '#9AA5B1';
 const CARD_BG = 'linear-gradient(145deg,#0f1623,#111827)';
 const PAGE_BG = '#0a0f1a';
 const TEXT = '#F4F6F5';
@@ -90,9 +91,9 @@ function CheckIcon({ color }) {
 function StatCard({ icon, color, num, label, live }) {
   return (
     <div style={{ position: 'relative', overflow: 'hidden', background: CARD_BG, border: `1px solid ${color}25`, borderRadius: '14px', padding: '12px 12px', minWidth: 0 }}>
-      <div style={{ position: 'absolute', top: '-24px', right: '-24px', width: '90px', height: '90px', background: `radial-gradient(circle,${color}22 0%,transparent 70%)`, borderRadius: '50%', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '-24px', right: '-24px', width: '90px', height: '90px', background: `radial-gradient(circle,${color}12 0%,transparent 70%)`, borderRadius: '50%', pointerEvents: 'none' }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ width: '30px', height: '30px', borderRadius: '9px', border: `1.5px solid ${color}45`, boxShadow: `0 0 10px ${color}30, inset 0 0 8px ${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `radial-gradient(circle,${color}18,transparent)`, flexShrink: 0 }}>
+        <div style={{ width: '30px', height: '30px', borderRadius: '9px', border: `1.5px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${color}10`, flexShrink: 0 }}>
           {icon}
         </div>
         {live && (
@@ -104,7 +105,7 @@ function StatCard({ icon, color, num, label, live }) {
       </div>
       <div style={{ fontSize: '17px', fontWeight: 800, color: TEXT, marginTop: '10px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{num}</div>
       <div style={{ fontSize: '11px', color: MUTED, marginTop: '2px' }}>{label}</div>
-      <div style={{ position: 'absolute', bottom: 0, left: '18%', right: '18%', height: '2px', background: `linear-gradient(90deg,transparent,${color}90,transparent)`, borderRadius: '2px' }} />
+      <div style={{ position: 'absolute', bottom: 0, left: '18%', right: '18%', height: '2px', background: `linear-gradient(90deg,transparent,${ORANGE}70,transparent)`, borderRadius: '2px' }} />
     </div>
   );
 }
@@ -138,20 +139,20 @@ export default function Login() {
   };
 
   const statBlocks = [
-    { icon: <BookIcon color={BLUE} />, color: BLUE, num: stats.totalFAQs != null ? `${stats.totalFAQs}+` : '—', label: 'Topics' },
-    { icon: <GridIcon color={PURPLE} />, color: PURPLE, num: stats.totalCategories != null ? String(stats.totalCategories) : '—', label: 'Categories' },
-    { icon: <GlobeIcon color={AMBER} />, color: AMBER, num: 'EN / KU / AR', label: 'Languages' },
-    { icon: <UsersIcon color={GREEN} />, color: GREEN, num: stats.totalUsers != null ? String(stats.totalUsers) : '—', label: 'Agents', live: true },
+    { icon: <BookIcon color={SLATE} />, color: SLATE, num: stats.totalFAQs != null ? `${stats.totalFAQs}+` : '—', label: 'Topics' },
+    { icon: <GridIcon color={SLATE} />, color: SLATE, num: stats.totalCategories != null ? String(stats.totalCategories) : '—', label: 'Categories' },
+    { icon: <GlobeIcon color={SLATE} />, color: SLATE, num: 'EN / KU / AR', label: 'Languages' },
+    { icon: <UsersIcon color={SLATE} />, color: SLATE, num: stats.totalUsers != null ? String(stats.totalUsers) : '—', label: 'Agents', live: true },
   ];
 
   const features = [
-    { t: 'Role-based access control', c: BLUE },
-    { t: 'Bilingual EN / Kurdish content', c: PURPLE },
-    { t: 'Daily tips from your team lead', c: AMBER },
-    { t: 'Real-time update notifications', c: GREEN },
+    { t: 'Role-based access control', c: ORANGE },
+    { t: 'Bilingual EN / Kurdish content', c: ORANGE },
+    { t: 'Daily tips from your team lead', c: ORANGE },
+    { t: 'Real-time update notifications', c: ORANGE },
   ];
 
-  const waveColors = [ORANGE, BLUE, PURPLE, GREEN, AMBER];
+  const waveColors = [ORANGE];
 
   return (
     <>
@@ -169,8 +170,8 @@ export default function Login() {
 
           {/* Left — branding panel */}
           <div style={{ ...S.left, display: isMobile ? 'none' : 'flex' }}>
-            <div style={{ ...S.blob, top: '-120px', left: '-100px', background: `radial-gradient(circle,${BLUE}30,transparent 70%)`, animationDelay: '0s' }} />
-            <div style={{ ...S.blob, bottom: '-140px', right: '-80px', background: `radial-gradient(circle,${PURPLE}25,transparent 70%)`, animationDelay: '2s' }} />
+            <div style={{ ...S.blob, top: '-120px', left: '-100px', background: `radial-gradient(circle,${ORANGE}12,transparent 70%)`, animationDelay: '0s' }} />
+            <div style={{ ...S.blob, bottom: '-140px', right: '-80px', background: `radial-gradient(circle,${SLATE}10,transparent 70%)`, animationDelay: '2s' }} />
             <div style={S.dotGrid} />
 
             <div style={S.leftInner}>
@@ -191,7 +192,7 @@ export default function Login() {
                 <div style={S.features}>
                   {features.map(f => (
                     <div key={f.t} style={S.featureItem}>
-                      <span style={{ ...S.featureCheck, background: `${f.c}20`, boxShadow: `0 0 8px ${f.c}40` }}><CheckIcon color={f.c} /></span>
+                      <span style={{ ...S.featureCheck, background: `${f.c}15`, boxShadow: `0 0 6px ${f.c}25` }}><CheckIcon color={f.c} /></span>
                       <span>{f.t}</span>
                     </div>
                   ))}
@@ -201,14 +202,16 @@ export default function Login() {
               {/* Live call waveform */}
               <div style={S.waveform} aria-hidden="true">
                 {[...Array(40)].map((_, i) => {
-                  const c = waveColors[i % waveColors.length];
+                  const c = waveColors[0];
+                  const op = 0.35 + ((i % 5) * 0.13);
                   return (
                     <span
                       key={i}
                       style={{
                         ...S.waveBar,
                         background: c,
-                        boxShadow: `0 0 6px ${c}80`,
+                        opacity: op,
+                        boxShadow: `0 0 4px ${c}50`,
                         height: `${14 + (i % 7) * 7}px`,
                         animationDelay: `${(i % 8) * 0.1}s`,
                       }}
@@ -221,7 +224,7 @@ export default function Login() {
 
           {/* Right — form */}
           <div style={S.right}>
-            <div style={{ ...S.blob, top: '-100px', right: '-100px', background: `radial-gradient(circle,${ORANGE}20,transparent 70%)`, animationDelay: '1s' }} />
+            <div style={{ ...S.blob, top: '-100px', right: '-100px', background: `radial-gradient(circle,${ORANGE}10,transparent 70%)`, animationDelay: '1s' }} />
             <div style={S.dotGrid} />
 
             <div style={S.formCard}>
@@ -333,10 +336,10 @@ const S = {
   formCard: { position: 'relative', zIndex: 1, width: '100%', maxWidth: '410px', animation: 'fadeUp 0.45s ease', background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: '24px', padding: '40px 38px', boxShadow: '0 32px 90px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)' },
 
   formLogos: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '22px', marginBottom: '28px' },
-  formLogo: { height: '72px', width: 'auto', display: 'block', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.45))' },
-  hpLockup: { display: 'flex', alignItems: 'center', gap: '10px' },
-  hpIcon: { height: '46px', width: 'auto', display: 'block', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.45))' },
-  hpText: { fontSize: '15px', fontWeight: 800, letterSpacing: '0.04em', color: '#E4E7EA', lineHeight: 1.1, whiteSpace: 'nowrap' },
+  formLogo: { height: '60px', width: 'auto', display: 'block' },
+  hpLockup: { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 14px 8px 10px', border: `1px solid ${BORDER}`, borderRadius: '10px', background: 'rgba(255,255,255,0.02)' },
+  hpIcon: { height: '30px', width: 'auto', display: 'block' },
+  hpText: { fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', color: '#C7CDD3', lineHeight: 1.1, whiteSpace: 'nowrap' },
   formLogoDivider: { width: '1px', height: '46px', background: BORDER },
 
   statusRow: { display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', fontWeight: 700, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' },
@@ -352,7 +355,7 @@ const S = {
   inputOn: { borderColor: ORANGE, boxShadow: `0 0 0 3px ${ORANGE}25` },
   eyeBtn: { position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: '4px', display: 'flex' },
 
-  btn: { marginTop: '4px', padding: '13px', borderRadius: '10px', border: 'none', background: `linear-gradient(135deg,${ORANGE},#ff9a6c)`, color: '#fff', fontWeight: 700, fontSize: '15px', cursor: 'pointer', transition: 'opacity .15s', boxShadow: `0 8px 24px ${ORANGE}40` },
+  btn: { marginTop: '4px', padding: '13px', borderRadius: '10px', border: 'none', background: ORANGE, color: '#fff', fontWeight: 700, fontSize: '15px', cursor: 'pointer', transition: 'opacity .15s, background .15s', boxShadow: `0 4px 14px ${ORANGE}25` },
   spinner: { width: '16px', height: '16px', border: '2.5px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block', flexShrink: 0 },
 
   hint: { marginTop: '22px', textAlign: 'center', fontSize: '12.5px', color: MUTED, lineHeight: 1.6 },
