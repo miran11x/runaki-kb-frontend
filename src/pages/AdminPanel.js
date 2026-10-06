@@ -301,7 +301,7 @@ export default function AdminPanel({ darkMode }) {
     setDeleteAllBusy(true);
     try {
       const r = await api.delete('/users/bulk-agents', { data: { confirm: true } });
-      toast.success(`Deleted ${r.data.deletedCount} agent accounts`);
+      toast.success(`Deleted ${r.data.deletedCount} agent accounts (${r.data.remainingAfter} agent accounts remain)`);
       setShowDeleteAllAgents(false);
       setDeleteAllConfirmText('');
       load();
@@ -362,10 +362,11 @@ export default function AdminPanel({ darkMode }) {
   const queueData = (() => {
     const q = { Arabic:0, Badini:0, Sorani:0 };
     users.forEach(u => {
-      if (u.role !== 'agent') return;
-      if (u.title?.includes('Arabic')) q.Arabic++;
-      else if (u.title?.includes('Badini')) q.Badini++;
-      else if (u.title?.includes('Sorani')) q.Sorani++;
+      if ((u.role || '').toString().trim().toLowerCase() !== 'agent') return;
+      const t = (u.title || '').toLowerCase();
+      if (t.includes('arabic')) q.Arabic++;
+      else if (t.includes('badini')) q.Badini++;
+      else if (t.includes('sorani')) q.Sorani++;
     });
     return [{ name:'Arabic', value:q.Arabic, color:'#f59e0b' },{ name:'Badini', value:q.Badini, color:'#10b981' },{ name:'Sorani', value:q.Sorani, color:'#3b82f6' }].filter(x => x.value > 0);
   })();
@@ -753,7 +754,7 @@ export default function AdminPanel({ darkMode }) {
                     <div style={S.modalHead}><h3 style={{ ...S.modalTitle, color:'#ef4444' }}>🗑️ Delete All Agents</h3><button style={S.modalClose} onClick={() => setShowDeleteAllAgents(false)}>✕</button></div>
 
                     <div style={{ fontSize:'13.5px', color: darkMode?'rgba(255,255,255,0.6)':'#475569', lineHeight:1.6, marginBottom:'14px' }}>
-                      This permanently deletes <strong>every account with role Agent</strong> — {users.filter(u=>u.role==='agent').length} accounts.
+                      This permanently deletes <strong>every account with role Agent</strong> — {users.filter(u=>(u.role||'').toString().trim().toLowerCase()==='agent').length} accounts.
                       QA Officer and Team Lead accounts are never touched by this action. This cannot be undone.
                     </div>
 

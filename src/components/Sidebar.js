@@ -742,6 +742,8 @@ folder
   </>
 )}
 
+{(user?.role || '').toString().trim().toLowerCase() !== 'agent' && (
+<>
 <NI
   folder
   icon="⚙️"
@@ -789,15 +791,17 @@ folder
 
 {systemOpen && (
   <>
-    <NI
-      sub
-      icon="🛠️"
-      label="Admin Panel"
-      collapsed={collapsed}
-      darkMode={darkMode}
-      active={panel === '_admin'}
-      onClick={() => go('_admin')}
-    />
+    {(user?.role || '').toString().trim().toLowerCase() === 'team_lead' && (
+      <NI
+        sub
+        icon="🛠️"
+        label="Admin Panel"
+        collapsed={collapsed}
+        darkMode={darkMode}
+        active={panel === '_admin'}
+        onClick={() => go('_admin')}
+      />
+    )}
 
     <NI
       sub
@@ -809,6 +813,8 @@ folder
       onClick={() => go('_faqeditor')}
     />
   </>
+)}
+</>
 )}
       </nav>
 
