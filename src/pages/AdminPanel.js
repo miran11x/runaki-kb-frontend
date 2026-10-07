@@ -301,7 +301,8 @@ export default function AdminPanel({ darkMode }) {
     setDeleteAllBusy(true);
     try {
       const r = await api.delete('/users/bulk-agents', { data: { confirm: true } });
-      toast.success(`Deleted ${r.data.deletedCount} agent accounts (${r.data.remainingAfter} agent accounts remain)`);
+      const clearedMsg = r.data.clearedTables?.length ? ` — cleared related rows in: ${r.data.clearedTables.join(', ')}` : '';
+      toast.success(`Deleted ${r.data.deletedCount} agent accounts (${r.data.remainingAfter} remain)${clearedMsg}`, { duration: 6000 });
       setShowDeleteAllAgents(false);
       setDeleteAllConfirmText('');
       load();
