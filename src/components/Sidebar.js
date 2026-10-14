@@ -79,27 +79,17 @@ if (
 
 }, [panel]);
 const rm = ROLE_META[user?.role] || ROLE_META.agent;
- const faqCounts = useMemo(() => ({
-  inquiries: faqs.filter(
-    f => f.category?.toLowerCase() === 'inquiries'
-  ).length,
-
-  billingComplaints: faqs.filter(
-    f => f.category?.toLowerCase().includes('billing')
-  ).length,
-
-  generalComplaints: faqs.filter(
-    f => f.category?.toLowerCase() === 'general complaints'
-  ).length,
-
-  serviceRequests: faqs.filter(
-    f => f.category?.toLowerCase().includes('service')
-  ).length,
-
-  feedback: faqs.filter(
-    f => f.category?.toLowerCase().includes('feedback')
-  ).length,
-}), [faqs]);
+ const faqCounts = useMemo(() => {
+  // Shortlisted FAQs live in their own tab, so they are not counted in the general categories.
+  const general = faqs.filter(f => !f.is_shortlisted);
+  return {
+    inquiries: general.filter(f => f.category?.toLowerCase() === 'inquiries').length,
+    billingComplaints: general.filter(f => f.category?.toLowerCase().includes('billing')).length,
+    generalComplaints: general.filter(f => f.category?.toLowerCase() === 'general complaints').length,
+    serviceRequests: general.filter(f => f.category?.toLowerCase().includes('service')).length,
+    feedback: general.filter(f => f.category?.toLowerCase().includes('feedback')).length,
+  };
+}, [faqs]);
 
   useEffect(() => {
     const BASE = process.env.REACT_APP_API_URL || 'https://runaki-kb-api.vercel.app';

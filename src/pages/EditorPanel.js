@@ -1,5 +1,4 @@
-
-import * as XLSX from 'xlsx';
+import { parseFaqWorkbook } from '../utils/faqImport';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
@@ -26,6 +25,8 @@ const emptyFaq = {
   question_ar:'',
   answer_ar:'',
   tags:'',
+  third_level:'',
+  is_shortlisted:false,
   is_published:true
 };
 
@@ -63,9 +64,13 @@ export default function EditorPanel() {
   const deleteFaq = async id => {
   if (!window.confirm('Delete this FAQ?')) return;
 
-  await api.delete(`/faqs/${id}`);
-  toast.success('Deleted');
-  loadFaqs();
+  try {
+    await api.delete(`/faqs/${id}`);
+    toast.success('Deleted');
+    loadFaqs();
+  } catch (err) {
+    toast.error(err.response?.data?.error || 'Failed to delete FAQ');
+  }
 };
 
 const toggleFaq = (id) => {
@@ -104,8 +109,8 @@ const bulkDeleteFaqs = async () => {
 
     setSelectedFaqs([]);
     loadFaqs();
-  } catch {
-    toast.error('Failed to delete FAQs');
+  } catch (err) {
+    toast.error(err.response?.data?.error || 'Failed to delete FAQs');
   }
 };
   const togglePublish = async faq => {
@@ -144,7 +149,12 @@ const bulkDeleteFaqs = async () => {
     toast.success('Tip deleted'); loadTips();
   };
 
+ const shortlistedCount = faqs.filter(f => f.is_shortlisted).length;
+ const generalFaqCount = faqs.length - shortlistedCount;
+
  const filtered = faqs.filter(f => {
+  // The "FAQs" tab shows general FAQs only; shortlisted FAQs live in their own tab.
+  const inThisList = tab === 'shortlisted' ? !!f.is_shortlisted : !f.is_shortlisted;
   const matchCat =
     catFilter === 'All' ||
     f.category === catFilter;
@@ -171,7 +181,7 @@ const bulkDeleteFaqs = async () => {
 
    String(f.tags || '').toLowerCase().includes(q);
 
-  return matchCat && matchSearch;
+  return inThisList && matchCat && matchSearch;
 });
 
  return (
@@ -199,8 +209,8 @@ const bulkDeleteFaqs = async () => {
     marginBottom: '20px'
   }}
 >
-          {[['faqs','📖 FAQs'],['tips','💡 Daily Tips'],['notify','🔔 Notify']].map(([k,l]) => (
-            <button key={k} onClick={() => setTab(k)}
+          {[['faqs',`📖 FAQs (${generalFaqCount})`],['shortlisted',`⭐ Shortlisted FAQ's (${shortlistedCount})`],['tips','💡 Daily Tips'],['notify','🔔 Notify']].map(([k,l]) => (
+            <button key={k} onClick={() => { setTab(k); setSelectedFaqs([]); setCatFilter('All'); setSearch(''); }}
               style={{
   ...S.tab,
 
@@ -238,7 +248,7 @@ const bulkDeleteFaqs = async () => {
   : '#f0f4ff' }}>
 
           {/* ── FAQs ── */}
-          {tab === 'faqs' && (
+          {(tab === 'faqs' || tab === 'shortlisted') && (
             <div>
               {/* Controls */}
               <div style={S.controls}>
@@ -285,11 +295,11 @@ const bulkDeleteFaqs = async () => {
   <button
     style={S.addBtn}
     onClick={() => {
-      setEditFaq({ ...emptyFaq });
+      setEditFaq({ ...emptyFaq, is_shortlisted: tab === 'shortlisted' });
       setIsNew(true);
     }}
   >
-    + New FAQ
+    {tab === 'shortlisted' ? "+ New Shortlisted FAQ" : '+ New FAQ'}
   </button>
 
   <button
@@ -299,7 +309,7 @@ const bulkDeleteFaqs = async () => {
   }}
   onClick={() => fileInputRef.current?.click()}
 >
-  📥 Import FAQs
+  {tab === 'shortlisted' ? '📥 Import Shortlisted FAQs' : '📥 Import FAQs'}
 </button>
 <input
   ref={fileInputRef}
@@ -308,46 +318,45 @@ const bulkDeleteFaqs = async () => {
   style={{ display: 'none' }}
   onChange={async (e) => {
   const file = e.target.files[0];
-
+  e.target.value = '';            // lets you pick the same file again later
   if (!file) return;
 
   try {
+    const shortlisted = tab === 'shortlisted';
+    const { rows, sheetsUsed } = parseFaqWorkbook(await file.arrayBuffer());
 
-    const buffer = await file.arrayBuffer();
+    if (!rows.length) {
+      toast.error('No FAQs found. The sheet needs a header row with a question column and an answer column.');
+      return;
+    }
+    if (!window.confirm(
+      `Import ${rows.length} FAQs from "${file.name}" (${sheetsUsed.join(', ')}) ` +
+      (shortlisted ? "into SHORTLISTED FAQ's?" : 'as general FAQs?') +
+      '\n\nFAQs that already exist (same English question) are skipped, not duplicated.'
+    )) return;
 
-    const workbook = XLSX.read(buffer, {
-      type: 'array'
-    });
+    // send in small batches so long multi-language FAQs never exceed a request size limit
+    let imported = 0;
+    const skipped = [];
+    const BATCH = 15;
+    for (let i = 0; i < rows.length; i += BATCH) {
+      if (rows.length > BATCH) toast.loading(`Importing… ${Math.min(i + BATCH, rows.length)} / ${rows.length}`, { id: 'faq-import' });
+      const response = await api.post('/faqs/import', { rows: rows.slice(i, i + BATCH), shortlisted });
+      imported += response.data.imported;
+      skipped.push(...(response.data.skipped || []));
+    }
+    toast.dismiss('faq-import');
 
-    let rows = [];
+    toast.success(
+      `${imported} FAQs imported` + (skipped.length ? ` — ${skipped.length} skipped` : ''),
+      { duration: 6000 }
+    );
+    if (skipped.length) console.warn('Skipped FAQs:', skipped);
 
-    workbook.SheetNames.forEach(sheetName => {
-      const sheet = workbook.Sheets[sheetName];
-
-      const sheetRows = XLSX.utils.sheet_to_json(
-        sheet,
-        { defval: '' }
-      );
-
-      rows = rows.concat(sheetRows);
-    });
-const response = await api.post(
-  '/faqs/import',
-  { rows }
-);
-
-toast.success(
-  `${response.data.imported} FAQs imported successfully`
-);
-
-loadFaqs();
-
+    loadFaqs();
   } catch (err) {
     console.error(err);
-
-    toast.error(
-      err.message || 'Failed to import Excel file'
-    );
+    toast.error(err.response?.data?.error || err.message || 'Failed to import Excel file');
   }
 }}
 />
@@ -381,7 +390,7 @@ loadFaqs();
                       </div>
                       <div style={S.mField}>
                         <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Answer (English) *</label>
-                        <textarea value={editFaq.answer_en} onChange={e => setEditFaq({...editFaq,answer_en:e.target.value})} style={{...S.mInput,height:'100px',resize:'vertical'}} placeholder="Enter answer in English" required />
+                        <textarea value={editFaq.answer_en} onChange={e => setEditFaq({...editFaq,answer_en:e.target.value})} style={{...S.mInput,height:'240px',resize:'vertical'}} placeholder="Enter answer in English" required />
                       </div>
                       <div style={S.mField}>
                         <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Question (Kurdish)</label>
@@ -389,7 +398,7 @@ loadFaqs();
                       </div>
                       <div style={S.mField}>
                         <label style={{ ...S.mLabel, color: darkMode?'rgba(255,255,255,0.6)':NAVY }}>Answer (Kurdish)</label>
-                        <textarea value={editFaq.answer_ku} onChange={e => setEditFaq({...editFaq,answer_ku:e.target.value})} style={{...S.mInput,height:'100px',resize:'vertical',direction:'rtl'}} placeholder="وەڵام بە کوردی" />
+                        <textarea value={editFaq.answer_ku} onChange={e => setEditFaq({...editFaq,answer_ku:e.target.value})} style={{...S.mInput,height:'240px',resize:'vertical',direction:'rtl'}} placeholder="وەڵام بە کوردی" />
                       </div>
                       <div style={S.mField}>
   <label style={{ ...S.mLabel, color: darkMode ? 'rgba(255,255,255,0.6)' : NAVY }}>
@@ -415,7 +424,7 @@ loadFaqs();
   onChange={e => setEditFaq({ ...editFaq, answer_ba: e.target.value })}
   style={{
     ...S.mInput,
-    height:'100px',
+    height:'240px',
     resize:'vertical',
     direction:'rtl'
   }}
@@ -442,7 +451,7 @@ loadFaqs();
   <textarea
     value={editFaq.answer_ar || ''}
     onChange={e => setEditFaq({ ...editFaq, answer_ar: e.target.value })}
-    style={{ ...S.mInput, height:'100px', resize:'vertical', direction:'rtl' }}
+    style={{ ...S.mInput, height:'240px', resize:'vertical', direction:'rtl' }}
     placeholder="الإجابة بالعربية"
   />
 </div>
@@ -456,6 +465,10 @@ loadFaqs();
                           <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',marginTop:'8px'}}>
                             <input type="checkbox" checked={editFaq.is_published} onChange={e => setEditFaq({...editFaq,is_published:e.target.checked})} />
                             <span style={{fontSize:'13px',fontWeight:'600',color:darkMode?'#e2e8f0':NAVY}}>Published</span>
+                          </label>
+                          <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',marginTop:'8px'}}>
+                            <input type="checkbox" checked={!!editFaq.is_shortlisted} onChange={e => setEditFaq({...editFaq,is_shortlisted:e.target.checked})} />
+                            <span style={{fontSize:'13px',fontWeight:'600',color:darkMode?'#e2e8f0':NAVY}}>⭐ Shortlisted FAQ (own tab, not in general lists)</span>
                           </label>
                         </div>
                       </div>

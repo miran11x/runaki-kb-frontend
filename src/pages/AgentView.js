@@ -1,3 +1,4 @@
+import RichAnswer from '../components/RichAnswer';
 import React, {
   useState,
   useEffect,
@@ -33,11 +34,11 @@ import api from '../utils/api';
   };
 
   const PANEL_FILTER = {
-  inquiries: f => f.category === 'Inquiries',
-  billing: f => f.category === 'Billing Complaints',
-  general: f => f.category === 'General Complaints',
-  service: f => f.category === 'Service Requests',
-  feedback: f => f.category === 'Feedback & Others',
+  inquiries: f => f.category === 'Inquiries' && !f.is_shortlisted,
+  billing: f => f.category === 'Billing Complaints' && !f.is_shortlisted,
+  general: f => f.category === 'General Complaints' && !f.is_shortlisted,
+  service: f => f.category === 'Service Requests' && !f.is_shortlisted,
+  feedback: f => f.category === 'Feedback & Others' && !f.is_shortlisted,
 
   _updates: () => false,
   _bookmarks: () => false,
@@ -270,7 +271,8 @@ setFaqs(fr.data);
     const panelFaqs = () => {
 
       if (panel === '_bookmarks') return faqs.filter(f => bookmarks.includes(f.id));
-      if (panel === '_shortlisted') return faqs.filter(f => f.is_shortlisted);
+      // keep the order the FAQs were imported in (the order of the source document)
+      if (panel === '_shortlisted') return faqs.filter(f => f.is_shortlisted).sort((a, b) => a.id - b.id);
       if (search) {
 
     const q = search.toLowerCase();
@@ -722,13 +724,13 @@ const isSpecial = [
           : 'left'
     }}
   >
-  {
+  <RichAnswer text={
        lang === 'en' ? faq.answer_en :
        lang === 'ku' ? (faq.answer_ku || '🚧 وەرگێڕان لە ژێر ئامادەکردندایە. بەزوویی زیاد دەکرێت.') :
        lang === 'ba' ? (faq.answer_ba || '🚧 وەرگێران ل ژێر ئامادەکرنێ دایە. ب زوویی دهێتە زیادکرن.') :
        lang === 'ar' ? (faq.answer_ar || '🚧 الترجمة قيد الإعداد. ستتوفر قريباً.') :
   faq.answer_en
-}
+  } />
   </div>
             {/* Footer: tags + rating */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'14px', flexWrap:'wrap', gap:'8px' }}>
