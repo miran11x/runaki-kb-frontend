@@ -162,6 +162,7 @@ const FEATURES = [
   ['Runaki AI assistant', 'Ask in your own words and get an approved answer.'],
   ['Ticket descriptions', 'Find the right wording and copy it into the ticket.'],
   ['Zone lookup', 'Find the zone for any neighborhood in seconds.'],
+  ['My evaluations', 'See your QA scores, what went well and what to work on next.'],
 ];
 
 function Hero({ phase, hour, compact }) {
