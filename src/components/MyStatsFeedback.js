@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
+import PageHero from './PageHero';
 import api from '../utils/api';
 
 // From the old "Agent Call Description Tool":
@@ -40,26 +41,28 @@ export function MyStats({ DM }) {
   const minutes = Math.round((s.thisWeek * SECONDS_SAVED) / 60);
   const max = Math.max(1, ...s.last14.map(d => d.n));
 
+  const tint = c => ({ background: DM.cardBg, border: `1px solid ${c}55`, borderRadius: 16, padding: 18, boxShadow: `0 6px 20px ${c}1f`, borderTop: `5px solid ${c}` });
   const card = { background: DM.cardBg, border: `1px solid ${DM.border}`, borderRadius: 16, padding: 18, boxShadow: DM.shadow };
   const cap = { fontSize: 11, fontWeight: 800, color: DM.subText, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 };
   const big = { fontSize: 32, fontWeight: 900, color: DM.text, lineHeight: 1.1 };
 
   return (
     <div style={{ maxWidth: 800 }}>
-      <div style={{ fontSize: 13, color: DM.subText, marginBottom: 14 }}>Just for you — not shared with anyone else.</div>
+      <PageHero icon={s.streak >= 3 ? '🔥' : '📊'} a="#10b981" b="#0ea5e9" title={s.streak >= 3 ? `${s.streak}-day streak, keep it going!` : 'Your numbers'}
+        text={`You used the tools ${s.thisWeek} time${s.thisWeek === 1 ? '' : 's'} this week and saved about ${minutes} minutes. Just for you, not shared with anyone else.`} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12, marginBottom: 14 }}>
-        <div style={card}>
+        <div style={tint('#38bdf8')}>
           <div style={cap}>Last 7 days</div>
           <div style={big}>{s.thisWeek} <span style={{ fontSize: 13, fontWeight: 800, color: diff >= 0 ? '#10b981' : '#ef4444' }}>{diff >= 0 ? '▲' : '▼'} {Math.abs(diff)}</span></div>
           <div style={{ fontSize: 12, color: DM.subText, marginTop: 6 }}>vs {s.lastWeek} the week before</div>
         </div>
-        <div style={card}>
+        <div style={tint('#f97316')}>
           <div style={cap}>🔥 Current streak</div>
           <div style={big}>{s.streak} {s.streak === 1 ? 'day' : 'days'}</div>
           <div style={{ fontSize: 12, color: DM.subText, marginTop: 6 }}>Days in a row you used the tools</div>
         </div>
-        <div style={card}>
+        <div style={tint('#10b981')}>
           <div style={cap}>⏱️ Time saved this week</div>
           <div style={big}>~{minutes}m</div>
           <div style={{ fontSize: 12, color: DM.subText, marginTop: 6 }}>vs. looking things up manually</div>
@@ -70,7 +73,7 @@ export function MyStats({ DM }) {
         <div style={cap}>Last 14 days</div>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 80 }}>
           {s.last14.map(d => (
-            <div key={d.day} title={`${d.day}: ${d.n}`} style={{ flex: 1, height: `${Math.max(4, (d.n / max) * 100)}%`, background: d.n ? ORANGE : DM.border, borderRadius: 4 }} />
+            <div key={d.day} title={`${d.day}: ${d.n}`} style={{ flex: 1, height: `${Math.max(4, (d.n / max) * 100)}%`, background: d.n ? 'linear-gradient(180deg,#ec4899,#FF6B35)' : DM.border, borderRadius: 4 }} />
           ))}
         </div>
       </div>
@@ -86,6 +89,7 @@ export function MyStats({ DM }) {
               padding: '6px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 800,
               border: `1px solid ${s.total >= b ? ORANGE : DM.border}`, color: s.total >= b ? ORANGE : DM.subText,
               background: s.total >= b ? `${ORANGE}18` : 'transparent',
+              opacity: s.total >= b ? 1 : 0.7,
             }}>{b}+</span>
           ))}
         </div>
@@ -95,15 +99,15 @@ export function MyStats({ DM }) {
               <span>Next milestone: {next}</span><span>{s.total} / {next}</span>
             </div>
             <div style={{ height: 8, borderRadius: 999, background: DM.border, overflow: 'hidden' }}>
-              <div style={{ width: `${pct}%`, height: '100%', background: ORANGE }} />
+              <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#FF6B35,#ec4899,#8b5cf6)' }} />
             </div>
           </>
         )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12 }}>
-        <div style={card}><div style={{ ...big, fontSize: 24 }}>{s.copies}</div><div style={{ fontSize: 12, color: DM.subText, marginTop: 4 }}>📋 Total descriptions copied</div></div>
-        <div style={card}><div style={{ ...big, fontSize: 24 }}>{s.zones}</div><div style={{ fontSize: 12, color: DM.subText, marginTop: 4 }}>📍 Total zone lookups</div></div>
+        <div style={tint('#8b5cf6')}><div style={{ ...big, fontSize: 24 }}>{s.copies}</div><div style={{ fontSize: 12, color: DM.subText, marginTop: 4 }}>📋 Total descriptions copied</div></div>
+        <div style={tint('#ec4899')}><div style={{ ...big, fontSize: 24 }}>{s.zones}</div><div style={{ fontSize: 12, color: DM.subText, marginTop: 4 }}>📍 Total zone lookups</div></div>
       </div>
     </div>
   );

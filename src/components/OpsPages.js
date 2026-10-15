@@ -1,3 +1,4 @@
+import { PALETTE } from './PageHero';
 import React, { useEffect, useState } from 'react';
 import api from '../utils/api';
 
@@ -172,7 +173,7 @@ export function Scripts({ DM, lang, setLang }) {
       <LangBar lang={lang} setLang={setLang} DM={DM} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: '14px' }}>
         {SCRIPT_CARDS.map((c, i) => (
-          <ScriptCard key={i} title={pick(c.t, lang)} text={pick(c.s, lang)} lang={lang} DM={DM} />
+          <ScriptCard key={i} title={pick(c.t, lang)} text={pick(c.s, lang)} lang={lang} DM={DM} accent={PALETTE[i % PALETTE.length]} />
         ))}
       </div>
 

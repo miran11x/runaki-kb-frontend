@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { normalizeText } from '../utils/faqSearch';
+import PageHero, { PALETTE } from './PageHero';
 
 // Contact Reasons tree: Level 1 (category) → Level 2 (reason) → Level 3 (detail).
 //  - ContactReasons       : agent page — walk the levels, copy the full path
@@ -132,6 +133,7 @@ export function ContactReasons({ DM }) {
   return (
     <div ref={wrapRef} style={{ maxWidth: 1500, ...vars }}>
       <style>{TREE_CSS}</style>
+      <PageHero icon="🧭" title="Contact Reasons" a="#6366f1" b="#ec4899" text="Pick the category, then the reason, then the detail. Click any item to copy its full path into the ticket." />
       <input
         value={query}
         onChange={e => setQuery(e.target.value)}
@@ -148,17 +150,20 @@ export function ContactReasons({ DM }) {
           <div className="cr-grid">
             {columns.filter(col => col.items.length).map((col, ci) => (
               <div key={ci} className="cr-col">
-              {col.items.map(c => (
-              <div key={c.id} style={{ background: DM.cardBg, border: `1px solid ${DM.border}`, borderRadius: 16, padding: '10px 10px 8px', boxShadow: DM.shadow, color: DM.text }}>
+              {col.items.map(c => {
+                const hue = PALETTE[Math.max(0, tops.indexOf(c)) % PALETTE.length];
+                return (
+              <div key={c.id} style={{ background: DM.cardBg, border: `1px solid ${hue}55`, borderTop: `5px solid ${hue}`, borderRadius: 16, padding: '10px 10px 8px', boxShadow: `0 6px 18px ${hue}1f`, color: DM.text }}>
                 <button className="cr-node" onClick={() => doCopy(c)} title="Click to copy"
-                  style={{ fontSize: 15, fontWeight: 800, borderInlineStart: `4px solid ${ORANGE}`, borderRadius: 4, paddingInlineStart: 10, marginBottom: 4 }}>
+                  style={{ fontSize: 15, fontWeight: 800, color: hue, borderRadius: 4, paddingInlineStart: 10, marginBottom: 4 }}>
                   {c.name}
                   {copiedId === c.id && <span style={{ color: '#10b981', fontWeight: 800, fontSize: 12 }}>  ✓ copied</span>}
                   {c.note && <span style={{ display: 'block', fontSize: 12.5, fontWeight: 400, color: DM.subText, marginTop: 2 }}>{c.note}</span>}
                 </button>
                 {renderKids(c, 1)}
               </div>
-              ))}
+                );
+              })}
               </div>
             ))}
           </div>

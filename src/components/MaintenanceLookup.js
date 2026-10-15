@@ -1,5 +1,7 @@
 /* eslint-disable */
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
+import PageHero from './PageHero';
 
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -180,16 +182,9 @@ export default function MaintenanceLookup({ darkMode }) {
   const allDone = CHECKLIST.every((_, i) => checked[i]);
 
   return (
-    <div style={{ padding:'16px', display:'flex', flexDirection:'column', gap:'14px', height:'100%', overflowY:'auto' }}>
+    <div style={{ padding:'16px', display:'flex', flexDirection:'column', gap:'14px', height:'100%', overflowY:'auto', maxWidth:'900px' }}>
 
-      {/* HEADER */}
-      <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-        <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:`linear-gradient(135deg,${KANI_COLOR},${NEWROZ_COLOR})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', flexShrink:0 }}>🔧</div>
-        <div>
-          <div style={{ fontSize:'14px', fontWeight:'800', color:text }}>Maintenance Lookup</div>
-          <div style={{ fontSize:'11px', color:sub }}>Kani & Newroz areas</div>
-        </div>
-      </div>
+      <PageHero icon="🔧" a={KANI_COLOR} b={NEWROZ_COLOR} title="Maintenance Lookup" text="Type the feeder or the neighborhood to find the maintenance team and their phone number (Kani and Newroz areas)." />
 
       {/* SEARCH */}
       <div style={{ position:'relative' }}>
@@ -199,9 +194,9 @@ export default function MaintenanceLookup({ darkMode }) {
           onChange={e => setSearch(e.target.value)}
           placeholder="Search area, feeder, neighborhood..."
           style={{
-            width:'100%', padding:'10px 12px 10px 36px',
+            width:'100%', padding:'14px 14px 14px 40px',
             border:`1.5px solid ${q && results.length===0 ? '#ef4444' : border}`,
-            borderRadius:'10px', fontSize:'13px', fontFamily:'inherit', outline:'none',
+            borderRadius:'14px', fontSize:'15px', fontFamily:'inherit', outline:'none',
             background: dm?'rgba(255,255,255,0.05)':card,
             color:text, boxSizing:'border-box',
           }}
@@ -224,16 +219,18 @@ export default function MaintenanceLookup({ darkMode }) {
             return (
               <div key={i} style={{ background:card, border:`1px solid ${col}40`, borderRadius:'12px', padding:'12px 14px', borderLeft:`4px solid ${col}` }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
-                  <span style={{ fontSize:'13px', fontWeight:'900', color:col }}>
+                  <span style={{ fontSize:'14px', fontWeight:'900', color:col }}>
                     {isKani ? '🔵 KANI' : '🟢 NEWROZ'}
                   </span>
-                  <span style={{ fontSize:'10px', fontWeight:'700', background:`${col}15`, color:col, padding:'2px 8px', borderRadius:'100px', border:`1px solid ${col}30` }}>
+                  <span style={{ fontSize:'12px', fontWeight:'800', background:`${col}15`, color:col, padding:'2px 8px', borderRadius:'100px', border:`1px solid ${col}30` }}>
                     {a.feeder}
                   </span>
                 </div>
-                <div style={{ fontSize:'13px', color:text, fontWeight:'600', marginBottom:'4px' }}>📍 {a.neighborhood}</div>
-                <div style={{ fontSize:'11px', color:sub }}>
-                  📞 <span style={{ fontFamily:'monospace', letterSpacing:'0.03em' }}>{a.phone}</span>
+                <div style={{ fontSize:'15px', color:text, fontWeight:'700', marginBottom:'6px' }}>📍 {a.neighborhood}</div>
+                <div style={{ fontSize:'13px', color:sub, display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
+                  📞 <span style={{ fontFamily:'monospace', letterSpacing:'0.03em', color:text, fontWeight:'700' }}>{a.phone}</span>
+                  <button onClick={async () => { try { await navigator.clipboard.writeText(a.phone.split('/')[0].trim()); toast.success('Phone copied'); } catch { toast.error('Could not copy'); } }}
+                    style={{ border:`1px solid ${col}66`, background:`${col}14`, color:col, borderRadius:'999px', padding:'3px 11px', fontSize:'12px', fontWeight:'800', cursor:'pointer', fontFamily:'inherit' }}>📋 Copy</button>
                 </div>
               </div>
             );
@@ -245,19 +242,19 @@ export default function MaintenanceLookup({ darkMode }) {
       {q.length === 0 && (
         <div style={{ display:'flex', gap:'8px' }}>
           <div style={{ flex:1, background:`${KANI_COLOR}15`, border:`1px solid ${KANI_COLOR}30`, borderRadius:'10px', padding:'10px', textAlign:'center' }}>
-            <div style={{ fontSize:'16px', fontWeight:'900', color:KANI_COLOR }}>{AREAS.filter(a=>a.unit==='Kani').length}</div>
-            <div style={{ fontSize:'10px', color:KANI_COLOR, fontWeight:'700' }}>KANI Areas</div>
+            <div style={{ fontSize:'24px', fontWeight:'900', color:KANI_COLOR }}>{AREAS.filter(a=>a.unit==='Kani').length}</div>
+            <div style={{ fontSize:'12px', color:KANI_COLOR, fontWeight:'800' }}>KANI Areas</div>
           </div>
           <div style={{ flex:1, background:`${NEWROZ_COLOR}15`, border:`1px solid ${NEWROZ_COLOR}30`, borderRadius:'10px', padding:'10px', textAlign:'center' }}>
-            <div style={{ fontSize:'16px', fontWeight:'900', color:NEWROZ_COLOR }}>{AREAS.filter(a=>a.unit==='Newroz').length}</div>
-            <div style={{ fontSize:'10px', color:NEWROZ_COLOR, fontWeight:'700' }}>NEWROZ Areas</div>
+            <div style={{ fontSize:'24px', fontWeight:'900', color:NEWROZ_COLOR }}>{AREAS.filter(a=>a.unit==='Newroz').length}</div>
+            <div style={{ fontSize:'12px', color:NEWROZ_COLOR, fontWeight:'800' }}>NEWROZ Areas</div>
           </div>
         </div>
       )}
 
       {/* CHECKLIST */}
       <div style={{ background:card, border:`1.5px solid ${allDone ? '#10b981' : border}`, borderRadius:'12px', padding:'14px', transition:'border-color 0.3s' }}>
-        <div style={{ fontSize:'12px', fontWeight:'800', color:allDone?'#10b981':ORANGE, marginBottom:'10px', display:'flex', alignItems:'center', gap:'6px' }}>
+        <div style={{ fontSize:'14px', fontWeight:'800', color:allDone?'#10b981':ORANGE, marginBottom:'10px', display:'flex', alignItems:'center', gap:'6px' }}>
           {allDone ? '✅ All info collected — ready to pending!' : '📋 Info to collect before pending'}
         </div>
         {CHECKLIST.map((item, i) => (
@@ -265,7 +262,7 @@ export default function MaintenanceLookup({ darkMode }) {
             <div style={{ width:'18px', height:'18px', borderRadius:'5px', border:`2px solid ${checked[i]?'#10b981':border}`, background:checked[i]?'#10b981':'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:'1px', transition:'all 0.2s' }}>
               {checked[i] && <span style={{ color:'#fff', fontSize:'11px', fontWeight:'900' }}>✓</span>}
             </div>
-            <span style={{ fontSize:'12px', color:checked[i]?'#10b981':sub, textDecoration:checked[i]?'line-through':'none', lineHeight:'1.4', transition:'all 0.2s' }}>{item}</span>
+            <span style={{ fontSize:'13.5px', color:checked[i]?'#10b981':text, textDecoration:checked[i]?'line-through':'none', lineHeight:'1.4', transition:'all 0.2s' }}>{item}</span>
           </div>
         ))}
         {Object.values(checked).some(Boolean) && (
