@@ -10,6 +10,9 @@ import { buildIndex, searchFaqs, normalizeText } from '../utils/faqSearch';
 
 const ORANGE = '#FF6B35';
 const NAVY = '#0B1120';
+const CITY_COLORS = ['#FF6B35', '#0ea5e9', '#10b981', '#8b5cf6', '#ec4899', '#f59e0b', '#14b8a6', '#6366f1'];
+const cityColor = (cities, c) => CITY_COLORS[Math.max(0, cities.indexOf(c)) % CITY_COLORS.length];
+
 const clean = v => (v == null ? '' : String(v).trim());
 
 const toDoc = z => ({ ...z, question_en: z.neighborhood, tags: z.keywords, category: z.city, answer_en: z.zone });
@@ -74,48 +77,65 @@ export function ZoneLookup({ DM, darkMode }) {
   if (zones === null) return <div style={{ color: DM.subText }}>Loading…</div>;
   if (!zones.length) return <div style={{ color: DM.subText }}>No zones have been added yet.</div>;
 
+  const cc = z => cityColor(cities, z.city);
+  const chip = (on, color) => ({ padding: '7px 15px', borderRadius: 999, border: `2px solid ${on ? color : `${color}55`}`, background: on ? color : `${color}14`, color: on ? '#fff' : color, fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' });
+
   return (
-    <div style={{ maxWidth: 720 }}>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-        <select style={{ ...input, flex: '1 1 160px' }} value={city} onChange={e => { setCity(e.target.value); setSelected(null); }}>
-          <option value="">All cities</option>
-          {cities.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <input
-          style={{ ...input, flex: '3 1 280px' }}
-          value={query}
-          onChange={e => { setQuery(e.target.value); if (e.target.value) setSelected(null); }}
-          placeholder="🔍 Search a neighborhood — English or Kurdish…"
-        />
+    <div style={{ maxWidth: 760 }}>
+      <div style={{ background: 'linear-gradient(120deg,#0ea5e9,#10b981)', borderRadius: 20, padding: '18px 22px', color: '#fff', display: 'flex', gap: 14, alignItems: 'center', marginBottom: 14, boxShadow: '0 10px 28px rgba(14,165,233,0.35)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', insetInlineEnd: -20, top: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+        <div style={{ fontSize: 38, lineHeight: 1 }}>🗺️</div>
+        <div style={{ position: 'relative' }}>
+          <div style={{ fontSize: 20, fontWeight: 900 }}>Zone Lookup</div>
+          <div style={{ fontSize: 13.5, opacity: 0.95, marginTop: 3 }}>Type a neighborhood and get its zone in a second.</div>
+        </div>
       </div>
+
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        <button onClick={() => { setCity(''); setSelected(null); }} style={chip(!city, '#64748b')}>🌍 All cities</button>
+        {cities.map(c => <button key={c} onClick={() => { setCity(c); setSelected(null); }} style={chip(city === c, cityColor(cities, c))}>{c}</button>)}
+      </div>
+      <input
+        style={{ ...input, width: '100%', fontSize: 15, padding: '14px 16px', border: `2px solid ${city ? cityColor(cities, city) : '#0ea5e9'}88`, marginBottom: 12 }}
+        value={query}
+        onChange={e => { setQuery(e.target.value); if (e.target.value) setSelected(null); }}
+        placeholder="🔍 Search a neighborhood in English or Kurdish…"
+      />
 
       {query.trim() && (
         <div style={{ background: DM.cardBg, border: `1px solid ${DM.border}`, borderRadius: 14, padding: 8, marginBottom: 14, boxShadow: DM.shadow }}>
           {results.length === 0 ? (
-            <div style={{ padding: 12, fontSize: 13.5, color: DM.subText }}>No neighborhood matches “{query}”. Check the spelling or try the Kurdish name.</div>
+            <div style={{ padding: 12, fontSize: 13.5, color: DM.subText }}>😕 No neighborhood matches “{query}”. Check the spelling or try the Kurdish name.</div>
           ) : results.map(z => (
-            <button key={z.id} onClick={() => pick(z)} style={{ display: 'block', width: '100%', textAlign: 'start', border: 'none', borderBottom: `1px solid ${DM.border}`, background: 'transparent', padding: '10px 12px', cursor: 'pointer', color: DM.text, fontFamily: 'inherit' }}>
-              <span style={{ fontWeight: 800, fontSize: 13.5 }}>{z.neighborhood}</span>
-              <span style={{ color: DM.subText, fontSize: 12.5 }}> · {z.city}</span>
+            <button key={z.id} onClick={() => pick(z)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%', textAlign: 'start', border: 'none', borderInlineStart: `5px solid ${cc(z)}`, borderRadius: 8, marginBottom: 4, background: `${cc(z)}0f`, padding: '10px 12px', cursor: 'pointer', color: DM.text, fontFamily: 'inherit' }}>
+              <span style={{ fontWeight: 800, fontSize: 14 }}>📍 {z.neighborhood}</span>
+              <span style={{ background: `${cc(z)}22`, color: cc(z), borderRadius: 999, padding: '2px 10px', fontSize: 12, fontWeight: 800 }}>{z.city}</span>
             </button>
           ))}
         </div>
       )}
 
       {selected ? (
-        <div style={{ background: DM.cardBg, border: `1px solid ${ORANGE}66`, borderRadius: 18, padding: '28px 20px', textAlign: 'center', boxShadow: DM.shadow }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: DM.text }}>📍 {selected.neighborhood}</div>
-          <div style={{ fontSize: 13, color: DM.subText, marginTop: 4, marginBottom: 22 }}>{selected.city}</div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: DM.subText, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Zone</div>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
-            <div style={{ fontSize: 38, fontWeight: 900, color: DM.text }}>{selected.zone}</div>
-            <button onClick={doCopy} title="Copy zone" style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: copied ? '#10b981' : ORANGE, color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-              {copied ? '✓ Copied' : '📋 Copy'}
-            </button>
+        <div style={{ background: `linear-gradient(135deg, ${cc(selected)}, ${cc(selected)}bb)`, borderRadius: 22, padding: '30px 22px', textAlign: 'center', color: '#fff', boxShadow: `0 14px 36px ${cc(selected)}55`, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: -40, insetInlineStart: -30, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,0.14)' }} />
+          <div style={{ position: 'absolute', bottom: -50, insetInlineEnd: -30, width: 170, height: 170, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ fontSize: 19, fontWeight: 900 }}>📍 {selected.neighborhood}</div>
+            <div style={{ fontSize: 13.5, opacity: 0.92, marginTop: 4, marginBottom: 18 }}>{selected.city}</div>
+            <div style={{ fontSize: 13, fontWeight: 800, opacity: 0.9, marginBottom: 6 }}>Your zone is</div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 54, fontWeight: 900, background: 'rgba(255,255,255,0.2)', borderRadius: 18, padding: '4px 26px', lineHeight: 1.3 }}>{selected.zone}</div>
+              <button onClick={doCopy} title="Copy zone" style={{ padding: '12px 20px', borderRadius: 12, border: 'none', background: '#fff', color: copied ? '#10b981' : cc(selected), fontWeight: 900, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 6px 16px rgba(0,0,0,0.18)' }}>
+                {copied ? '✅ Copied!' : '📋 Copy zone'}
+              </button>
+            </div>
           </div>
         </div>
       ) : !query.trim() && (
-        <div style={{ textAlign: 'center', padding: '50px 0', color: DM.subText, fontSize: 14 }}>Search a neighborhood to find its zone.</div>
+        <div style={{ textAlign: 'center', padding: '40px 0', color: DM.subText, fontSize: 14.5 }}>
+          <div style={{ fontSize: 46, marginBottom: 6 }}>🔎</div>
+          Search a neighborhood to find its zone.
+        </div>
       )}
     </div>
   );

@@ -11,6 +11,26 @@ import { buildIndex, searchFaqs } from '../utils/faqSearch';
 const ORANGE = '#FF6B35';
 const NAVY = '#0B1120';
 
+const LV = ['#FF6B35', '#0ea5e9', '#10b981'];      // category / sub-category / third level colours
+const VIOLET = '#8b5cf6';
+const Hero = ({ icon, title, text, a, b }) => (
+  <div style={{ background: `linear-gradient(120deg, ${a}, ${b})`, borderRadius: 20, padding: '18px 22px', color: '#fff', display: 'flex', gap: 14, alignItems: 'center', marginBottom: 14, boxShadow: `0 10px 28px ${a}44`, position: 'relative', overflow: 'hidden' }}>
+    <div style={{ position: 'absolute', insetInlineEnd: -20, top: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.14)' }} />
+    <div style={{ fontSize: 38, lineHeight: 1 }}>{icon}</div>
+    <div style={{ position: 'relative' }}>
+      <div style={{ fontSize: 20, fontWeight: 900 }}>{title}</div>
+      <div style={{ fontSize: 13.5, opacity: 0.95, marginTop: 3, lineHeight: 1.5 }}>{text}</div>
+    </div>
+  </div>
+);
+const PathChips = ({ c, small }) => (
+  <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
+    {[c.level1, c.level2, c.level3].map((x, i) => x ? (
+      <span key={i} style={{ background: `${LV[i]}1f`, color: LV[i], border: `1px solid ${LV[i]}55`, borderRadius: 999, padding: small ? '1px 8px' : '3px 11px', fontSize: small ? 11.5 : 12.5, fontWeight: 800 }}>{x}</span>
+    ) : null)}
+  </span>
+);
+
 const clean = v => (v == null ? '' : String(v).trim());
 const pathOf = c => [c.level1, c.level2, c.level3].filter(Boolean).join(' › ');
 
@@ -125,24 +145,25 @@ export function TicketDescriptions({ DM, darkMode }) {
 
   return (
     <div style={{ maxWidth: 900 }}>
-      <div style={card}>
+      <Hero icon="🎫" title="Ticket Descriptions" text="Find the right description, copy it, and paste it straight into the ticket." a="#FF6B35" b="#ec4899" />
+      <div style={{ ...card, borderTop: `4px solid ${ORANGE}` }}>
         <input
           value={query}
           onChange={e => { setQuery(e.target.value); setSelected(null); setL1(''); setL2(''); setL3(''); }}
           placeholder="🔍 Search a description — e.g. smart meter outage, billing, KYC…"
           style={{ ...input, width: '100%', fontSize: 14.5, padding: '12px 14px' }}
         />
-        <div style={{ fontSize: 11, fontWeight: 800, color: DM.subText, textTransform: 'uppercase', letterSpacing: '.06em', margin: '14px 0 6px' }}>or choose step by step</div>
+        <div style={{ fontSize: 12.5, fontWeight: 800, color: DM.subText, margin: '14px 0 8px' }}>🧭 or choose step by step</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 8 }}>
-          <select style={input} value={l1} onChange={e => { setL1(e.target.value); setL2(''); setL3(''); setQuery(''); }}>
+          <select style={{ ...input, borderColor: `${LV[0]}88`, borderWidth: 2 }} value={l1} onChange={e => { setL1(e.target.value); setL2(''); setL3(''); setQuery(''); }}>
             <option value="">1 · Category…</option>
             {level1s.map(x => <option key={x} value={x}>{x}</option>)}
           </select>
-          <select style={{ ...input, opacity: level2s.length ? 1 : 0.5 }} value={l2} disabled={!level2s.length} onChange={e => { setL2(e.target.value); setL3(''); }}>
+          <select style={{ ...input, borderColor: `${LV[1]}88`, borderWidth: 2, opacity: level2s.length ? 1 : 0.5 }} value={l2} disabled={!level2s.length} onChange={e => { setL2(e.target.value); setL3(''); }}>
             <option value="">2 · Sub-category…</option>
             {level2s.map(x => <option key={x} value={x}>{x}</option>)}
           </select>
-          <select style={{ ...input, opacity: level3s.length ? 1 : 0.5 }} value={l3} disabled={!level3s.length} onChange={e => setL3(e.target.value)}>
+          <select style={{ ...input, borderColor: `${LV[2]}88`, borderWidth: 2, opacity: level3s.length ? 1 : 0.5 }} value={l3} disabled={!level3s.length} onChange={e => setL3(e.target.value)}>
             <option value="">3 · Third level…</option>
             {level3s.map(x => <option key={x} value={x}>{x}</option>)}
           </select>
@@ -152,10 +173,10 @@ export function TicketDescriptions({ DM, darkMode }) {
 
       {recent.length > 0 && !query && !selected && (
         <div style={card}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: DM.subText, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Pinned &amp; recently used</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: DM.text, marginBottom: 8 }}>📌 Pinned &amp; recently used</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {recent.map(r => (
-              <div key={r.id} style={{ display: 'flex', alignItems: 'center', border: `1px solid ${DM.border}`, borderRadius: 999, overflow: 'hidden' }}>
+              <div key={r.id} style={{ display: 'flex', alignItems: 'center', border: `1px solid ${VIOLET}55`, background: `${VIOLET}12`, borderRadius: 999, overflow: 'hidden' }}>
                 <button onClick={() => choose(r)} style={{ border: 'none', background: 'transparent', color: DM.text, padding: '7px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                   {pathOf(r)}
                 </button>
@@ -174,26 +195,26 @@ export function TicketDescriptions({ DM, darkMode }) {
             <div style={{ color: DM.subText, fontSize: 13.5 }}>No description matches “{query}”. Try another word, or use the steps above.</div>
           ) : results.map(c => (
             <button key={c.id} onClick={() => choose(c)} style={{
-              display: 'block', width: '100%', textAlign: 'start', border: `1px solid ${DM.border}`, background: 'transparent',
+              display: 'block', width: '100%', textAlign: 'start', border: `1px solid ${DM.border}`, borderInlineStart: `5px solid ${LV[0]}`, background: darkMode ? 'rgba(255,255,255,0.03)' : '#fffaf7',
               borderRadius: 12, padding: '10px 14px', marginBottom: 8, cursor: 'pointer', color: DM.text, fontFamily: 'inherit',
             }}>
-              <div style={{ fontSize: 13.5, fontWeight: 800 }}>{pathOf(c)}</div>
-              <div style={{ fontSize: 12, color: DM.subText, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.english}</div>
+              <div><PathChips c={c} small /></div>
+              <div style={{ fontSize: 12, color: DM.subText, marginTop: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.english}</div>
             </button>
           ))}
         </div>
       )}
 
       {selected && (
-        <div style={{ ...card, borderColor: `${ORANGE}66` }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: ORANGE, marginBottom: 8 }}>{pathOf(selected)}</div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: DM.subText, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>English — paste into the ticket</div>
-          <div style={{ background: darkMode ? '#0b1220' : '#f8fafc', border: `1px solid ${DM.border}`, borderRadius: 12, padding: '14px 16px', fontSize: 14.5, lineHeight: 1.8, color: DM.text, whiteSpace: 'pre-wrap' }}>
+        <div style={{ ...card, borderColor: `${ORANGE}66`, borderTop: `4px solid ${ORANGE}`, boxShadow: `0 10px 30px ${ORANGE}22` }}>
+          <div style={{ marginBottom: 10 }}><PathChips c={selected} /></div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#0ea5e9', marginBottom: 6 }}>✍️ English: paste this into the ticket</div>
+          <div style={{ background: darkMode ? 'rgba(14,165,233,0.08)' : '#f0f9ff', border: `1px solid #0ea5e944`, borderRadius: 12, padding: '14px 16px', fontSize: 14.5, lineHeight: 1.8, color: DM.text, whiteSpace: 'pre-wrap' }}>
             {selected.english}
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-            <button onClick={doCopy} style={{ padding: '10px 22px', borderRadius: 10, border: 'none', background: copied ? '#10b981' : ORANGE, color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
-              {copied ? '✓ Copied' : '📋 Copy'}
+            <button onClick={doCopy} style={{ padding: '11px 26px', borderRadius: 12, border: 'none', background: copied ? 'linear-gradient(120deg,#10b981,#22c55e)' : 'linear-gradient(120deg,#FF6B35,#ec4899)', color: '#fff', fontWeight: 900, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 6px 16px rgba(255,107,53,0.35)' }}>
+              {copied ? '✅ Copied! Paste it in the ticket' : '📋 Copy description'}
             </button>
             <button onClick={async () => { await togglePin(selected.id); toast.success('Pin updated — see “Pinned & recently used”'); }} style={btn(DM, '#64748b')}>📌 Pin / unpin</button>
             <button onClick={() => setFlagging(!flagging)} style={btn(DM, '#ef4444')}>🚩 Report as outdated</button>
@@ -206,8 +227,8 @@ export function TicketDescriptions({ DM, darkMode }) {
           )}
           {selected.kurdish && (
             <div style={{ marginTop: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: DM.subText, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Kurdish — for your understanding only</div>
-              <div dir="rtl" style={{ border: `1px dashed ${DM.border}`, borderRadius: 12, padding: '12px 16px', fontSize: 15, lineHeight: 2, color: DM.text, whiteSpace: 'pre-wrap' }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: VIOLET, marginBottom: 6 }}>🌿 Kurdish: to help you understand</div>
+              <div dir="rtl" style={{ border: `1px dashed ${VIOLET}77`, background: darkMode ? 'rgba(139,92,246,0.08)' : '#faf5ff', borderRadius: 12, padding: '12px 16px', fontSize: 15, lineHeight: 2, color: DM.text, whiteSpace: 'pre-wrap' }}>
                 {selected.kurdish}
               </div>
             </div>
