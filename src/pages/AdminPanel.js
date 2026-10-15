@@ -6,7 +6,7 @@ import api from '../utils/api';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
-import EvaluationsUpload from '../components/EvaluationsUpload';
+import { QaHub } from '../components/QaReports';
 import { PageContentEditor, ExternalToolsAdmin } from '../components/ContentEditor';
 import { TicketDescriptionsAdmin } from '../components/TicketDescriptions';
 import { ZonesAdmin } from '../components/Zones';
@@ -398,7 +398,7 @@ export default function AdminPanel({ darkMode }) {
     ['People', '👥', [['users','👥','Users'], ['active','🟢','Live now'], ['activity','📋','Activity log'], ['leaderboard','🏆','Leaderboard']]],
     ['Content', '📚', [['callflows','📞','Call Flows'], ['scripts','📋','Update Scripts'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons']]],
     ['Tools', '🛠️', [['tickets','🎫','Ticket Descriptions'], ['zones','📍','Zones'], ['exttools','🧰','External Tools'], ['toolreports','📈','Tool Reports']]],
-    ['Quality', '✅', [['evaluations','📤','Evaluations'], ['agentfeedback','💬','Agent Feedback']]],
+    ['Quality', '✅', [['evaluations','📈','QA Evaluations'], ['agentfeedback','💬','Agent Feedback']]],
     ['System', '🔧', [['maintenance','🔧','Maintenance']]],
   ];
   const activeGroup = GROUPS.find(g => g[2].some(t => t[0] === tab)) || GROUPS[0];
@@ -1061,9 +1061,7 @@ export default function AdminPanel({ darkMode }) {
           {tab === 'agentfeedback' && <FeedbackAdmin darkMode={darkMode} />}
           {tab === 'toolreports' && <ToolReports darkMode={darkMode} />}
 
-          {tab === 'evaluations' && (
-            <EvaluationsUpload token={token} darkMode={darkMode} />
-          )}
+          {tab === 'evaluations' && <QaHub darkMode={darkMode} />}
 
           {/* ── MAINTENANCE ── */}
           {tab === 'maintenance' && (

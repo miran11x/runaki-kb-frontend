@@ -255,7 +255,7 @@ export function AdminDashboard({ darkMode }) {
           <div style={{ background: th.soft, borderRadius: 12, padding: 12 }}>
             <div style={{ fontSize: 22, fontWeight: 900, color: k.coachingPending ? ORANGE : GREEN }}>{k.coachingPending}</div>
             <div style={{ fontSize: 13, color: th.text, fontWeight: 700 }}>Coaching not marked done</div>
-            <div style={{ fontSize: 12, color: th.sub, marginTop: 6 }}>Evaluations with a pending coaching status.</div>
+            <div style={{ fontSize: 12, color: th.sub, marginTop: 6 }}>Zero and partial-score evaluations where feedback has not been delivered (last 60 days).</div>
           </div>
         </div>
       </Panel>
