@@ -101,7 +101,9 @@ const RIDGE_PATHS = [
 ];
 const STARS = (() => {
   const r = rng(99);
-  return Array.from({ length: 70 }, () => ({ x: r() * 1200, y: r() * 430, s: 0.7 + r() * 1.5, o: 0.35 + r() * 0.6 }));
+  // keep stars out of the area behind the text
+  return Array.from({ length: 80 }, () => ({ x: r() * 1200, y: r() * 430, s: 0.7 + r() * 1.5, o: 0.35 + r() * 0.6 }))
+    .filter(st => !(st.x < 760 && st.y > 40 && st.y < 420));
 })();
 
 function Scene({ phase, hour }) {
@@ -110,7 +112,7 @@ function Scene({ phase, hour }) {
   // how far along its arc the sun (or moon) is, 0 to 1
   let t = night ? ((hour - 19 + 24) % 24) / 10 : (hour - 6) / 12;
   t = Math.min(0.94, Math.max(0.06, t));
-  const cx = 600 + 520 * t - 80;            // keeps the sun on the right, clear of the headline
+  const cx = 700 + 420 * t;            // keeps the sun on the right, clear of the headline
   const cy = 600 - Math.sin(Math.PI * t) * 360;
   const r = night ? 46 : 58;
   return (
@@ -148,21 +150,40 @@ function Scene({ phase, hour }) {
   );
 }
 
+const FEATURES = [
+  ['Shortlisted FAQs', 'The questions customers ask most, approved by QA.'],
+  ['Knowledge base', 'Verified answers and scripts in Sorani, Badini and Arabic.'],
+  ['Runaki AI assistant', 'Ask in your own words and get an approved answer.'],
+  ['Ticket descriptions', 'Find the right wording and copy it into the ticket.'],
+  ['Zone lookup', 'Find the zone for any neighborhood in seconds.'],
+];
+
 function Hero({ phase, hour, compact }) {
   const k = SKIES[phase];
   const g = greetingFor(hour);
+  const greets = [['ckb', g.ku], ['kmr', g.ba], ['ar', g.ar]];
   return (
-    <div style={{ position: 'relative', zIndex: 2, padding: compact ? '34px 28px' : '72px 64px', maxWidth: compact ? 'none' : 760 }}>
+    <div style={{ position: 'relative', zIndex: 2, padding: compact ? '34px 28px' : '64px 64px', maxWidth: compact ? 'none' : 760 }}>
       <h2 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 700, fontSize: compact ? 38 : 'clamp(46px, 5.4vw, 76px)', lineHeight: 1.02, letterSpacing: '-0.025em', color: k.text }}>{g.en}</h2>
-      <div style={{ display: 'flex', gap: compact ? 14 : 24, flexWrap: 'wrap', marginTop: compact ? 10 : 18, fontFamily: ARABIC, fontWeight: 600, fontSize: compact ? 19 : 26, color: k.text }}>
-        <span dir="rtl" lang="ckb">{g.ku}</span>
-        <span dir="rtl" lang="kmr">{g.ba}</span>
-        <span dir="rtl" lang="ar">{g.ar}</span>
+      <div style={{ display: 'flex', alignItems: 'center', marginTop: compact ? 10 : 16, fontFamily: ARABIC, fontWeight: 600, fontSize: compact ? 19 : 25, color: k.text }}>
+        {greets.map(([lang, word], i) => (
+          <span key={lang} dir="rtl" lang={lang} style={{ paddingRight: i < greets.length - 1 ? (compact ? 14 : 22) : 0, marginRight: i < greets.length - 1 ? (compact ? 14 : 22) : 0, borderRight: i < greets.length - 1 ? `1.5px solid ${k.text}55` : 'none', lineHeight: 1.1 }}>{word}</span>
+        ))}
       </div>
       {!compact && (
-        <p style={{ margin: '26px 0 0', maxWidth: 400, fontFamily: DISPLAY, fontWeight: 500, fontSize: 18, lineHeight: 1.55, color: k.sub }}>
-          Scripts, FAQs and procedures for your queue, checked by the QA team.
-        </p>
+        <>
+          <p className="rk-intro" style={{ margin: '30px 0 0', fontFamily: DISPLAY, fontWeight: 600, fontSize: 19, lineHeight: 1.4, color: k.text }}>
+            Everything you need during a call, in one place.
+          </p>
+          <ul style={{ listStyle: 'none', margin: '16px 0 0', padding: 0, maxWidth: 440 }}>
+            {FEATURES.map(([title, desc]) => (
+              <li key={title} style={{ marginBottom: 12 }}>
+                <div style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 16, color: k.text }}>{title}</div>
+                <div className="rk-desc" style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 14.5, lineHeight: 1.4, color: k.sub }}>{desc}</div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );
@@ -237,13 +258,18 @@ export default function Login() {
 
   const form_ = (
     <div style={{ width: '100%', maxWidth: 380 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', borderRadius: 16, padding: '12px 20px 12px 14px', width: 'fit-content', boxShadow: P.logoShadow, marginBottom: 44 }}>
-        <img src={RK_LOGO} alt="" style={{ height: 40, width: 'auto', display: 'block' }} />
-        <span style={{ fontFamily: DISPLAY, fontSize: 19, fontWeight: 800, letterSpacing: '0.02em', color: '#14110a' }}>RUNAKI</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 34 }}>
+        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 76, height: 76, borderRadius: k.dark ? 20 : 0, background: k.dark ? '#fff' : 'transparent', boxShadow: k.dark ? P.logoShadow : 'none', flex: '0 0 auto' }}>
+          <img src={RK_LOGO} alt="Runaki" style={{ height: k.dark ? 56 : 76, width: 'auto', display: 'block' }} />
+        </span>
+        <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+          <span style={{ fontFamily: DISPLAY, fontSize: 28, fontWeight: 800, letterSpacing: '0.01em', color: P.text }}>Runaki</span>
+          <span style={{ fontFamily: DISPLAY, fontSize: 14.5, fontWeight: 500, color: P.muted, marginTop: 4 }}>Knowledge Base</span>
+        </span>
       </div>
 
       <h1 style={{ margin: 0, fontFamily: DISPLAY, fontSize: 38, fontWeight: 700, letterSpacing: '-0.02em', color: P.text }}>Sign in</h1>
-      <p style={{ margin: '10px 0 0', fontFamily: DISPLAY, fontSize: 16, color: P.muted }}>Use your Wave ID or work email.</p>
+      <p style={{ margin: '10px 0 0', fontFamily: DISPLAY, fontSize: 16, color: P.muted }}>Sign in with your Wave ID or work email.</p>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 30 }}>
         <div>
@@ -283,10 +309,10 @@ export default function Login() {
         </button>
       </form>
 
-      <p style={{ margin: '26px 0 0', fontFamily: DISPLAY, fontSize: 13.5, lineHeight: 1.7, color: P.muted }}>
-        Forgot your password? Ask your QA Team Lead to reset it.<br />
-        You stay signed in on this device for 30 days.
-      </p>
+      <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid ${P.border}`, fontFamily: DISPLAY, fontSize: 13.5, lineHeight: 1.65, color: P.muted }}>
+        <div><b style={{ color: P.label, fontWeight: 600 }}>Forgot your password?</b> Your QA Team Lead can reset it.</div>
+        <div style={{ marginTop: 4 }}>You stay signed in on this device for 30 days.</div>
+      </div>
     </div>
   );
 
@@ -307,6 +333,7 @@ export default function Login() {
         @keyframes rkRise { from { transform: translateY(330px); } to { transform: translateY(0); } }
         @keyframes rkDrift { from { transform: translateX(-340px); } to { transform: translateX(1500px); } }
         @keyframes rkSpin { to { transform: rotate(360deg); } }
+        @media (max-height: 780px) { .rk-intro, .rk-desc { display: none; } }
         @media (prefers-reduced-motion: reduce) { .rk-orb, .rk-cloud-a, .rk-cloud-b { animation: none; } }
       `}</style>
 
