@@ -18,6 +18,7 @@ import { logSearch } from '../utils/searchLog';
   import { TicketDescriptions } from '../components/TicketDescriptions';
   import { ZoneLookup } from '../components/Zones';
   import { ContactReasons } from '../components/ContactReasons';
+  import MyEvaluations from '../components/MyEvaluations';
   import { MyStats, SendFeedback } from '../components/MyStatsFeedback';
   import { ExternalToolView } from '../components/ContentEditor';
   import UpdateScripts from '../components/UpdateScripts';
@@ -56,6 +57,7 @@ import { logSearch } from '../utils/searchLog';
   _zones: () => false,
   _contactreasons: () => false,
   _mystats: () => false,
+  _evaluations: () => false,
   _sendfeedback: () => false,
   _traccess: () => false,
   _callflows: () => false,
@@ -83,6 +85,7 @@ import { logSearch } from '../utils/searchLog';
   '_zones':'Zone Lookup',
   '_contactreasons':'Contact Reasons',
   '_mystats':'My Stats',
+  '_evaluations':'My Evaluations',
   '_sendfeedback':'Send Feedback',
   '_priority':'Case Priorities',
   '_search':'Search Results',
@@ -297,6 +300,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
       '_tickets',
       '_zones',
       '_mystats',
+      '_evaluations',
       '_sendfeedback',
       '_feedback',
   '_scripts',
@@ -415,6 +419,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
 
             {/* Special panels */}
             {String(panel).startsWith('_tool_') && <ExternalToolView toolId={String(panel).slice(6)} DM={DM} />}
+            {panel === '_evaluations' && <MyEvaluations darkMode={darkMode} />}
             {panel === '_mystats'  && <MyStats DM={DM} />}
             {panel === '_sendfeedback' && <SendFeedback DM={DM} />}
             {panel === '_contactreasons' && <ContactReasons DM={DM} />}

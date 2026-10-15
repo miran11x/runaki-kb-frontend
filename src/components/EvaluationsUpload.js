@@ -119,6 +119,20 @@ export default function EvaluationsUpload({ token, darkMode }) {
   const [clearFirst, setClearFirst] = useState(false);
   const [dragging,   setDragging]   = useState(false);
   const fileRef = useRef();
+  const [wiping, setWiping] = useState(false);
+
+  // removes every evaluation so a fresh sheet can be uploaded (agents then see only the new data)
+  const deleteAll = async () => {
+    const typed = window.prompt('This permanently deletes ALL evaluations for every agent and cannot be undone.\n\nType DELETE to confirm.');
+    if (typed !== 'DELETE') return;
+    setWiping(true);
+    try {
+      await safeFetch(`${API}/api/evaluations/all`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      setResult(null); setStatus('idle');
+      alert('All evaluations were deleted. You can upload the new sheet now.');
+    } catch (e) { alert(e.message || 'Could not delete the evaluations'); }
+    setWiping(false);
+  };
 
   const processFile = (file) => {
     if (!file) return;
@@ -228,6 +242,14 @@ export default function EvaluationsUpload({ token, darkMode }) {
         New records are inserted and existing ones with changes are updated. No duplicates created.
         Agents see only their own evaluations under <strong>📋 My Evaluations</strong>.
       </p>
+
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:12, flexWrap:'wrap', background:card, border:`1px solid ${border}`, borderRadius:12, padding:'12px 16px', marginBottom:20 }}>
+        <span style={{ fontSize:13, color:sub }}>Starting fresh? Delete the old evaluations first, then upload the new sheet.</span>
+        <button onClick={deleteAll} disabled={wiping}
+          style={{ background:'transparent', color:'#ef4444', border:'1px solid #ef444466', borderRadius:10, padding:'8px 16px', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+          {wiping ? 'Deleting…' : '🗑 Delete all evaluations'}
+        </button>
+      </div>
 
       {/* ── Drop zone ── */}
       {status === 'idle' && (
