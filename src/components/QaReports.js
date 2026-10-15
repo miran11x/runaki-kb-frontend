@@ -66,8 +66,8 @@ export function QaHub({ darkMode }) {
   useEffect(() => { loadData(); }, [loadData]);
 
   const all = useMemo(() => (data ? data.rows.filter(r => !queue || r.u === queue) : []), [data, queue]);
-  const rows = useMemo(() => all.filter(r => r.d.startsWith(month)), [all, month]);
-  const prev = useMemo(() => all.filter(r => r.d.startsWith(prevMonth(month))), [all, month]);
+  const rows = useMemo(() => all.filter(r => (r.mo || r.d.slice(0, 7)) === month), [all, month]);
+  const prev = useMemo(() => all.filter(r => (r.mo || r.d.slice(0, 7)) === prevMonth(month)), [all, month]);
   const agents = useMemo(() => agentTable(rows), [rows]);
   const queues = useMemo(() => [...new Set((data ? data.rows : []).map(r => r.u).filter(Boolean))].sort(), [data]);
 
@@ -706,12 +706,14 @@ function TeamSection({ th, rows, agents, roster, month, onOpen }) {
           ['Score is not consistent with the critical failure', dq.critMismatch],
           ['An attribute has no selection (scored 0)', dq.missingAttr],
           ['Agent not found in the Knowledge Base (Wave ID does not match)', dq.noKb],
+          ['A date in the sheet looks wrong (the evaluation is still counted in this month)', dq.dateIssues],
         ].map(([label, list]) => (
           <div key={label} style={{ padding: '8px 0', borderBottom: `1px solid ${th.border}`, fontSize: 13, color: th.text }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
               <span>{label}</span><Pill color={list.length ? AMBER : GREEN}>{list.length ? `${list.length} to check` : 'OK'}</Pill>
             </div>
-            {list.length > 0 && <div style={{ fontSize: 12, color: th.sub, marginTop: 4, lineHeight: 1.6 }}>{[...new Set(list.map(r => r.n))].slice(0, 12).join(', ')}{new Set(list.map(r => r.n)).size > 12 ? '…' : ''}</div>}
+            {list.length > 0 && list[0].di && <div style={{ fontSize: 12, color: th.sub, marginTop: 4, lineHeight: 1.7 }}>{list.slice(0, 15).map(r => <div key={r.id}>{r.n} (evaluation #{r.eval_id}, {r.q}): {r.di}</div>)}{list.length > 15 ? <div>…and {list.length - 15} more</div> : null}</div>}
+            {list.length > 0 && !list[0].di && <div style={{ fontSize: 12, color: th.sub, marginTop: 4, lineHeight: 1.6 }}>{[...new Set(list.map(r => r.n))].slice(0, 12).join(', ')}{new Set(list.map(r => r.n)).size > 12 ? '…' : ''}</div>}
           </div>
         ))}
       </Panel>

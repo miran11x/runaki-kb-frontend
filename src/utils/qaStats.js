@@ -205,5 +205,6 @@ export function dataQuality(rows, roster) {
   const noKb = rows.filter(r => !r.uid);
   const evaluated = new Set(rows.map(r => r.w).filter(Boolean));
   const notEvaluated = (roster || []).filter(u => !evaluated.has(String(u.wave_id || '').trim()));
-  return { sumMismatch, critMismatch, missingAttr, noKb, notEvaluated };
+  const dateIssues = rows.filter(r => r.di);
+  return { sumMismatch, critMismatch, missingAttr, noKb, notEvaluated, dateIssues };
 }

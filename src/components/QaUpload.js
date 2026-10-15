@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
-import { parseWorkbook, parseCsv, parseRosterFile } from '../utils/qaParse';
+import { parseWorkbook, parseCsv, parseRosterFile, assignMonth } from '../utils/qaParse';
 
 // Admin → Quality → Upload: sync the monthly QA workbook (Raw Data tab) into the Knowledge Base.
 // Upload as often as you like (daily): new evaluations are added, changed ones updated, nothing is duplicated.
@@ -98,12 +98,21 @@ export default function QaUpload({ darkMode, onDone }) {
       const buf = await file.arrayBuffer();
       const p = /\.csv$/i.test(file.name) ? parseCsv(buf) : parseWorkbook(buf);
       if (!p.rows.length) throw new Error('No evaluations were found in the Raw Data tab.');
-      const pv = await api.post('/qa/preview', { items: p.rows.map(r => ({ key: r.eval_key, hash: r.row_hash, month: r.eval_date.slice(0, 7) })) });
+      const pv = await api.post('/qa/preview', { items: p.rows.map(r => ({ key: r.eval_key, hash: r.row_hash, month: r.month })) });
       setParsed(p); setPreview(pv.data); setStep('ready');
     } catch (e) {
       toast.error(e.response?.data?.error || e.message || 'Could not read this file');
       reset();
     }
+  };
+
+  const changeMonth = async month => {
+    if (!/^\d{4}-\d{2}$/.test(month)) return;
+    try {
+      const p = assignMonth({ ...parsed }, month);
+      const pv = await api.post('/qa/preview', { items: p.rows.map(r => ({ key: r.eval_key, hash: r.row_hash, month: r.month })) });
+      setParsed({ ...p }); setPreview(pv.data);
+    } catch { toast.error('Could not check that month'); }
   };
 
   const upload = async () => {
@@ -177,8 +186,21 @@ export default function QaUpload({ darkMode, onDone }) {
         <div style={card}>
           <div style={{ fontSize: 14, fontWeight: 800, color: th.text, marginBottom: 4 }}>{fileName}</div>
           <div style={{ fontSize: 13, color: th.sub, marginBottom: 14 }}>
-            {parsed.rows.length} evaluations · {parsed.months.map(monthName).join(', ')} · {new Set(parsed.rows.map(r => r.agent_name)).size} agents · {new Set(parsed.rows.map(r => r.qa_officer)).size} QA officers
+            {parsed.rows.length} evaluations · {new Set(parsed.rows.map(r => r.agent_name)).size} agents · {new Set(parsed.rows.map(r => r.qa_officer)).size} QA officers
           </div>
+          <div style={{ background: th.soft, borderRadius: 12, padding: '12px 14px', marginBottom: 14, fontSize: 13, color: th.text, lineHeight: 1.7 }}>
+            <strong>All {parsed.rows.length} evaluations will be saved as {monthName(parsed.month)}</strong>
+            <span style={{ color: th.sub }}> (taken from {parsed.monthFrom}). Not right? </span>
+            <input type="month" value={parsed.month} onChange={e => changeMonth(e.target.value)} aria-label="Month of this file"
+              style={{ background: th.card, color: th.text, border: `1px solid ${th.border}`, borderRadius: 8, padding: '4px 8px', fontFamily: 'inherit' }} />
+          </div>
+          {parsed.dateIssues.length > 0 && (
+            <div style={{ border: '1px solid #f59e0b88', background: '#f59e0b14', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12.5, color: th.text, lineHeight: 1.7 }}>
+              <strong style={{ color: '#b45309' }}>⚠ {parsed.dateIssues.length} evaluation{parsed.dateIssues.length > 1 ? 's have' : ' has'} a date that looks wrong.</strong> They are still saved in {monthName(parsed.month)}. Check them in the sheet:
+              {parsed.dateIssues.slice(0, 10).map((r, i) => <div key={i} style={{ color: th.sub }}>• {r.agent_name} (evaluation #{r.eval_id}, {r.qa_officer}): {r.date_issue}</div>)}
+              {parsed.dateIssues.length > 10 && <div style={{ color: th.sub }}>…and {parsed.dateIssues.length - 10} more (shown later in the Data quality panel)</div>}
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
             {stat(preview.added, 'new', '#10b981')}
             {stat(preview.changed, 'changed', ORANGE)}
@@ -190,6 +212,9 @@ export default function QaUpload({ darkMode, onDone }) {
               {parsed.problems.scoreMismatch} evaluation{parsed.problems.scoreMismatch > 1 ? 's have' : ' has'} points that do not add up to the Raw Score in the sheet. They are still uploaded as written.
             </div>
           )}
+          {parsed.problems.noDate > 0 && (
+            <div style={{ fontSize: 12.5, color: '#b45309', marginBottom: 10 }}>{parsed.problems.noDate} evaluations have no evaluation date; they are saved in {monthName(parsed.month)} and flagged.</div>
+          )}
           {parsed.problems.noWave > 0 && (
             <div style={{ fontSize: 12.5, color: '#b45309', marginBottom: 10 }}>
               {parsed.problems.noWave} evaluations have no Wave ID, so those agents cannot see them in My Evaluations.
@@ -199,7 +224,7 @@ export default function QaUpload({ darkMode, onDone }) {
             <input type="checkbox" checked={removeStale} onChange={e => setRemoveStale(e.target.checked)} style={{ marginTop: 3, accentColor: ORANGE }} />
             <span>
               <strong>Remove evaluations that are no longer in this sheet</strong><br />
-              <span style={{ color: th.sub }}>Only for the months in this file ({parsed.months.map(monthName).join(', ')}). Other months are never touched. Untick it to only add and update.</span>
+              <span style={{ color: th.sub }}>Only for {monthName(parsed.month)}. Other months are never touched. Untick it to only add and update.</span>
             </span>
           </label>
           <div style={{ display: 'flex', gap: 10 }}>

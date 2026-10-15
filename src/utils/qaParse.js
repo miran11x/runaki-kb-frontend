@@ -160,7 +160,7 @@ export function parseWorkbook(buffer, sheets) {
     const r = raw[i];
     if (!r || !txt(get(r, 'Agent Name')) || !txt(get(r, 'QA Officer'))) continue;
     const date = toDateTime(get(r, 'Evaluation Date'));
-    if (!date) { problems.noDate++; continue; }
+    if (!date) problems.noDate++;           // still counted: the upload month decides which month it belongs to
 
     const fails = [], pts = [];
     ATTRS.forEach(a => {
@@ -189,7 +189,7 @@ export function parseWorkbook(buffer, sheets) {
       qa_officer: txt(get(r, 'QA Officer')),
       coordinator: txt(get(r, 'Coordinator')) || null,
       queue: txt(get(r, 'Queue')) || null,
-      eval_date: date,
+      eval_date: date,                       // as written in the sheet; assignMonth() fixes it up and flags it
       call_date: toDate(get(r, 'Call Date')),
       subject: txt(get(r, 'Subject / Contact Reason')) || null,
       ticket_ref: txt(get(r, 'Ticket ID / Case Ref / Phone')) || null,
@@ -209,11 +209,66 @@ export function parseWorkbook(buffer, sheets) {
       dispute_result: txt(get(r, 'Dispute Result')) || null,
       cap_raised: txt(get(r, 'CAP Raised')) || null,
     };
-    // the evaluation form's own id is only unique inside one month, so the month is part of the key
-    row.eval_key = `${row.eval_date.slice(0, 7)}|${row.eval_id || `${row.agent_email || row.agent_name}|${row.eval_date}|${row.ticket_ref || ''}|${row.qa_officer}`}`;
-    row.row_hash = fingerprint(row);
     rows.push(row);
   }
-  const months = [...new Set(rows.map(r => r.eval_date.slice(0, 7)))].sort();
-  return { rows, rubric, rubricFromFile: fileRubric.length > 0, months, problems, roster: parseRoster(wb) };
+  const titleMonth = detectTitleMonth(raw.slice(0, Math.max(hi, 1)));
+  const dated = rows.filter(r => r.eval_date).map(r => r.eval_date.slice(0, 7));
+  const counts = dated.reduce((m, x) => m.set(x, (m.get(x) || 0) + 1), new Map());
+  const majority = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  const month = titleMonth || (majority ? majority[0] : '');
+  const result = { rows, rubric, rubricFromFile: fileRubric.length > 0, months: [], month, monthFrom: titleMonth ? 'the title of the sheet' : 'most evaluation dates', problems, roster: parseRoster(wb) };
+  return assignMonth(result, month);
+}
+
+const MONTH_NAMES = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+// "... | OCTOBER 2026 (same columns ...)" in the title row of the Raw Data tab
+function detectTitleMonth(topRows) {
+  for (const r of topRows) {
+    for (const c of r || []) {
+      const m = txt(c).toLowerCase().match(new RegExp(`\\b(${MONTH_NAMES.join('|')})\\s+(20\\d\\d)\\b`));
+      if (m) return `${m[2]}-${String(MONTH_NAMES.indexOf(m[1]) + 1).padStart(2, '0')}`;
+    }
+  }
+  return '';
+}
+
+const lastDay = month => { const [y, m] = month.split('-').map(Number); return new Date(y, m, 0).getDate(); };
+
+// Every evaluation in the file belongs to the chosen month, whatever its date says. A wrong date is
+// moved into the month (so charts stay sane) and flagged with what the sheet actually said.
+export function assignMonth(parsed, month) {
+  const { rows } = parsed;
+  const first = `${month}-01T00:00:00`, last = `${month}-${String(lastDay(month)).padStart(2, '0')}T23:59:00`;
+  rows.forEach(row => {
+    if (row._rawDate === undefined) row._rawDate = row.eval_date;
+    if (row._rawIssue === undefined) row._rawIssue = null;
+    const raw = row._rawDate;
+    const issues = [];
+    if (!raw) { row.eval_date = first; issues.push('No evaluation date in the sheet'); }
+    else if (raw.slice(0, 7) !== month) {
+      row.eval_date = raw < first ? first : last;
+      issues.push(`Evaluation date ${raw.slice(0, 10)} is outside ${month}`);
+    } else row.eval_date = raw;
+    if (row.call_date) {
+      const cd = new Date(`${row.call_date}T00:00:00`), ed = new Date(`${row.eval_date.slice(0, 10)}T00:00:00`);
+      const diff = Math.round((ed - cd) / 86400000);
+      if (diff < 0) {
+        const [y, mo, da] = row.call_date.split('-');            // often a day/month mix-up (11/10 typed for 10 Oct)
+        const swapped = +da <= 12 ? `${y}-${da.padStart(2, '0')}-${mo}` : null;
+        const sd = swapped ? Math.round((ed - new Date(`${swapped}T00:00:00`)) / 86400000) : -1;
+        issues.push(`Call date ${row.call_date} is after the evaluation date${sd >= 0 && sd <= 31 ? ` (maybe ${swapped}, day and month swapped)` : ''}`);
+      }
+      else if (diff > 60) issues.push(`Call date ${row.call_date} is ${diff} days before the evaluation`);
+    }
+    row.month = month;
+    row.date_issue = issues.length ? issues.join('; ') : null;
+    // the evaluation form's own id is only unique inside one month, so the month is part of the key
+    row.eval_key = `${month}|${row.eval_id || `${row.agent_email || row.agent_name}|${raw || ''}|${row.ticket_ref || ''}|${row.qa_officer}`}`;
+    const { _rawDate, _rawIssue, row_hash, ...rest } = row;
+    row.row_hash = fingerprint(rest);
+  });
+  parsed.month = month;
+  parsed.months = month ? [month] : [];
+  parsed.dateIssues = rows.filter(r => r.date_issue);
+  return parsed;
 }

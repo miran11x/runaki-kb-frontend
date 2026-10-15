@@ -51,8 +51,8 @@ export default function MyQaEvaluations({ darkMode }) {
     api.get('/qa/mine').then(r => setData(r.data)).catch(e => setErr(e.response?.data?.error || 'Could not load your evaluations.'));
   }, []);
 
-  const months = useMemo(() => (data ? [...new Set(data.rows.map(r => r.d.slice(0, 7)))].sort().reverse() : []), [data]);
-  const rows = useMemo(() => (data ? data.rows.filter(r => !month || r.d.slice(0, 7) === month) : []), [data, month]);
+  const months = useMemo(() => (data ? [...new Set(data.rows.map(r => r.mo || r.d.slice(0, 7)))].sort().reverse() : []), [data]);
+  const rows = useMemo(() => (data ? data.rows.filter(r => !month || (r.mo || r.d.slice(0, 7)) === month) : []), [data, month]);
 
   if (err) return <Empty th={th}>{err}</Empty>;
   if (!data) return <Empty th={th}>Loading…</Empty>;
