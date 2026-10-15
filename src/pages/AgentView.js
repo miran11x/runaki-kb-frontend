@@ -16,6 +16,7 @@ import api from '../utils/api';
   import { Scripts, KYCPlatform, HoldUnhold } from '../components/OpsPages';
   import { TicketDescriptions } from '../components/TicketDescriptions';
   import { ZoneLookup } from '../components/Zones';
+  import { MyStats, SendFeedback } from '../components/MyStatsFeedback';
   import { ExternalToolView } from '../components/ContentEditor';
   import UpdateScripts from '../components/UpdateScripts';
   import AdminPanel from './AdminPanel';
@@ -51,6 +52,8 @@ import api from '../utils/api';
   _holdunhold: () => false,
   _tickets: () => false,
   _zones: () => false,
+  _mystats: () => false,
+  _sendfeedback: () => false,
   _traccess: () => false,
   _callflows: () => false,
   _maintenance: () => false,
@@ -75,6 +78,8 @@ import api from '../utils/api';
   '_scripts':'Scripts & Processes',
   '_tickets':'Ticket Descriptions',
   '_zones':'Zone Lookup',
+  '_mystats':'My Stats',
+  '_sendfeedback':'Send Feedback',
   '_priority':'Case Priorities',
   '_search':'Search Results',
   '_bookmarks':' Bookmarks',
@@ -279,6 +284,8 @@ const groups = grouped(items);
 const isSpecial = String(panel).startsWith('_tool_') || [
       '_tickets',
       '_zones',
+      '_mystats',
+      '_sendfeedback',
       '_feedback',
   '_scripts',
   '_priority',
@@ -395,6 +402,8 @@ const isSpecial = String(panel).startsWith('_tool_') || [
 
             {/* Special panels */}
             {String(panel).startsWith('_tool_') && <ExternalToolView toolId={String(panel).slice(6)} DM={DM} />}
+            {panel === '_mystats'  && <MyStats DM={DM} />}
+            {panel === '_sendfeedback' && <SendFeedback DM={DM} />}
             {panel === '_zones'    && <ZoneLookup darkMode={darkMode} DM={DM} />}
             {panel === '_tickets'  && <TicketDescriptions darkMode={darkMode} DM={DM} />}
             {panel === '_scripts'  && <Scripts darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
