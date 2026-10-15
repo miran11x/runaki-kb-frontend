@@ -64,14 +64,14 @@ export default function Sidebar({
   }
 
   if (
-    ['_callflows', '_scripts', '_priority', '_holdunhold', '_contactreasons']
+    ['_callflows', '_scripts', '_priority', '_holdunhold']
       .includes(panel)
   ) {
     setOpsOpen(true);
   }
 
   if (
-    (['_kyc', '_tickets', '_zones'].includes(panel) || String(panel).startsWith('_tool_'))
+    (['_kyc', '_tickets', '_zones', '_contactreasons'].includes(panel) || String(panel).startsWith('_tool_'))
   ) {
     setToolsOpen(true);
   }
@@ -470,7 +470,7 @@ folder
   label="Tools"
   collapsed={collapsed}
   active={
-  (['_kyc', '_tickets', '_zones'].includes(panel) || String(panel).startsWith('_tool_'))
+  (['_kyc', '_tickets', '_zones', '_contactreasons'].includes(panel) || String(panel).startsWith('_tool_'))
 }
   onClick={() => setToolsOpen(!toolsOpen)}
   suffix={
@@ -524,6 +524,12 @@ folder
       onClick={() => go('_zones')}
     />
 
+    <NI sub icon="🌳" label="Contact Reasons" collapsed={collapsed}
+      darkMode={darkMode}
+      active={panel === '_contactreasons'}
+      onClick={() => go('_contactreasons')}
+    />
+
 <NI
       sub
       icon="📱"
@@ -565,8 +571,7 @@ folder
     '_callflows',
     '_scripts',
     '_priority',
-    '_holdunhold',
-    '_contactreasons'
+    '_holdunhold'
   ].includes(panel)
 }
   onClick={() => setOpsOpen(!opsOpen)}
@@ -639,12 +644,6 @@ folder
 
       active={panel === '_holdunhold'}
       onClick={() => go('_holdunhold')}
-    />
-
-    <NI sub icon="🌳" label="Contact Reasons" collapsed={collapsed}
-      darkMode={darkMode}
-      active={panel === '_contactreasons'}
-      onClick={() => go('_contactreasons')}
     />
   </>
 )}
