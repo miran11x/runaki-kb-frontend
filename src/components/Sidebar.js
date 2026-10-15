@@ -64,14 +64,14 @@ export default function Sidebar({
   }
 
   if (
-    ['_callflows', '_tickets', '_scripts', '_priority', '_holdunhold']
+    ['_callflows', '_scripts', '_priority', '_holdunhold']
       .includes(panel)
   ) {
     setOpsOpen(true);
   }
 
   if (
-    (['_kyc'].includes(panel) || String(panel).startsWith('_tool_'))
+    (['_kyc', '_tickets'].includes(panel) || String(panel).startsWith('_tool_'))
   ) {
     setToolsOpen(true);
   }
@@ -460,6 +460,91 @@ folder
   </>
 )}
 
+{/* TOOLS */}
+<NI
+folder
+  icon="🛠️"
+  
+  darkMode={darkMode}
+
+  label="Tools"
+  collapsed={collapsed}
+  active={
+  (['_kyc', '_tickets'].includes(panel) || String(panel).startsWith('_tool_'))
+}
+  onClick={() => setToolsOpen(!toolsOpen)}
+  suffix={
+  !collapsed && (
+    <div
+      style={{
+        display:'flex',
+        alignItems:'center',
+        gap:'6px',
+      }}
+    >
+      <span
+        style={{
+          fontSize:'10px',
+          fontWeight:'700',
+          color: darkMode ? 'rgba(255,255,255,.75)' : '#64748b',
+          textTransform:'uppercase',
+          letterSpacing:'0.08em'
+        }}
+      >
+        {toolsOpen ? 'Hide' : 'Open'}
+      </span>
+
+      <span
+        style={{
+          transform: toolsOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+          transition:'all .2s ease',
+          fontSize:'18px',
+          fontWeight:'900',
+          color:'#FF6B35'
+        }}
+      >
+        ▶
+      </span>
+    </div>
+  )
+}
+/>
+
+{toolsOpen && (
+  <>
+    <NI sub icon="🎫" label="Ticket Descriptions" collapsed={collapsed}
+      darkMode={darkMode}
+      active={panel === '_tickets'}
+      onClick={() => go('_tickets')}
+    />
+
+<NI
+      sub
+      icon="📱"
+      
+  darkMode={darkMode}
+
+      label="KYC Platform Outputs"
+      collapsed={collapsed}
+      active={panel === '_kyc'}
+      onClick={() => go('_kyc')}
+    />
+
+    {extTools.map(t => (
+      <NI
+        key={t.id}
+        sub
+        icon={t.icon || '🧩'}
+        darkMode={darkMode}
+        label={t.name}
+        collapsed={collapsed}
+        active={panel === `_tool_${t.id}`}
+        onClick={() => go(`_tool_${t.id}`)}
+      />
+    ))}
+  </>
+)}
+
 {/* OPERATIONS */}
 <NI
 folder
@@ -472,7 +557,6 @@ folder
   active={
   [
     '_callflows',
-    '_tickets',
     '_scripts',
     '_priority',
     '_holdunhold'
@@ -526,12 +610,6 @@ folder
       onClick={() => go('_callflows')}
     />
 
-    <NI sub icon="🎫" label="Ticket Descriptions" collapsed={collapsed}
-      darkMode={darkMode}
-      active={panel === '_tickets'}
-      onClick={() => go('_tickets')}
-    />
-
     <NI sub icon="📋" label="Scripts & Processes" collapsed={collapsed}
     
   darkMode={darkMode}
@@ -555,85 +633,6 @@ folder
       active={panel === '_holdunhold'}
       onClick={() => go('_holdunhold')}
     />
-  </>
-)}
-
-{/* TOOLS */}
-<NI
-folder
-  icon="🛠️"
-  
-  darkMode={darkMode}
-
-  label="Tools"
-  collapsed={collapsed}
-  active={
-  (['_kyc'].includes(panel) || String(panel).startsWith('_tool_'))
-}
-  onClick={() => setToolsOpen(!toolsOpen)}
-  suffix={
-  !collapsed && (
-    <div
-      style={{
-        display:'flex',
-        alignItems:'center',
-        gap:'6px',
-      }}
-    >
-      <span
-        style={{
-          fontSize:'10px',
-          fontWeight:'700',
-          color: darkMode ? 'rgba(255,255,255,.75)' : '#64748b',
-          textTransform:'uppercase',
-          letterSpacing:'0.08em'
-        }}
-      >
-        {toolsOpen ? 'Hide' : 'Open'}
-      </span>
-
-      <span
-        style={{
-          transform: toolsOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition:'all .2s ease',
-          fontSize:'18px',
-          fontWeight:'900',
-          color:'#FF6B35'
-        }}
-      >
-        ▶
-      </span>
-    </div>
-  )
-}
-/>
-
-{toolsOpen && (
-  <>
-<NI
-      sub
-      icon="📱"
-      
-  darkMode={darkMode}
-
-      label="KYC Platform Outputs"
-      collapsed={collapsed}
-      active={panel === '_kyc'}
-      onClick={() => go('_kyc')}
-    />
-
-    {extTools.map(t => (
-      <NI
-        key={t.id}
-        sub
-        icon={t.icon || '🧩'}
-        darkMode={darkMode}
-        label={t.name}
-        collapsed={collapsed}
-        active={panel === `_tool_${t.id}`}
-        onClick={() => go(`_tool_${t.id}`)}
-      />
-    ))}
   </>
 )}
 
