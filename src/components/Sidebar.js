@@ -77,7 +77,7 @@ export default function Sidebar({
   }
 
 if (
-  ['_bookmarks', '_mystats', '_evaluations', '_sendfeedback'].includes(panel)
+  ['_bookmarks', '_mystats', '_sendfeedback'].includes(panel)
 ) {
   setPersonalOpen(true);
 }
@@ -658,7 +658,7 @@ folder
 
   label="Personal"
   collapsed={collapsed}
- active={['_bookmarks', '_mystats', '_evaluations', '_sendfeedback'].includes(panel)}
+ active={['_bookmarks', '_mystats', '_sendfeedback'].includes(panel)}
   onClick={() => setPersonalOpen(!personalOpen)}
   suffix={
   !collapsed && (
@@ -715,12 +715,6 @@ folder
       darkMode={darkMode}
       active={panel === '_mystats'}
       onClick={() => go('_mystats')}
-    />
-
-    <NI sub icon="⭐" label="My Evaluations" collapsed={collapsed}
-      darkMode={darkMode}
-      active={panel === '_evaluations'}
-      onClick={() => go('_evaluations')}
     />
 
     <NI sub icon="💬" label="Send Feedback" collapsed={collapsed}
