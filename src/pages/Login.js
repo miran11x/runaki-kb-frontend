@@ -7,30 +7,193 @@ import api from '../utils/api';
 const RK_LOGO = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNzE2LjAwMDAwMCAxNzE2LjAwMDAwMCI+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAuMDAwMDAwLDE3MTYuMDAwMDAwKSBzY2FsZSgwLjEwMDAwMCwtMC4xMDAwMDApIgpmaWxsPSIjRDJBRDU0IiBzdHJva2U9Im5vbmUiPgo8cGF0aCBkPSJNNzA4MyAxNjc1MCBjLTEwNSAtNjQgLTExNCAtMTE3IC0xMjMgLTcxMCAtNSAtMjcyIC0xMSAtNTA0IC0xNAotNTE1IC0xNCAtNDkgLTY5IC0yODggLTgzIC0zNjAgLTEyIC02MiAtMTggLTE5MSAtMjMgLTU3NSAtOCAtNTI4IC03IC01MTYKLTY4IC03NzAgLTE2IC02OSAtMzcgLTE2MSAtNDcgLTIwNSAtNjUgLTI5OSAtMTk2IC0zMjEgLTUzMiAtODggLTYyIDQzIC0xNzcKMTIyIC0yNTUgMTc2IC03OSA1NCAtMjYwIDE4MCAtNDAzIDI3OSAtNDkyIDM0MCAtMTU0MCAxMDM1IC0xNjI1IDEwNzcgLTEwNgo1MiAtMTcxIDYxIC0yMTggMzIgLTg1IC01NCAtNzIgLTE3NiA1MyAtNDk1IDM1IC04OSA3OCAtMjA0IDk1IC0yNTYgMTggLTUyCjcyIC0xODcgMTIwIC0zMDAgNDggLTExMyAxMDMgLTI1MiAxMjIgLTMxMCA0MyAtMTI2IDExOSAtMzI5IDIzNSAtNjIwIDQ3Ci0xMTggMTA1IC0yNzEgMTI4IC0zNDAgMjQgLTY5IDYzIC0xNzIgODggLTIzMCAyMDQgLTQ3OSAyMjcgLTYwMCAxMzcgLTcwMwotNTEgLTU3IC04OCAtNjggLTI1NiAtNzQgLTE3OSAtNyAtMzA1IDggLTUwMyA1OCAtMTA4IDI3IC0xOTUgNDIgLTI4MyA0OSAtNzEKNiAtMTg1IDE0IC0yNTUgMjAgLTg0IDYgLTE2OCAyMCAtMjQzIDQwIC0xNzkgNDggLTI2MCA2MCAtNDY3IDcwIC0xOTYgMTAKLTI2NSAyMSAtNDIxIDY0IC0xNTAgNDEgLTE5MSA0NyAtNDMyIDU3IC0xMjkgNSAtMjUzIDEyIC0yNzQgMTUgLTEyOCAxOCAtMjI0Ci0yOSAtMjEyIC0xMDUgMTYgLTEwNCA4MCAtMTc2IDc1MSAtODQ1IDYwMyAtNjAzIDY5MyAtNjg3IDkxNSAtODU2IDI1NSAtMTk1CjU1MyAtNDc2IDYxOSAtNTg1IDk5IC0xNjMgMzYgLTI4OSAtMjEyIC00MjUgLTMyMyAtMTc3IC00NDEgLTI1MSAtNjkyIC00MzEKLTg1IC02MCAtMTk1IC0xNzEgLTE5NSAtMTk1IDAgLTc0IDM3NSAtMjEgODExIDExNSA1MyAxNiAxNTAgNDEgMjE1IDU2IDY1IDE0CjE5MyA0NiAyODQgNzAgOTEgMjQgMjMwIDU3IDMxMCA3NCA4MCAxNyAxOTYgNDQgMjU3IDYwIDYyIDE3IDE3OCAzOSAyNTcgNTEKODAgMTEgMjA1IDM2IDI3OCA1NCAxNjggNDQgMjE3IDUyIDQwOCA3MCAxMDggMTAgMTk4IDI2IDI5NSA1MSA3NyAyMCAyMTIgNDkKMzAwIDY1IDIzNiA0MCAyOTcgNzYgMjgxIDE2NSAtMTcgODggLTEwNyAxNDQgLTcyMSA0NTIgLTEzOTUgNjk5IC0xNzUzIDkxNAotMTYyMiA5NzQgNDEgMTggMjk5IC0zMCA1MzcgLTEwMCA1MiAtMTYgMTI0IC0zNiAxNjAgLTQ2IDk2IC0yNSAxMTY3IC0zODMKMTY1MCAtNTUxIDM1MCAtMTIxIDQ4NyAtMTI4IDUzMCAtMjQgMzIgNzggLTcgMTgyIC0xNjIgNDI1IC01MiA4MyAtMTA5IDE3NgotMTI2IDIwOCAtMTEwIDIwMCAtMTAzIDE4OCAtMjIwIDM2NyAtNzAgMTA2IC0xMDcgMTY3IC0yMzYgMzg1IC0yNiA0NCAtNzAKMTE2IC05OCAxNjAgLTI3IDQ0IC05MSAxNDggLTE0MSAyMzAgLTQ5IDgzIC0xMTggMTk1IC0xNTIgMjUwIC0zNCA1NSAtOTUgMTU5Ci0xMzUgMjMwIC00MSA3MiAtMTA2IDE4MiAtMTQ2IDI0NiAtMTI4IDIwNiAtMTg0IDMzMiAtMTg0IDQyMCAwIDE3OCAyNTcgMTAKNTU0IC0zNjEgMzcgLTQ3IDEwMCAtMTI1IDEzOSAtMTc1IDE0MiAtMTc3IDE0NTEgLTE0OTMgMTU3MCAtMTU3OCAxNDQgLTEwMwoyMTUgLTEwNCAyNTQgLTYgMTYgNDAgMTggMTA1IDIxIDY0OSA0IDY3OSAtMSA3NzUgLTUyIDk4NiAtNjEgMjUyIC02MSAyNDYKLTYxIDc5NCAwIDM5OSA0IDU0OCAxOCA3MTAgOSAxMTMgMTggMjM2IDIwIDI3NCAzIDg4IDE2IDkyIDU2IDE2IDE4IC0zMyA0OAotODEgNjcgLTEwNiA3NiAtOTkgMTU0IC0yNzYgMjQ3IC01NTkgMTAzIC0zMTMgMjkzIC04OTUgNDIyIC0xMjkwIDY0IC0xOTgKMTIwIC0zNzEgMTI1IC0zODUgNSAtMTQgMzQgLTEwOCA2NSAtMjEwIDIxNCAtNjk3IDI4OCAtODIzIDQ0MiAtNzQ5IDY2IDMyCjEwOSAxMDkgMjI4IDQxOSAzNSA5MSA4OSAyMzAgMTIwIDMxMCAzMSA4MCAxMDEgMjc4IDE1NSA0NDAgMTEwIDMyOCAxMzYgNDAzCjIwMyA1NzAgOTcgMjQzIDE3MyA0NDUgMjY4IDcxOSAxMjQgMzU0IDE4MyA0ODEgMjYwIDU2MCA3MiA3MiAxMDYgNTkgMTM0IC01Mwo0NSAtMTgyIDM5IC0zNDAgLTIwIC01NjggLTIxIC04NCAtMzggLTE3OSAtNDUgLTI1NCAtNSAtNjUgLTE0IC0xNzMgLTIwIC0yMzkKLTYgLTc4IC0yNCAtMTc2IC01MCAtMjgwIC00MCAtMTU4IC00MyAtMTgxIC03MCAtNTMwIC02IC04NiAtMjAgLTE2OSAtNDAKLTI0NSAtNDMgLTE2NCAtNTggLTI1MSAtNzAgLTQyMyAtNiAtODQgLTE2IC0xODYgLTIxIC0yMjcgLTQ4IC0zNDggMTMgLTQzMwoyMzMgLTMyOCAxMjYgNjEgMjM5IDE2MSA3MzcgNjU3IDUxNiA1MTQgNTc3IDU3MCA3OTYgNzMwIDE1NSAxMTQgMjcwIDIxNSA1MTUKNDU1IDQ4MiA0NzIgNjgzIDU5MyA2NDIgMzg0IC0zNiAtMTc5IC0xNjkgLTM5NyAtMTA3OSAtMTc2NSAtNjAzIC05MDYgLTYzMgotOTU0IC02NDAgLTEwNTcgLTEzIC0xNjEgMTAyIC0xNzggNDcyIC03MSA4MyAyNCAyMDQgNTggMjcwIDc1IDEzOSAzNiAyMzggNjUKNTM1IDE2MCAyNzYgODggNDEwIDEyNyA2NTAgMTkwIDEwNyAyOSAyOTIgODMgNDEwIDEyMiAxMTggMzggMjM3IDc2IDI2MyA4NQoyNyA4IDEyNiAzNCAyMjAgNTggOTUgMjQgMTk3IDUwIDIyNyA1OSAxNTUgNDQgNDM5IDk4IDQ3NyA5MSA2NiAtMTMgNzEgLTE2Cjc3IC00MCAxNyAtNjcgLTc1IC0xNTggLTQxOSAtNDE2IC03OCAtNTggLTE3NCAtMTMzIC0yMTUgLTE2NyAtNDEgLTM0IC0xMjcKLTk3IC0xOTAgLTE0MCAtNjMgLTQzIC0xOTQgLTEzMiAtMjkwIC0xOTcgLTk2IC02NSAtMjI3IC0xNTcgLTI5MCAtMjA1IC02MwotNDcgLTE2MCAtMTE3IC0yMTUgLTE1NSAtNTUgLTM4IC0xMjkgLTkxIC0xNjQgLTExOCAtMTAzIC03OCAtOTEwIC02MTQgLTEwODYKLTcyMSAtODggLTU0IC0yMDkgLTEyOCAtMjcwIC0xNjYgLTYwIC0zOCAtMTM5IC04NiAtMTc0IC0xMDYgLTE0NSAtODQgLTI0MQotMTc2IC0yNDEgLTIzMCAwIC0xMTIgMTQ4IC0xNDMgNTAwIC0xMDQgMjI4IDI1IDQxMyAyNCA1OTUgLTQgMTYzIC0yNSAzNDMKLTM2IDU5MiAtMzYgMjg0IDAgMzgyIC0xMCA1NzcgLTYwIDgzIC0yMSAyMTYgLTQ4IDI5NiAtNTkgODAgLTEyIDIxNSAtNDAgMjk5Ci02MiA4NSAtMjIgMjIwIC01NCAzMDAgLTcwIDgxIC0xNiAxODUgLTQwIDIzMyAtNTQgMjM0IC02NyAzNjkgLTc0IDM5OCAtMjAKMjggNTMgLTYwIDE0MSAtMzEwIDMxMCAtMzUyIDIzOSAtNDc3IDMwNyAtNzkxIDQzMyAtMjI2IDkwIC0yNjcgMTExIC0zMjIgMTY2Ci04MiA4MiAtODQgMTcyIC03IDI4NiA1MyA3OCAyNzIgMjg2IDM5MyAzNzMgMjI2IDE2MyAyODYgMjEzIDQ2NSAzODQgMjQ4IDIzOAoyNTcgMjQ1IDQwNyAzNTMgMTg2IDEzNCAyMTkgMTYyIDQyNSAzNjAgMjEyIDIwMyAyNTQgMjQxIDM0OCAzMDcgMTY5IDEyMCAyNzIKMjAyIDM3MCAyOTcgNTkgNTYgMTQ5IDE0MSAyMDAgMTkwIDUxIDQ5IDEzMiAxMjEgMTgwIDE1OCAyOTggMjM2IDM3NCAzMjkgMzMzCjQwNyAtMzAgNTYgLTUzIDU3IC00MjEgMzIgLTM1MCAtMjMgLTQwNCAtMzAgLTU1MCAtNjYgLTIwOCAtNTIgLTIyNCAtNTQgLTQzNwotNjUgLTIwNCAtMTEgLTI2OCAtMjEgLTQ1MyAtNzAgLTc3IC0yMSAtMTU4IC0zNCAtMjQ1IC00MSAtNzEgLTUgLTE4NiAtMTQKLTI1NSAtMTkgLTg4IC03IC0xNzIgLTIyIC0yODUgLTUwIC0zMTQgLTgwIC01ODggLTgxIC02OTMgLTMgLTExNyA4NyAtMTE3CjE4OSAzIDQ3MyAyOSA2OSA5MCAyMjkgMTM1IDM1NSAxMjAgMzM0IDE2MiA0NDUgMjIzIDU4NSAzMCA2OSA4NCAyMDYgMTIwIDMwNQozNiA5OSA4NiAyMzAgMTEyIDI5MCA0NiAxMDkgMTY2IDQzMSAyMzAgNjE1IDE4IDUzIDU3IDE1NCA4NSAyMjUgODkgMjIyIDEwNgozMDcgNzYgMzc5IC01MiAxMjYgLTE4NiA4NSAtNTU2IC0xNjkgLTY5IC00NyAtMTg4IC0xMjggLTI2NSAtMTgxIC03NyAtNTIKLTIzNyAtMTYyIC0zNTUgLTI0NCAtNDk2IC0zNDMgLTE1MDYgLTEwMTQgLTE1ODIgLTEwNTAgLTEzOSAtNjggLTI0MyAtNTAKLTMxNSA1NCAtNzEgMTAzIC04MiAxOTcgLTgzIDY3MiAwIDQzMyAtNyA1MjEgLTU5IDc0NCAtMjIgOTEgLTQyIDE3OSAtNDYgMTk1Ci00IDE3IC0xMCAyNzMgLTE1IDU3MCAtOSA1OTkgLTkgNTk3IC04MCA4MDggLTcwIDIwNyAtMTA0IDI0NiAtMjA3IDIzOSAtNzAKLTUgLTIzMCAtMjEyIC0zNzEgLTQ3OCAtNzggLTE0NiAtMTI1IC0yMjcgLTIzNyAtMzk5IC0yOSAtNDQgLTYzIC0xMDAgLTc3Ci0xMjUgLTU0IC05NyAtODcgLTE1OCAtMTIxIC0yMjAgLTcxIC0xMzMgLTEzMSAtMjM2IC0xNjcgLTI5MCAtNTYgLTg0IC0xOTQKLTMxOCAtMjM1IC00MDEgLTQxIC04MSAtMjcwIC00NjkgLTM5MSAtNjU5IC0xMjAgLTE4OSAtMjc2IC0yMjQgLTM5OSAtODkgLTY5Cjc1IC05MCAxMDggLTE4OCAyODkgLTk3IDE4MCAtMTYzIDI5MyAtMjgyIDQ4NSAtNjMgMTAxIC0yMTUgMzcwIC0yMTUgMzgwIDAgNwotNzQgMTI4IC0xNzAgMjc1IC00OCA3NCAtMTA5IDE3NiAtMTM1IDIyNSAtMTA0IDE5NyAtMTQ3IDI3MSAtMzIzIDU1OCAtMzQgNTYKLTg4IDE0OSAtMTE5IDIwNyAtMTUzIDI4MyAtMjU4IDM3MyAtMzYwIDMxMHoiLz4KPHBhdGggZD0iTTc3NDMgNDUxMSBjLTczIC0xOCAtMTMxIC04MyAtMTYwIC0xNzYgLTMxIC0xMDIgLTI4IC0yMDM5IDQgLTIxNDAKNzQgLTIzNCAyNDIgLTM2MCA1MTMgLTM4NCAxODkgLTE2IDEyNjMgLTYgMTM0NSAxMyAyMDIgNDYgMzMzIDE2NSA0MjAgMzc4IDgxCjE5OCA5OSAzMzggOTMgNzI4IC02IDM1MCAtMjMgNDA4IC0xNDcgNDk1IC02NSA0NiAtMjM3IDQ2IC0zMDIgMCAtMTI5IC05MAotMTQwIC0xMzUgLTE0OSAtNTcwIC05IC00MjUgLTE5IC00NzEgLTEyMiAtNTc1IC0xMDEgLTEwMiAtMTk5IC0xMjUgLTUzMwotMTI0IC0zOTUgMCAtNTE5IDQ3IC02MDQgMjI4IC01NSAxMTUgLTU0IDk4IC02MCAxMDMxIC03IDk1NCAtNiA5MzEgLTY4IDEwMTMKLTUyIDcwIC0xNDcgMTA0IC0yMzAgODN6Ii8+CjxwYXRoIGQ9Ik02MjEyIDQ0MjYgYy03MSAtMzUgLTI4OCAtMjM3IC02NzUgLTYzMSAtMjU0IC0yNTkgLTMwNSAtNDc2IC0xNDcKLTYzMiA2NSAtNjYgMTA1IC03NCAzODUgLTgzIDMwNCAtMTAgNDUyIC0zNyA1OTEgLTEwOCAzMjMgLTE2NSAyODggLTY3MyAtNTUKLTc4NyAtMTA5IC0zNiAtODA1IC00NSAtMjAwMSAtMjUgLTU0MiA5IC01MTEgNiAtNzQ1IDcwIC0yNTggNzEgLTQyNiAyMiAtNDUxCi0xMzEgLTIwIC0xMjEgNjggLTIwNiAzMDMgLTI5NSA2NSAtMjUgMTQwIC01OSAxNjggLTc1IDI1NiAtMTU2IDE0OCAtMzk4Ci0yMjMgLTUwMiAtMTIxIC0zMyAtNTk4IC0zMyAtNzIyIDEgLTM3NyAxMDMgLTUwMCAyOTIgLTQ3MCA3MTggMTkgMjYyIC0xMwozNTQgLTE0NSA0MTUgLTE1NSA3MiAtMjkzIC0yNCAtMzY4IC0yNTYgLTg5IC0yNzcgLTk5IC00NDIgLTM5IC02MTUgMTM4IC0zOTIKNDI5IC02MTAgODY3IC02NTAgNjYgLTYgMTgzIC0yMSAyNjAgLTMyIDgyIC0xMyAxODggLTIyIDI1NSAtMjIgNjcgMCAxNzMgOQoyNTUgMjIgNzcgMTEgMTk0IDI2IDI2MCAzMiAyMTQgMjAgMzcyIDczIDUxMiAxNzIgMTgxIDEyOCAyMzkgMjIxIDI5NyA0ODQgMjcKMTI0IDUyIDE3MiAxMTcgMjI3IDEwMSA4NyAxMzUgODkgMTI0NCA4NiA4NTMgLTIgOTM1IC0xIDk5MCAxNCAxOTIgNTUgMzIxCjE4NCAzODIgMzgyIDI3IDkwIDI3IDY2MCAwIDc1MCAtNzkgMjU1IC0yODYgNDIyIC02MzggNTE1IC0zMDUgODAgLTMyMiAxNzcKLTgzIDQ4NSAxMzggMTc3IDE2OCAyMzUgMTY5IDMyMCAxIDE2MiAtMTI5IDIyOSAtMjkzIDE1MXoiLz4KPHBhdGggZD0iTTk2MjkgNDM1NyBjLTIyNyAtODUgLTE2NiAtNDEyIDc3IC00MTEgMTY5IDEgMjU4IDE5MCAxNTggMzM1IC00OAo2OSAtMTU3IDEwNSAtMjM1IDc2eiIvPgo8cGF0aCBkPSJNMTExNjUgMzQ2OSBjLTM5MyAtMzggLTY3MiAtMzAxIC03MTUgLTY3NCAtNTQgLTQ3MyA1OSAtNzc0IDM0NgotOTIyIDEwMSAtNTIgMTgyIC03MCAzNzIgLTgyIDE3MyAtMTAgMjI5IC0yOSAyNjkgLTkwIDM2IC01MyAzMCAtODcgLTIwIC0xMzYKLTg0IC04MCAtMTY1IC0xMDQgLTM0NyAtMTA1IC0yMTYgMCAtMzEwIC01NyAtMzEwIC0xODggMCAtMTE3IDExMiAtMTc3IDM0OQotMTg4IDM2OCAtMTYgNTg5IDQyIDc3OSAyMDYgMjI1IDE5NSAyNDggMjk3IDIzOSAxMDYzIC03IDU4OSAtMTQgNjMzIC0xMjMKNzk1IC0xODYgMjc0IC00MTcgMzYzIC04MzkgMzIxeiBtMjM1IC00NTAgYzIzNCAtMTA2IDMyNCAtNTU0IDE1MSAtNzUxIC0xNjEKLTE4NCAtNTE3IC0yNSAtNTk2IDI2NSAtNzkgMjkxIDIwMSA1OTcgNDQ1IDQ4NnoiLz4KPHBhdGggZD0iTTEzMzE1IDM0NzAgYy0xNzkgLTI0IC0zMzUgLTEyOCAtNDg2IC0zMjMgLTI4NCAtMzY3IC0yOTEgLTc1MSAtMjIKLTExMDUgMTM3IC0xNzkgMjU5IC0yMzUgNTQ4IC0yNTEgMTkxIC0xMCAyMzYgLTIyIDI4NSAtNzcgMTAxIC0xMTUgLTUxIC0yMzYKLTMyMCAtMjU2IC0xNzIgLTEyIC0yMjYgLTM0IC0yNTkgLTEwMCAtOTggLTIwMyAxMzYgLTMxMSA1ODQgLTI2OSAzNzMgMzQgNjM3CjI0MSA3MjcgNTY5IDI2IDkxIDQwIDkzMiAxOSAxMTA3IC02MCA1MDYgLTQ4MiA3ODIgLTEwNzYgNzA1eiBtMzY3IC00NjIgYzE0NAotNzcgMjM5IC0yNzggMjI1IC00NzcgLTMxIC00NDQgLTU4OSAtNDgzIC02OTIgLTQ4IC04NyAzNzAgMTg0IDY3NiA0NjcgNTI1eiIvPgo8cGF0aCBkPSJNMTUzMDMgMzQzMSBjLTcxIC0xOCAtMTI5IC04MSAtMTU5IC0xNzEgLTE2IC01MCAtMTkgLTExNSAtMjQgLTcwNQotNiAtNTY3IC04IC02NTcgLTIzIC03MDggLTM1IC0xMjEgLTkyIC0xOTcgLTIxNCAtMjg2IC0xODggLTEzOCAtMjMwIC0yNTMKLTE0MCAtMzg0IDU0IC03OSA5OSAtMTAwIDIxOSAtMTA1IDMxMyAtMTMgNTQ0IDE2MiA2MTUgNDY4IDI4IDExNyAyNyAxNjI0IDAKMTcxNSAtNDIgMTM1IC0xNTMgMjA2IC0yNzQgMTc2eiIvPgo8cGF0aCBkPSJNMTQ4MDUgNjY1IGMtODggLTg3IDM5IC00MDYgMTk0IC00ODUgMTM5IC03MSAzMzkgOTUgMzY1IDMwMyAxOCAxMzkKLTIzIDE3NyAtMTg5IDE3NyAtNjEgMCAtMTM3IDcgLTE3MCAxNSAtOTcgMjMgLTE3MSAyMCAtMjAwIC0xMHoiLz4KPC9nPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjAwMDAwMCwxNzE2LjAwMDAwMCkgc2NhbGUoMC4xMDAwMDAsLTAuMTAwMDAwKSIKZmlsbD0iIzNGM0YzRiIgc3Ryb2tlPSJub25lIj4KPHBhdGggZD0iTTg5NTAgODk4OSBjLTQxIC01IC0xNDkgLTI3IC0yNDAgLTQ5IC0yMjMgLTU0IC0yOTAgLTYwIC02OTUgLTYwCi00MDQgMCAtNDY2IC02IC02NzkgLTU5IC0xODYgLTQ3IC0yOTYgLTYxIC00ODggLTYxIC0xODUgMCAtMjcyIC0xMSAtNDY2IC02MQotMTI4IC0zMyAtMTkxIC00MyAtMzQyIC01NSAtMTk3IC0xNiAtMjU3IC0yNiAtNDQwIC03NCAtMTEwIC0yOSAtMTU5IC0zNgotMzg1IC02MCAtNTUgLTYgLTE3NCAtMjkgLTI2NCAtNTEgLTkxIC0yMiAtMjI4IC01MSAtMzA1IC02NCAtNzggLTEzIC0xOTAKLTM3IC0yNTEgLTU0IC02MCAtMTYgLTE3NSAtNDEgLTI1NSAtNTUgLTgwIC0xNCAtMTk3IC0zOSAtMjYwIC01NiAtNjMgLTE3Ci0xODkgLTQ4IC0yODAgLTcwIC05MSAtMjEgLTIwMyAtNTAgLTI1MCAtNjQgLTQ3IC0xMyAtMTUwIC00MSAtMjMwIC02MSAtMzkzCi05OCAtMTE3MiAtMzUzIC0xNDMwIC00NjggLTM1NiAtMTU5IC0zNzEgLTE2NyAtMzk0IC0yMDEgLTIwIC0zMSAtMjAgLTI4IDQKLTU2IDMzIC0zOCA5NCAtNDEgMjQ5IC0xMiAxMjkgMjQgMTU2IDI1IDUzMSAyNyA0MjkgMiA0MTMgMCA2NjUgNjggMTM1IDM3CjI2NSA0NyA1OTMgNDcgMzQ5IDAgNDE0IDYgNjI3IDYwIDIxNCA1NCAyNzcgNjAgNzE1IDYwIDQzMCAwIDUwMyA2IDY5NiA1NSA3NwoxOSAxNjIgNDAgMTg5IDQ2IDMxIDcgMjc1IDE0IDYzMCAxOSA1MjcgNyA1OTAgOSA2OTUgMjkgMTU1IDI4IDIyNyAyOCAyNzEgLTIKODkgLTYwIDY5IC0xMzkgLTc1IC0zMTIgLTQyIC00OSAtMTExIC0xMzcgLTE1MyAtMTk0IC0yMDYgLTI3NSAtMjU2IC0zNDEKLTMwOCAtNDAxIC0yNjggLTMxNCAtNDQ2IC02NDcgLTQwMSAtNzUzIDQ0IC0xMDcgMTM3IC05OSA3MDYgNTggMTI5IDM2IDMxNgo4NSA0MTUgMTEwIDk5IDI1IDIzOSA2MSAzMTIgODAgMTI5IDM0IDE5OSA0NyA0MTAgODAgNTYgOSAxNDggMjkgMjA0IDQ1IDU3CjE3IDE3OCA0MSAyNjkgNTUgOTEgMTQgMjM3IDQzIDMyNSA2NSAxNTkgMzkgMjIwIDQ5IDQxMCA3MSA1NSA2IDE2NyAyOCAyNTAKNTAgMTQ5IDM5IDE3NCA0MiA1MjAgNjggOTQgNyAxNzMgMjEgMjg2IDUwIDE5MSA0OSAyODUgNjEgNDk5IDYxIDIwOSAwIDMwNwoxMiA1MDAgNjAgMjE0IDUzIDI5NCA2MCA3MzAgNjAgNDExIDAgNTIwIDggNjYzIDQ2IDI2NiA3MiAxNzQgNjYgMTIwMiA3NSA1MTIKNCA5NTAgMTAgOTc1IDEzIDI1OSAzNiAzMjggNjAgMzMwIDExNCAxIDUwIC0yNDQgMTczIC00MzIgMjE3IC05MiAyMiAtMjQwIDYyCi0yOTQgODAgLTY0IDIxIC0xODYgNDMgLTMzNCA2MCAtNzQgOCAtMjA4IDMzIC0yOTcgNTUgLTE5NSA0OCAtMjk0IDYwIC01MTYKNjAgLTIxOCAwIC0zMjIgMTIgLTUxMiA2MCAtMjQzIDYxIC0yNDYgNjIgLTE2NDAgNTcgLTEwODQgLTMgLTEyNjkgLTYgLTEzMjUKLTE5IC0zNiAtOCAtMTIzIC0zMCAtMTk1IC00OSAtMzY4IC05NiAtNjIwIC0xIC01MjQgMTk4IDIxIDQzIDEyNSAxNDUgMjM5CjIzNSAzMCAyMyAxMDYgODggMTY3IDE0NCA2MiA1NiAxNTkgMTMzIDIxNSAxNzIgMzA4IDIxMyAzOTYgMzM1IDMxNiA0MzcgLTI4CjM2IC05MSA2MiAtMTgzIDc0IC05MSAxMyAtODU1IDEyIC05NjUgMHoiLz4KPC9nPgo8L3N2Zz4=";
 const HP_ICON = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4OTYuODUgNTU1Ij4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTE2LjA5MDE2Miw2ODIuMDM2MTgzKSBzY2FsZSgwLjEwMDAwMCwtMC4xMDAwMDApIgpmaWxsPSIjRkY2QjM1IiBzdHJva2U9Im5vbmUiPgo8cGF0aCBkPSJNNjQ1MyA2ODAxIGMtMjYgLTEyIC01MSAtMzQgLTY2IC01OCAtNTggLTkxIC0xMjQgLTIxMiAtMTQ2IC0yNjMKLTEzIC0zMCAtNjQgLTEwOSAtMTE0IC0xNzQgLTQ5IC02NiAtMTEyIC0xNjMgLTEzOCAtMjE1IC0yNiAtNTMgLTU3IC0xMTIgLTY4Ci0xMzEgLTExIC0xOSAtMzcgLTcxIC01OSAtMTE1IC0yMSAtNDQgLTYzIC0xMjUgLTkzIC0xODAgLTUwIC05MiAtNzMgLTEyNwotMTgwIC0yNzAgLTIxIC0yOCAtNTIgLTgyIC02OSAtMTIwIC0xNyAtMzkgLTQ2IC05NSAtNjMgLTEyNSAtMTggLTMwIC00NiAtODcKLTYzIC0xMjcgLTE4IC0zOSAtNDMgLTg3IC01NiAtMTA1IC0xNCAtMTggLTQ2IC03MSAtNzIgLTExOCAtMjUgLTQ3IC03NSAtMTI1Ci0xMTEgLTE3NSAtMTM2IC0xODkgLTE4MSAtMzQxIC0xMzQgLTQ0NSA2OCAtMTUyIDE3OCAtMTI5IDI3MSA1NSAyMiA0NCA0OCA5MQo1OCAxMDUgMTAgMTQgMzIgNTkgNDkgMTAwIDE4IDQxIDQ5IDk3IDcwIDEyNSAxMDQgMTQwIDEzMCAxNzcgMTc4IDI2NSAyOSA1Mgo4MCAxNDkgMTE0IDIxNSAxMTYgMjI5IDE2NCAzMTMgMjQ2IDQyMyA0NSA2MCA5OSAxNDcgMTIxIDE5MyAyMSA0NiA1MCAxMDIgNjMKMTI0IDE0IDIyIDM4IDY5IDUzIDEwNSAxNSAzNiAzOCA3OSA1MSA5NiAxMyAxNyA2MCA4OSAxMDQgMTYwIDQ0IDcxIDEwMCAxNjEKMTI1IDE5OSA2NyAxMDQgMTQ2IDI5MCAxNDYgMzQzIDAgMTExIC0xMDMgMTY0IC0yMTcgMTEzeiIvPgo8cGF0aCBkPSJNNzMwNSA2ODA4IGMtNDIgLTE1IC03MSAtNDMgLTEyMiAtMTE4IC01NCAtODEgLTEwNCAtMTUwIC0xNTMgLTIxNQotMjEgLTI3IC01OCAtOTMgLTgzIC0xNDUgLTI1IC01MiAtNTUgLTExMSAtNjYgLTEzMCAtMTEgLTE5IC0zNSAtNjYgLTU0IC0xMDUKLTQ0IC05MiAtMTEzIC0yMDcgLTIxNCAtMzU4IC00NiAtNjcgLTEwNSAtMTY3IC0xMzEgLTIyMiAtMjcgLTU1IC02MCAtMTE4Ci03NCAtMTQwIC0xMyAtMjIgLTM3IC02OSAtNTIgLTEwNSAtMTUgLTM2IC0zOCAtNzggLTUwIC05NSAtMTMgLTE2IC02NSAtOTcKLTExNSAtMTgwIC01MSAtODIgLTEwNiAtMTY5IC0xMjIgLTE5MSAtMTYgLTIzIC00OCAtODQgLTcyIC0xMzUgLTI0IC01MiAtNTUKLTExMiAtNjggLTEzNCAtMTQgLTIyIC0zOCAtNzAgLTUzIC0xMDYgLTE2IC0zNyAtNDUgLTg3IC02NSAtMTEyIC0xMDcgLTEzMgotMTM4IC0xODUgLTMwMyAtNTA3IC0xMTAgLTIxNCAtMTE5IC0zMzggLTI3IC0zODUgOTYgLTUwIDIwNyAyNSAyODQgMTkwIDIzCjQ5IDUzIDEwOCA2NiAxMzAgMTQgMjIgMzggNjkgNTMgMTA1IDE1IDM2IDQyIDg4IDYwIDExNSAxOCAyOCA1MiA4MiA3NCAxMjAKMjMgMzkgNzAgMTEzIDEwNiAxNjUgMzYgNTIgODggMTQwIDExNCAxOTUgMjcgNTUgNjAgMTE4IDczIDE0MCAxNCAyMiAzNyA2OQo1MiAxMDYgMTUgMzYgNDQgODYgNjUgMTExIDEwNyAxMzIgMTM5IDE4NiAyOTcgNDkzIDM5IDc3IDc5IDE1NCA4NyAxNzAgOSAxNwoyOCA1NSA0MiA4NSAxNSAzMCA2MyAxMDAgMTA3IDE1NSA1NCA2NiA5NyAxMzQgMTI5IDIwMCAyNyA1NSA1OCAxMTYgNjkgMTM1CjExIDE5IDM3IDcxIDU5IDExNSA3MSAxNDYgMTQ1IDI3OSAxNzcgMzIwIDEwOCAxMzggMTM2IDIxNiAxMDAgMjg0IC0yNyA1MgotMTE1IDc1IC0xOTAgNDl6Ii8+CjxwYXRoIGQ9Ik04MTYwIDY4MTMgYy01OSAtOCAtNzYgLTE3IC0xMzggLTc2IC01MiAtNTAgLTczIC04MCAtMTA3IC0xNTIgLTIzCi00OSAtNTMgLTEwOCAtNjYgLTEzMCAtMTQgLTIyIC0zNSAtNjUgLTQ4IC05NSAtMTMgLTMwIC00MiAtODQgLTY2IC0xMjAgLTIzCi0zNiAtNTAgLTgwIC02MCAtOTkgLTkgLTE4IC01OSAtOTggLTExMCAtMTc2IC01MiAtNzggLTExMSAtMTc5IC0xMzIgLTIyNgotMjIgLTQ2IC01MSAtMTAyIC02NCAtMTI0IC0xNCAtMjIgLTM4IC02OSAtNTMgLTEwNSAtMTUgLTM2IC00NCAtODcgLTY1IC0xMTUKLTEwNiAtMTQxIC0xODggLTI3NiAtMjkwIC00ODAgLTE0MyAtMjg1IC0xODYgLTM1NiAtMjk5IC00OTAgLTE0IC0xNiAtNDQgLTcwCi02NyAtMTIwIC0yMyAtNDkgLTUzIC0xMDggLTY2IC0xMzAgLTE0IC0yMiAtMzcgLTY5IC01MyAtMTA1IC0xNSAtMzYgLTQwIC04MwotNTUgLTEwNSAtMTUgLTIyIC00NyAtNzQgLTcwIC0xMTUgLTIzIC00MSAtNzMgLTEyMCAtMTExIC0xNzUgLTM4IC01NSAtOTIKLTE0NSAtMTE4IC0yMDAgLTI3IC01NSAtNjAgLTExOCAtNzQgLTE0MCAtMTMgLTIyIC0zNiAtNjkgLTUyIC0xMDUgLTE1IC0zNgotNDAgLTgxIC01NiAtMTAxIC0xNDUgLTE4MiAtMTYzIC0zMjYgLTQ4IC0zODUgMTI1IC02NSAyNDggNjcgNDY4IDUwMSAxMTcKMjMxIDE2NiAzMTMgMjQ3IDQyMiA0NCA2MCAxMDEgMTUyIDEyNiAyMDQgMjUgNTIgNTUgMTEwIDY2IDEyOSAxMSAxOSAzNSA2Nwo1NCAxMDUgNDYgOTYgMTE3IDIxNSAyMTQgMzU4IDQ2IDY3IDEwNyAxNzIgMTM3IDIzMiAzMCA2MSA2NCAxMjYgNzUgMTQ1IDExCjE5IDM3IDY5IDU2IDExMCAyMCA0MSA2NiAxMjMgMTAzIDE4MiAzNyA1OCA4NSAxMzUgMTA2IDE3MCAyMiAzNCA1MiA3OSA2NyA5OQoxNiAyMCA0OCA3OCA3MiAxMzAgMjQgNTIgNTUgMTEyIDY4IDEzNCAxNCAyMiAzNyA3MCA1MyAxMDcgMTUgMzYgNDIgODMgNjAKMTA1IDkyIDExMCAxNTAgMjA1IDI5NCA0ODMgMzUgNjkgNzcgMTUwIDkzIDE4MCA4NyAxNjggNDYgMjkwIC05MSAyNzN6Ii8+CjxwYXRoIGQ9Ik04OTM1IDY3OTYgYy01NSAtMjUgLTE0MSAtMTI1IC0xNzggLTIwNiAtMTkgLTQyIC00NiAtODkgLTU5IC0xMDUKLTM1IC00MSAtMTUwIC0yMjAgLTE3OCAtMjc1IC0xMyAtMjUgLTM2IC02NCAtNTEgLTg3IC0xNiAtMjMgLTQ4IC04NCAtNzIKLTEzNSAtMjQgLTUxIC01NSAtMTExIC02OCAtMTMzIC0xNCAtMjIgLTM2IC02NSAtNDggLTk1IC0xMyAtMzAgLTYyIC0xMDcKLTExMCAtMTcwIC03NiAtMTAyIC0xNjUgLTI1MyAtMjM3IC00MDUgLTc4IC0xNjMgLTE2NyAtMzE3IC0yNTcgLTQ0MiAtNDcgLTY3Ci0xMDQgLTE1OSAtMTI1IC0yMDUgLTIxIC00NSAtNTAgLTEwMSAtNjMgLTEyMyAtMTQgLTIyIC0zOCAtNjkgLTUzIC0xMDUgLTE1Ci0zNiAtMzggLTc4IC01MCAtOTUgLTEzIC0xNiAtNjUgLTk3IC0xMTUgLTE4MCAtNTEgLTgyIC0xMDYgLTE2OSAtMTIyIC0xOTEKLTE2IC0yMyAtNDggLTg0IC03MiAtMTM1IC0yNCAtNTIgLTU1IC0xMTIgLTY4IC0xMzQgLTE0IC0yMiAtMzcgLTY3IC01MSAtMTAxCi0xNCAtMzMgLTYzIC0xMTIgLTEwOSAtMTc1IC04OSAtMTIyIC0xNTggLTI0MCAtMjQwIC00MDggLTI4IC01OCAtNjIgLTEyNQotNzcgLTE1MCAtMTUgLTI1IC0zOSAtNzQgLTU0IC0xMDggLTE0IC0zNSAtNDcgLTg5IC03MiAtMTIxIC0xNDIgLTE3OSAtMTYxCi0yMjMgLTE1NCAtMzU2IDUgLTk4IDI1IC0xNDIgNzUgLTE2MiA4NCAtMzUgMTE4IDAgMzIzIDMzNiA0NiA3NCA5OCAxNTcgMTE3CjE4NCAxOSAyNyA1NCA5MCA3NyAxNDAgMjQgNTAgNTQgMTA5IDY3IDEzMSAxNCAyMiAzNyA2NyA1MSAxMDEgMTQgMzMgNjMgMTEyCjEwOCAxNzUgOTIgMTI2IDE2MiAyNDYgMjQ1IDQxNyAzMSA2MiA2NiAxMjkgNzggMTUwIDEzIDIwIDM2IDY3IDUyIDEwNCAxNSAzNwo0MiA4NSA1OSAxMDUgMTAyIDEyMiAxNDkgMjAwIDI4NSA0NjkgMzEgNjAgNjUgMTIzIDc3IDE0MCAxMSAxNiAzOCA2MSA1OSA5OQoyMSAzOSA3NiAxMjYgMTIyIDE5MyA0NiA2OCAxMDMgMTY1IDEyOCAyMTUgMjQgNTEgNTMgMTA4IDY0IDEyNyAxMSAxOSAzNSA2Nwo1NCAxMDUgNDMgODkgMTEwIDIwMiAyMTQgMzU3IDQ2IDY4IDEwNyAxNzMgMTM3IDIzMyAzMCA2MSA2NCAxMjYgNzUgMTQ1IDEyCjE5IDM0IDY0IDUxIDEwMCAxNiAzNiA2NiAxMTUgMTEwIDE3NSAxMjQgMTY4IDIzOCAzODYgMjQ3IDQ2OSAxMSAxMDggLTE2IDE0NgotMTA0IDE0NiAtMzIgLTEgLTcxIC03IC04OCAtMTR6Ii8+CjxwYXRoIGQ9Ik0xOTE2IDU0MSBjLTI0IC0yNiAtMjMgLTEwMiAxIC0xNDQgMzAgLTUwIDU5IC02MCAxMjQgLTQxIDU5IDE4IDE0OQoxNSAyMzIgLTggNjAgLTE2IDc3IDAgNzcgNzIgMCA3MSAtMTcgODggLTc0IDcyIC0xMDQgLTI3IC0xNzggLTE2IC0yNDYgNDAKLTQxIDMzIC04OSAzNyAtMTE0IDl6Ii8+CjxwYXRoIGQ9Ik01OTUgNDg3IGMtNjggLTY2IC02OCAtNjggMSAtMTM0IDY2IC02MSA4OCAtNjUgMTMwIC0yMiA2MSA2MyAyNAoyMDkgLTUzIDIwOSAtMTUgMCAtNDQgLTIwIC03OCAtNTN6Ii8+CjxwYXRoIGQ9Ik0xODQgNDc2IGMtNTEgLTM4IC0xMCAtMTQwIDQ1IC0xMTIgNTIgMjcgNjcgNTMgNDUgNzcgLTMzIDM3IC02OCA1MAotOTAgMzV6Ii8+CjwvZz4KPC9zdmc+";
 
+// ─────────────────────────────────────────────────────────────
+// Runaki means "light". The page is a sunrise over the Kurdistan mountains
+// and the sky follows the agent's real local time: dawn, day, dusk, night.
+// ─────────────────────────────────────────────────────────────
+
+const GOLD = '#D2AD54';
+
+const SKIES = {
+  dawn: {
+    top: '#5565B0', bottom: '#FFD2A2', orb: '#FFB050', glow: '#FFC070', glowOp: 0.55,
+    ridges: ['#E9BDB8', '#B98BA8', '#715C93', '#2B2656'],
+    text: '#FFFFFF', sub: 'rgba(255,255,255,0.88)', clouds: 0.38, stars: 0, dark: false,
+  },
+  day: {
+    top: '#4F9FE3', bottom: '#FDEBBE', orb: '#FFD257', glow: '#FFE9A0', glowOp: 0.6,
+    ridges: ['#B5D2EE', '#7AA6D2', '#4373A8', '#15305A'],
+    text: '#0C1A33', sub: 'rgba(12,26,51,0.78)', clouds: 0.7, stars: 0, dark: false,
+  },
+  dusk: {
+    top: '#3A4585', bottom: '#FFA06C', orb: '#FF7A45', glow: '#FF9A62', glowOp: 0.6,
+    ridges: ['#E3948C', '#AB6580', '#5E4074', '#231B46'],
+    text: '#FFFFFF', sub: 'rgba(255,255,255,0.88)', clouds: 0.3, stars: 0.25, dark: false,
+  },
+  night: {
+    top: '#091128', bottom: '#27407A', orb: '#EEF1FA', glow: '#8FA6E0', glowOp: 0.35,
+    ridges: ['#2B4580', '#1C3166', '#12234D', '#0A1430'],
+    text: '#FFFFFF', sub: 'rgba(255,255,255,0.85)', clouds: 0, stars: 1, dark: true,
+  },
+};
+
+// Greetings: English, Sorani and Arabic. Hello is used in the afternoon.
+const GREET = {
+  morning: { en: 'Good morning.', ku: 'بەیانی باش', ar: 'صباح الخير' },
+  hello: { en: 'Hello.', ku: 'سڵاو', ar: 'مرحباً' },
+  evening: { en: 'Good evening.', ku: 'ئێوارە باش', ar: 'مساء الخير' },
+};
+
+function phaseFor(hour) {
+  if (hour >= 5 && hour < 8) return 'dawn';
+  if (hour >= 8 && hour < 16.5) return 'day';
+  if (hour >= 16.5 && hour < 19.5) return 'dusk';
+  return 'night';
+}
+function greetingFor(hour) {
+  if (hour >= 5 && hour < 12) return GREET.morning;
+  if (hour >= 12 && hour < 16.5) return GREET.hello;
+  return GREET.evening;
+}
+
+// optional preview: /login?sky=dawn|day|dusk|night
+function useSky() {
+  const read = () => {
+    const forced = new URLSearchParams(window.location.search).get('sky');
+    const now = new Date();
+    const h = now.getHours() + now.getMinutes() / 60;
+    if (forced && SKIES[forced]) {
+      const fh = { dawn: 6.2, day: 12, dusk: 17.8, night: 22 }[forced];
+      return { phase: forced, hour: fh };
+    }
+    return { phase: phaseFor(h), hour: h };
+  };
+  const [sky, setSky] = useState(read);
+  useEffect(() => {
+    const id = setInterval(() => setSky(read()), 60000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line
+  }, []);
+  return sky;
+}
+
+// small seeded random so the mountains look the same on every visit
+function rng(seed) {
+  let s = seed;
+  return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+}
+function ridgePath(seed, base, amp, step, jag) {
+  const r = rng(seed);
+  const pts = [];
+  for (let x = -step; x <= 1200 + step; x += step) {
+    const wave = Math.sin(x / 190 + seed) * amp * 0.55 + Math.sin(x / 83 + seed * 2) * amp * 0.25;
+    pts.push([x, base - amp * 0.5 + wave + (r() - 0.5) * amp * jag]);
+  }
+  let d = `M${pts[0][0]},${pts[0][1].toFixed(1)}`;
+  pts.slice(1).forEach(p => { d += ` L${p[0]},${p[1].toFixed(1)}`; });
+  return d + ' L1260,820 L-60,820 Z';
+}
+const RIDGE_PATHS = [
+  ridgePath(7, 560, 120, 46, 0.9),
+  ridgePath(13, 620, 110, 38, 0.8),
+  ridgePath(29, 690, 90, 32, 0.7),
+  ridgePath(41, 760, 60, 26, 0.5),
+];
+const STARS = (() => {
+  const r = rng(99);
+  return Array.from({ length: 70 }, () => ({ x: r() * 1200, y: r() * 430, s: 0.7 + r() * 1.5, o: 0.35 + r() * 0.6 }));
+})();
+
+function Scene({ phase, hour }) {
+  const k = SKIES[phase];
+  const night = phase === 'night';
+  // how far along its arc the sun (or moon) is, 0 to 1
+  let t = night ? ((hour - 19 + 24) % 24) / 10 : (hour - 6) / 12;
+  t = Math.min(0.94, Math.max(0.06, t));
+  const cx = 600 + 520 * t - 80;            // keeps the sun on the right, clear of the headline
+  const cy = 600 - Math.sin(Math.PI * t) * 360;
+  const r = night ? 46 : 58;
+  return (
+    <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} aria-hidden="true">
+      <defs>
+        <radialGradient id="glow">
+          <stop offset="0%" stopColor={k.glow} stopOpacity={k.glowOp} />
+          <stop offset="100%" stopColor={k.glow} stopOpacity="0" />
+        </radialGradient>
+        <mask id="crescent">
+          <rect x="0" y="0" width="1200" height="800" fill="black" />
+          <circle cx={cx} cy={cy} r={r} fill="white" />
+          <circle cx={cx + 22} cy={cy - 12} r={r * 0.92} fill="black" />
+        </mask>
+      </defs>
+
+      {k.stars > 0 && STARS.map((s, i) => <circle key={i} cx={s.x} cy={s.y} r={s.s} fill="#fff" opacity={s.o * k.stars} />)}
+
+      <g className="rk-orb">
+        <circle cx={cx} cy={cy} r="260" fill="url(#glow)" />
+        {night
+          ? <circle cx={cx} cy={cy} r={r} fill={k.orb} mask="url(#crescent)" />
+          : <circle cx={cx} cy={cy} r={r} fill={k.orb} />}
+      </g>
+
+      {k.clouds > 0 && (
+        <g opacity={k.clouds} fill="#fff">
+          <g className="rk-cloud rk-cloud-a"><ellipse cx="150" cy="250" rx="110" ry="18" /><ellipse cx="205" cy="236" rx="70" ry="16" /></g>
+          <g className="rk-cloud rk-cloud-b"><ellipse cx="760" cy="150" rx="90" ry="14" /><ellipse cx="810" cy="138" rx="55" ry="12" /></g>
+        </g>
+      )}
+
+      {RIDGE_PATHS.map((d, i) => <path key={i} d={d} fill={k.ridges[i]} />)}
+    </svg>
+  );
+}
+
+function Hero({ phase, hour, compact }) {
+  const k = SKIES[phase];
+  const g = greetingFor(hour);
+  return (
+    <div style={{ position: 'relative', zIndex: 2, padding: compact ? '34px 28px' : '72px 64px', maxWidth: compact ? 'none' : 760 }}>
+      <h2 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 700, fontSize: compact ? 38 : 'clamp(46px, 5.4vw, 76px)', lineHeight: 1.02, letterSpacing: '-0.025em', color: k.text }}>{g.en}</h2>
+      <div style={{ display: 'flex', gap: compact ? 18 : 26, marginTop: compact ? 10 : 18, fontFamily: ARABIC, fontWeight: 600, fontSize: compact ? 19 : 26, color: k.text }}>
+        <span dir="rtl" lang="ckb">{g.ku}</span>
+        <span dir="rtl" lang="ar">{g.ar}</span>
+      </div>
+      {!compact && (
+        <p style={{ margin: '26px 0 0', maxWidth: 400, fontFamily: DISPLAY, fontWeight: 500, fontSize: 18, lineHeight: 1.55, color: k.sub }}>
+          Scripts, FAQs and procedures for your queue, checked by the QA team.
+        </p>
+      )}
+    </div>
+  );
+}
+
+const DISPLAY = "'Bricolage Grotesque','Segoe UI',system-ui,sans-serif";
+const ARABIC = "'Noto Sans Arabic','Segoe UI',Tahoma,sans-serif";
+
 function UserIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
     </svg>
   );
 }
 function LockIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="4" y="11" width="16" height="10" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
   );
 }
 function EyeIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" /><circle cx="12" cy="12" r="3" />
     </svg>
   );
 }
 function EyeOffIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c7 0 11 7 11 7a20.7 20.7 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24" />
       <path d="M1 1l22 22" />
     </svg>
@@ -40,8 +203,12 @@ function EyeOffIcon() {
 export default function Login() {
   const { login, loading } = useAuth();
   const navigate = useNavigate();
+  const { phase, hour } = useSky();
+  const k = SKIES[phase];
+  const P = k.dark ? DARK : LIGHT;
   const [form, setForm] = useState({ identifier: '', password: '' });
   const [showPass, setShowPass] = useState(false);
+  const [capsOn, setCapsOn] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
   const [focused, setFocused] = useState('');
 
@@ -60,173 +227,122 @@ export default function Login() {
     navigate('/');
   };
 
+  const input = on => ({
+    width: '100%', boxSizing: 'border-box', background: P.input, border: `1.5px solid ${on ? GOLD : P.border}`,
+    borderRadius: 14, padding: '14px 16px 14px 46px', color: P.text, fontSize: 16, fontFamily: DISPLAY,
+    outline: 'none', boxShadow: on ? `0 0 0 4px ${GOLD}33` : 'none', transition: 'border-color .15s, box-shadow .15s',
+  });
+  const ico = { position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: P.muted, display: 'flex', pointerEvents: 'none' };
+
+  const form_ = (
+    <div style={{ width: '100%', maxWidth: 380 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', borderRadius: 16, padding: '12px 20px 12px 14px', width: 'fit-content', boxShadow: P.logoShadow, marginBottom: 44 }}>
+        <img src={RK_LOGO} alt="" style={{ height: 40, width: 'auto', display: 'block' }} />
+        <span style={{ fontFamily: DISPLAY, fontSize: 19, fontWeight: 800, letterSpacing: '0.02em', color: '#14110a' }}>RUNAKI</span>
+      </div>
+
+      <h1 style={{ margin: 0, fontFamily: DISPLAY, fontSize: 38, fontWeight: 700, letterSpacing: '-0.02em', color: P.text }}>Sign in</h1>
+      <p style={{ margin: '10px 0 0', fontFamily: DISPLAY, fontSize: 16, color: P.muted }}>Use your Wave ID or work email.</p>
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 30 }}>
+        <div>
+          <label htmlFor="rk-id" style={{ display: 'block', marginBottom: 8, fontFamily: DISPLAY, fontSize: 14, fontWeight: 600, color: P.label }}>Email or Wave ID</label>
+          <div style={{ position: 'relative' }}>
+            <span style={ico}><UserIcon /></span>
+            <input id="rk-id" type="text" autoComplete="username" autoFocus placeholder="you@runaki.com or Wave ID"
+              value={form.identifier} onChange={e => setForm({ ...form, identifier: e.target.value })}
+              onFocus={() => setFocused('id')} onBlur={() => setFocused('')} style={input(focused === 'id')} required />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="rk-pw" style={{ display: 'block', marginBottom: 8, fontFamily: DISPLAY, fontSize: 14, fontWeight: 600, color: P.label }}>Password</label>
+          <div style={{ position: 'relative' }}>
+            <span style={ico}><LockIcon /></span>
+            <input id="rk-pw" type={showPass ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password"
+              value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
+              onKeyUp={e => setCapsOn(e.getModifierState && e.getModifierState('CapsLock'))}
+              onFocus={() => setFocused('pw')} onBlur={() => { setFocused(''); setCapsOn(false); }}
+              style={{ ...input(focused === 'pw'), paddingRight: 48 }} required />
+            <button type="button" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'}
+              style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: P.muted, padding: 6, display: 'flex', borderRadius: 8 }}>
+              {showPass ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
+          {capsOn && <div role="status" style={{ marginTop: 8, fontFamily: DISPLAY, fontSize: 13, fontWeight: 600, color: P.warn }}>Caps Lock is on.</div>}
+        </div>
+
+        <button type="submit" disabled={loading} className="rk-btn"
+          style={{ marginTop: 6, padding: 16, borderRadius: 14, border: 'none', cursor: loading ? 'default' : 'pointer', fontFamily: DISPLAY,
+            background: `linear-gradient(135deg, ${GOLD}, #EBCB7E)`, color: '#1b1405', fontWeight: 800, fontSize: 16.5,
+            boxShadow: '0 10px 26px rgba(210,173,84,0.38)', opacity: loading ? 0.85 : 1 }}>
+          {loading
+            ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><span className="rk-spin" /> Signing in…</span>
+            : 'Sign in'}
+        </button>
+      </form>
+
+      <p style={{ margin: '26px 0 0', fontFamily: DISPLAY, fontSize: 13.5, lineHeight: 1.7, color: P.muted }}>
+        Forgot your password? Ask your QA Team Lead to reset it.<br />
+        You stay signed in on this device for 30 days.
+      </p>
+    </div>
+  );
+
+  const sky = { background: `linear-gradient(180deg, ${k.top} 0%, ${k.bottom} 78%)` };
+
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Noto+Sans+Arabic:wght@500..700&display=swap');
         html, body, #root { height: 100%; margin: 0; padding: 0; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes waveScrollA { from { transform: translateX(0); } to { transform: translateX(-1200px); } }
-        @keyframes waveScrollB { from { transform: translateX(0); } to { transform: translateX(-1400px); } }
-        @keyframes waveScrollC { from { transform: translateX(0); } to { transform: translateX(-1000px); } }
+        .rk-orb { animation: rkRise 2.4s cubic-bezier(.16,.8,.24,1) both; }
+        .rk-cloud-a { animation: rkDrift 110s linear infinite; }
+        .rk-cloud-b { animation: rkDrift 150s linear infinite; animation-delay: -60s; }
+        .rk-spin { width: 16px; height: 16px; border: 2.5px solid rgba(27,20,5,.28); border-top-color: #1b1405; border-radius: 50%; animation: rkSpin .8s linear infinite; display: inline-block; }
+        .rk-btn { transition: transform .15s, box-shadow .15s; }
+        .rk-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(210,173,84,.5); }
+        .rk-btn:focus-visible, #rk-pw ~ button:focus-visible { outline: 3px solid ${GOLD}; outline-offset: 3px; }
+        @keyframes rkRise { from { transform: translateY(330px); } to { transform: translateY(0); } }
+        @keyframes rkDrift { from { transform: translateX(-340px); } to { transform: translateX(1500px); } }
+        @keyframes rkSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .rk-orb, .rk-cloud-a, .rk-cloud-b { animation: none; } }
       `}</style>
 
-      <div style={S.page}>
-        <div style={{ ...S.wrapper, flexDirection: isMobile ? 'column' : 'row' }}>
-
-          {/* Left — sign-in form */}
-          <div style={{ ...S.left, flex: isMobile ? '1' : '0 0 460px' }}>
-            <div style={S.logoBox}>
-              <img src={RK_LOGO} alt="Runaki" style={S.logoIcon} />
-              <span style={S.logoWord}>RUNAKI</span>
-            </div>
-
-            <div style={S.formMiddle}>
-              <h1 style={S.formTitle}>Sign in</h1>
-              <p style={S.formSub}>Use your Wave ID or work email.</p>
-
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '28px' }}>
-                <div style={S.field}>
-                  <label style={S.label}>Email or Wave ID</label>
-                  <div style={{ position: 'relative' }}>
-                    <span style={S.fieldIco}><UserIcon /></span>
-                    <input
-                      type="text"
-                      placeholder="you@runaki.com or Wave ID"
-                      value={form.identifier}
-                      onChange={e => setForm({ ...form, identifier: e.target.value })}
-                      onFocus={() => setFocused('email')}
-                      onBlur={() => setFocused('')}
-                      style={{ ...S.input, ...(focused === 'email' ? S.inputOn : {}) }}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div style={S.field}>
-                  <label style={S.label}>Password</label>
-                  <div style={{ position: 'relative' }}>
-                    <span style={S.fieldIco}><LockIcon /></span>
-                    <input
-                      type={showPass ? 'text' : 'password'}
-                      placeholder="Enter your password"
-                      value={form.password}
-                      onChange={e => setForm({ ...form, password: e.target.value })}
-                      onFocus={() => setFocused('pass')}
-                      onBlur={() => setFocused('')}
-                      style={{ ...S.input, paddingRight: '44px', ...(focused === 'pass' ? S.inputOn : {}) }}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPass(!showPass)}
-                      style={S.eyeBtn}
-                      aria-label={showPass ? 'Hide password' : 'Show password'}
-                    >
-                      {showPass ? <EyeOffIcon /> : <EyeIcon />}
-                    </button>
-                  </div>
-                </div>
-
-                <button type="submit" disabled={loading} style={{ ...S.btn, opacity: loading ? 0.85 : 1 }}>
-                  {loading
-                    ? <span style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
-                        <span style={S.spinner} /> Signing in...
-                      </span>
-                    : 'Sign in'
-                  }
-                </button>
-              </form>
-
-              <div style={S.hint}>
-                Forgot your password? Ask your QA Team Lead to reset it.<br/>
-                You stay signed in on this device for 30 days.
-              </div>
-            </div>
-
-            <div />
+      <div style={{ minHeight: '100vh', width: '100%', background: P.bg, display: 'flex', flexDirection: isMobile ? 'column' : 'row', fontFamily: DISPLAY, overflow: isMobile ? 'auto' : 'hidden', height: isMobile ? 'auto' : '100vh' }}>
+        {isMobile && (
+          <div style={{ position: 'relative', height: 250, flex: '0 0 auto', overflow: 'hidden', ...sky }}>
+            <Scene phase={phase} hour={hour} />
+            <Hero phase={phase} hour={hour} compact />
           </div>
+        )}
 
-          {/* Right — hero */}
-          {!isMobile && (
-            <div style={S.right}>
-              <div style={S.heroContent}>
-                <h2 style={S.heroTitle}>Welcome back.</h2>
-                <p style={S.heroSub}>Scripts, FAQs and procedures for every queue — verified by your QA team, updated in real time.</p>
-              </div>
-
-              {/* Animated waves */}
-              <svg style={S.waves} viewBox="0 0 1200 220" preserveAspectRatio="none" aria-hidden="true">
-                <g style={{ animation: 'waveScrollA 22s linear infinite' }}>
-                  <path d="M0,120 C150,160 350,80 600,120 C850,160 1050,80 1200,120 L1200,220 L0,220 Z" fill="#1e3a5f" opacity="0.35" />
-                  <path d="M1200,120 C1350,160 1550,80 1800,120 C2050,160 2250,80 2400,120 L2400,220 L1200,220 Z" fill="#1e3a5f" opacity="0.35" />
-                </g>
-                <g style={{ animation: 'waveScrollB 16s linear infinite' }}>
-                  <path d="M0,150 C200,190 400,110 700,150 C950,185 1050,120 1200,150 L1200,220 L0,220 Z" fill="#C9972F" opacity="0.4" />
-                  <path d="M1200,150 C1400,190 1600,110 1900,150 C2150,185 2250,120 2400,150 L2400,220 L1200,220 Z" fill="#C9972F" opacity="0.4" />
-                </g>
-                <g style={{ animation: 'waveScrollC 11s linear infinite' }}>
-                  <path d="M0,180 C180,210 420,150 650,180 C900,210 1000,160 1200,180 L1200,220 L0,220 Z" fill="#FF6B35" opacity="0.55" />
-                  <path d="M1200,180 C1380,210 1620,150 1850,180 C2100,210 2200,160 2400,180 L2400,220 L1200,220 Z" fill="#FF6B35" opacity="0.55" />
-                </g>
-              </svg>
-
-              <div style={S.poweredBy}>
-                <span style={S.poweredByLabel}>Powered by</span>
-                <img src={HP_ICON} alt="High Performance" style={S.poweredByIcon} />
-                <span style={S.poweredByText}>HIGH-PERFORMANCE</span>
-              </div>
-            </div>
-          )}
-
+        <div style={{ flex: isMobile ? '1 0 auto' : '0 0 500px', background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '34px 24px 40px' : '48px 56px', boxSizing: 'border-box',
+          borderRadius: isMobile ? '26px 26px 0 0' : 0, marginTop: isMobile ? -26 : 0, position: 'relative', zIndex: 3 }}>
+          {form_}
         </div>
+
+        {!isMobile && (
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', ...sky }}>
+            <Scene phase={phase} hour={hour} />
+            <Hero phase={phase} hour={hour} />
+            <div style={{ position: 'absolute', left: 40, bottom: 26, zIndex: 3, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontFamily: DISPLAY, fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Powered by</span>
+              <img src={HP_ICON} alt="" style={{ height: 22, width: 'auto' }} />
+              <span style={{ fontFamily: DISPLAY, fontSize: 13, fontWeight: 800, letterSpacing: '0.04em', color: '#fff' }}>HIGH-PERFORMANCE</span>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
 }
 
-const GOLD = '#D2AD54';
-const ORANGE = '#FF6B35';
-const LEFT_BG = '#0A0E14';
-const TEXT = '#F4F6F5';
-const MUTED = '#8B98A6';
-const BORDER = 'rgba(255,255,255,0.1)';
-
-const S = {
-  page: { width: '100vw', height: '100vh', background: LEFT_BG, fontFamily: "'Inter','Segoe UI',sans-serif", overflow: 'hidden' },
-  wrapper: { display: 'flex', width: '100%', height: '100%' },
-
-  left: { flex: '0 0 460px', maxWidth: '100%', background: LEFT_BG, padding: '56px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box', borderRight: `1px solid ${BORDER}` },
-
-  logoBox: { display: 'flex', alignItems: 'center', gap: '12px', background: '#fff', borderRadius: '16px', padding: '14px 20px 14px 14px', width: 'fit-content', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' },
-  logoIcon: { height: '42px', width: 'auto', display: 'block' },
-  logoWord: { fontSize: '19px', fontWeight: 900, letterSpacing: '0.02em', color: '#1a1a1a' },
-
-  formMiddle: { animation: 'fadeUp 0.45s ease' },
-  formTitle: { fontSize: '34px', fontWeight: 800, color: TEXT, letterSpacing: '-0.01em', margin: 0 },
-  formSub: { color: MUTED, fontSize: '15px', marginTop: '10px' },
-
-  field: { display: 'flex', flexDirection: 'column', gap: '7px' },
-  label: { fontSize: '13px', color: MUTED, fontWeight: 500 },
-  fieldIco: { position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: MUTED, display: 'flex', pointerEvents: 'none' },
-  input: { width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${BORDER}`, borderRadius: '14px', padding: '14px 16px 14px 44px', color: TEXT, fontSize: '15px', outline: 'none', transition: 'border-color .15s, background .15s' },
-  inputOn: { borderColor: GOLD, background: 'rgba(255,255,255,0.06)' },
-  eyeBtn: { position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: '4px', display: 'flex' },
-
-  btn: { marginTop: '6px', padding: '15px', borderRadius: '14px', border: 'none', background: `linear-gradient(135deg,${GOLD},#e8c879)`, color: '#1a1408', fontWeight: 800, fontSize: '15.5px', cursor: 'pointer', transition: 'opacity .15s', boxShadow: `0 10px 26px ${GOLD}35` },
-  spinner: { width: '16px', height: '16px', border: '2.5px solid rgba(26,20,8,0.3)', borderTopColor: '#1a1408', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block', flexShrink: 0 },
-
-  hint: { marginTop: '26px', fontSize: '13px', color: MUTED, lineHeight: 1.7 },
-
-  right: { flex: '1', position: 'relative', overflow: 'hidden', background: `radial-gradient(1100px 800px at 18% 12%, ${GOLD}45, transparent 60%), linear-gradient(135deg, #16243d 0%, #0b1220 75%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  heroContent: { position: 'relative', zIndex: 2, maxWidth: '640px', padding: '0 60px', textAlign: 'center' },
-  heroTitle: { fontSize: '68px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', margin: 0, textShadow: '0 4px 40px rgba(0,0,0,0.3)' },
-  heroSub: { fontSize: '19px', color: 'rgba(255,255,255,0.78)', marginTop: '20px', lineHeight: 1.6 },
-
-  waves: { position: 'absolute', bottom: 0, left: 0, width: '100%', height: '220px', zIndex: 1 },
-
-  poweredBy: { position: 'absolute', bottom: '28px', left: '40px', zIndex: 3, display: 'flex', alignItems: 'center', gap: '10px' },
-  poweredByLabel: { fontSize: '12px', color: 'rgba(255,255,255,0.55)', fontWeight: 600 },
-  poweredByIcon: { height: '20px', width: 'auto' },
-  poweredByText: { fontSize: '12px', fontWeight: 800, letterSpacing: '0.04em', color: 'rgba(255,255,255,0.85)' },
+const LIGHT = {
+  bg: '#F5F8FC', text: '#0C1A33', label: '#22324F', muted: '#56667D', border: '#CBD6E4', input: '#FFFFFF',
+  warn: '#B4530A', logoShadow: '0 6px 20px rgba(12,26,51,0.10)',
+};
+const DARK = {
+  bg: '#0B111C', text: '#F2F5F9', label: '#CBD5E2', muted: '#97A5B9', border: 'rgba(255,255,255,0.14)', input: 'rgba(255,255,255,0.05)',
+  warn: '#F5B25C', logoShadow: '0 10px 30px rgba(0,0,0,0.4)',
 };
