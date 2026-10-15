@@ -15,6 +15,7 @@ import api from '../utils/api';
   import toast from 'react-hot-toast';
   import { Scripts, KYCPlatform, HoldUnhold } from '../components/OpsPages';
   import { TicketDescriptions } from '../components/TicketDescriptions';
+  import { ZoneLookup } from '../components/Zones';
   import { ExternalToolView } from '../components/ContentEditor';
   import UpdateScripts from '../components/UpdateScripts';
   import AdminPanel from './AdminPanel';
@@ -49,6 +50,7 @@ import api from '../utils/api';
   _kyc: () => false,
   _holdunhold: () => false,
   _tickets: () => false,
+  _zones: () => false,
   _traccess: () => false,
   _callflows: () => false,
   _maintenance: () => false,
@@ -72,6 +74,7 @@ import api from '../utils/api';
   '_restree':'Resolution Tree',
   '_scripts':'Scripts & Processes',
   '_tickets':'Ticket Descriptions',
+  '_zones':'Zone Lookup',
   '_priority':'Case Priorities',
   '_search':'Search Results',
   '_bookmarks':' Bookmarks',
@@ -275,6 +278,7 @@ const groups = grouped(items);
 
 const isSpecial = String(panel).startsWith('_tool_') || [
       '_tickets',
+      '_zones',
       '_feedback',
   '_scripts',
   '_priority',
@@ -391,6 +395,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
 
             {/* Special panels */}
             {String(panel).startsWith('_tool_') && <ExternalToolView toolId={String(panel).slice(6)} DM={DM} />}
+            {panel === '_zones'    && <ZoneLookup darkMode={darkMode} DM={DM} />}
             {panel === '_tickets'  && <TicketDescriptions darkMode={darkMode} DM={DM} />}
             {panel === '_scripts'  && <Scripts darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
             {panel === '_priority' && <Priority darkMode={darkMode} DM={DM} />}

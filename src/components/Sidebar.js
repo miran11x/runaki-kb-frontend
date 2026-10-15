@@ -71,7 +71,7 @@ export default function Sidebar({
   }
 
   if (
-    (['_kyc', '_tickets'].includes(panel) || String(panel).startsWith('_tool_'))
+    (['_kyc', '_tickets', '_zones'].includes(panel) || String(panel).startsWith('_tool_'))
   ) {
     setToolsOpen(true);
   }
@@ -470,7 +470,7 @@ folder
   label="Tools"
   collapsed={collapsed}
   active={
-  (['_kyc', '_tickets'].includes(panel) || String(panel).startsWith('_tool_'))
+  (['_kyc', '_tickets', '_zones'].includes(panel) || String(panel).startsWith('_tool_'))
 }
   onClick={() => setToolsOpen(!toolsOpen)}
   suffix={
@@ -516,6 +516,12 @@ folder
       darkMode={darkMode}
       active={panel === '_tickets'}
       onClick={() => go('_tickets')}
+    />
+
+    <NI sub icon="📍" label="Zone Lookup" collapsed={collapsed}
+      darkMode={darkMode}
+      active={panel === '_zones'}
+      onClick={() => go('_zones')}
     />
 
 <NI

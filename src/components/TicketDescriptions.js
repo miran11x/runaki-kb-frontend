@@ -341,6 +341,8 @@ export function TicketDescriptionsAdmin({ darkMode }) {
         ['categories', 'Ticket descriptions', data.categories || [], 100, r => r],
         ['copy_log', 'Copy history', data.copy_log || [], 150, r => ({ ...r, wave_id: waveOf.get(r.account_id) || null })],
         ['flags', 'Outdated flags', data.flags || [], 100, r => r],
+        ['zones', 'Zones', data.zones || [], 400, r => r],
+        ['zone_lookup_log', 'Zone lookup history', data.zone_lookup_log || [], 150, r => ({ ...r, wave_id: waveOf.get(r.account_id) || null })],
       ];
       for (const [table, name, rows, size, map] of steps) {
         let done = 0;
@@ -431,7 +433,7 @@ export function TicketDescriptionsAdmin({ darkMode }) {
       <div style={card}>
         <div style={{ fontSize: 14, fontWeight: 800, color: th.text, marginBottom: 6 }}>📦 Import from the old site (one time)</div>
         <div style={{ fontSize: 13, color: th.sub, lineHeight: 1.7, marginBottom: 10 }}>
-          Choose the <b>runaki-full-backup-….json</b> file downloaded from the old site. It brings in the descriptions, the copy history (matched to KB accounts by Wave ID) and the outdated flags.
+          Choose the <b>runaki-full-backup-….json</b> file downloaded from the old site. It brings in the descriptions, copy history (matched to KB accounts by Wave ID), outdated flags, zones (duplicates are merged) and zone lookup history.
           Running it twice does not create duplicates.
         </div>
         <button onClick={() => backupRef.current.click()} disabled={busy === 'backup'} style={primary}>{busy === 'backup' ? 'Importing… keep this page open' : 'Choose backup file'}</button>
