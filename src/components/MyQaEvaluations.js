@@ -3,6 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import api from '../utils/api';
 import { useTheme, Panel, Empty, GREEN, RED, AMBER, BLUE, ORANGE } from './qaUi';
 import { EvalList, ATTR_EMOJI } from './QaScorecard';
+import FocusThisWeek from './FocusThisWeek';
 import { pct, mean, fmtPct, resultOf, fmtDay, ATTR_LABELS } from '../utils/qaStats';
 
 // The agent's own evaluations: everything the QA team recorded about their calls, in a friendly, colourful layout.
@@ -41,7 +42,7 @@ function Tile({ th, emoji, label, value, sub, color }) {
   );
 }
 
-export default function MyQaEvaluations({ darkMode }) {
+export default function MyQaEvaluations({ darkMode, faqs, onOpen, onSearch }) {
   const th = useTheme(darkMode);
   const [data, setData] = useState(null);
   const [err, setErr] = useState('');
@@ -110,6 +111,8 @@ export default function MyQaEvaluations({ darkMode }) {
         <Tile th={th} emoji={zero ? '⚠️' : '🛡️'} label="Zero scores" value={zero} sub={zero ? 'read the comments' : 'none, well done'} color={zero ? RED : VIOLET} />
         <Tile th={th} emoji="💬" label="Feedback waiting" value={pending} sub={pending ? 'ask your coordinator' : 'all delivered'} color={pending ? AMBER : ORANGE} />
       </div>
+
+      <FocusThisWeek th={th} rows={data.rows} faqs={faqs} onOpen={onOpen} onSearch={onSearch} />
 
       {chart.length > 1 && (
         <Panel th={th} title="📈 Your scores over time" hint="Each point is one evaluated call." style={{ marginBottom: 16 }}>

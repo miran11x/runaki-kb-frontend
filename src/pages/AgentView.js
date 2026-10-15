@@ -20,6 +20,8 @@ import { logSearch } from '../utils/searchLog';
   import { ContactReasons } from '../components/ContactReasons';
   import MyQaEvaluations from '../components/MyQaEvaluations';
 import Leaderboard from '../components/Leaderboard';
+import IncidentBanner from '../components/IncidentBanner';
+import DailyQuiz from '../components/DailyQuiz';
 import KnowledgeAssistant from '../components/KnowledgeAssistant';
   import { MyStats, SendFeedback } from '../components/MyStatsFeedback';
   import { ExternalToolView } from '../components/ContentEditor';
@@ -61,6 +63,7 @@ import KnowledgeAssistant from '../components/KnowledgeAssistant';
   _mystats: () => false,
   _evaluations: () => false,
   _leaderboard: () => false,
+  _quiz: () => false,
   _sendfeedback: () => false,
   _traccess: () => false,
   _callflows: () => false,
@@ -90,6 +93,7 @@ import KnowledgeAssistant from '../components/KnowledgeAssistant';
   '_mystats':'My Stats',
   '_evaluations':'My Evaluations',
   '_leaderboard':'Leaderboard',
+  '_quiz':'Daily Quiz',
   '_sendfeedback':'Send Feedback',
   '_priority':'Case Priorities',
   '_search':'Search Results',
@@ -311,6 +315,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
       '_mystats',
       '_evaluations',
       '_leaderboard',
+      '_quiz',
       '_sendfeedback',
       '_feedback',
   '_scripts',
@@ -367,6 +372,8 @@ const isSpecial = String(panel).startsWith('_tool_') || [
 />
 
           <div style={S.content}>
+
+            <IncidentBanner darkMode={darkMode} />
 
             {/* Announcements */}
             {announcements.length > 0 && (
@@ -429,8 +436,9 @@ const isSpecial = String(panel).startsWith('_tool_') || [
 
             {/* Special panels */}
             {String(panel).startsWith('_tool_') && <ExternalToolView toolId={String(panel).slice(6)} DM={DM} />}
-            {panel === '_evaluations' && <MyQaEvaluations darkMode={darkMode} />}
+            {panel === '_evaluations' && <MyQaEvaluations darkMode={darkMode} faqs={faqs} onOpen={p => { setSearch(''); setPanel(p); }} onSearch={q => setSearch(q)} />}
             {panel === '_leaderboard' && <Leaderboard darkMode={darkMode} />}
+            {panel === '_quiz' && <DailyQuiz darkMode={darkMode} onOpenFaq={q => setSearch(q)} />}
             {panel === '_mystats'  && <MyStats DM={DM} />}
             {panel === '_sendfeedback' && <SendFeedback DM={DM} />}
             {panel === '_contactreasons' && <ContactReasons DM={DM} />}

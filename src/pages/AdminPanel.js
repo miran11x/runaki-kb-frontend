@@ -17,6 +17,8 @@ import { AdminDashboard } from '../components/AdminDashboard';
 import { FeedbackAdmin } from '../components/MyStatsFeedback';
 import { ToolReports } from '../components/ToolReports';
 import SearchInsights from '../components/SearchInsights';
+import IncidentAdmin from '../components/IncidentAdmin';
+import TranslationReview from '../components/TranslationReview';
 
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -407,11 +409,11 @@ export default function AdminPanel({ darkMode }) {
 
   // ✅ Fixed: all use 'tab' state, label capitalised, evaluations added
   const GROUPS = [
-    ['Overview', '📊', [['dashboard','📊','Dashboard']]],
+    ['Overview', '📊', [['dashboard','📊','Dashboard'], ['incident','📣','Incident Banner']]],
     ['People', '👥', [['users','👥','Users'], ['active','🟢','Live now'], ['activity','📋','Activity log'], ['leaderboard','🏆','Leaderboard']]],
     ['Content', '📚', [['callflows','📞','Call Flows'], ['scripts','📋','Update Scripts'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons']]],
     ['Tools', '🛠️', [['tickets','🎫','Ticket Descriptions'], ['zones','📍','Zones'], ['exttools','🧰','External Tools'], ['toolreports','📈','Tool Reports']]],
-    ['Quality', '✅', [['evaluations','📈','QA Evaluations'], ['searchinsights','🔎','Search Insights'], ['agentfeedback','💬','Agent Feedback']]],
+    ['Quality', '✅', [['evaluations','📈','QA Evaluations'], ['searchinsights','🔎','Search Insights'], ['transreview','🌍','Kurdish Review'], ['agentfeedback','💬','Agent Feedback']]],
     ['System', '🔧', [['maintenance','🔧','Maintenance']]],
   ];
   const activeGroup = GROUPS.find(g => g[2].some(t => t[0] === tab)) || GROUPS[0];
@@ -1082,6 +1084,8 @@ export default function AdminPanel({ darkMode }) {
           {tab === 'zones' && <ZonesAdmin darkMode={darkMode} />}
           {tab === 'agentfeedback' && <FeedbackAdmin darkMode={darkMode} />}
           {tab === 'searchinsights' && <SearchInsights darkMode={darkMode} />}
+          {tab === 'incident' && <IncidentAdmin darkMode={darkMode} />}
+          {tab === 'transreview' && <TranslationReview darkMode={darkMode} />}
           {tab === 'toolreports' && <ToolReports darkMode={darkMode} />}
 
           {tab === 'evaluations' && <QaHub darkMode={darkMode} />}

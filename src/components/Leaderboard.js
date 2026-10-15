@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../utils/api';
+import { QuizBoard } from './DailyQuiz';
 import { useTheme, Panel, Empty, GREEN, RED, AMBER, BLUE, ORANGE } from './qaUi';
 
 // Friendly monthly leaderboard for agents: your own rank, a perfect-score club, and the next ten places.
@@ -32,6 +33,8 @@ export default function Leaderboard({ darkMode }) {
   const [err, setErr] = useState('');
   const [month, setMonth] = useState('');
   const [scope, setScope] = useState('all');
+  const [qb, setQb] = useState(null);
+  useEffect(() => { api.get('/quiz/leaderboard').then(r => setQb(r.data)).catch(() => {}); }, []);
 
   useEffect(() => {
     let live = true;
@@ -154,6 +157,7 @@ export default function Leaderboard({ darkMode }) {
           </div>
         )}
       </Panel>
+      {qb && <div style={{ marginTop: 16 }}><QuizBoard th={th} board={qb} /></div>}
       <div style={{ fontSize: 12, color: th.sub, marginTop: 10, textAlign: 'center' }}>Average of the final score on each evaluated call. Only agents with {d.min}+ calls are ranked.</div>
     </div>
   );
