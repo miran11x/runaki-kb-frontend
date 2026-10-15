@@ -10,13 +10,13 @@ const ORANGE = '#FF6B35';
 const NAVY = '#0B1120';
 const monthName = m => { try { return new Date(`${m}-01T00:00:00`).toLocaleString('en-GB', { month: 'long', year: 'numeric' }); } catch { return m; } };
 
-function useTheme(dark) {
+export function useTheme(dark) {
   return dark
     ? { card: '#111827', soft: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', text: '#e2e8f0', sub: 'rgba(255,255,255,0.55)' }
     : { card: '#fff', soft: '#f8fafc', border: '#e2e8f0', text: NAVY, sub: '#64748b' };
 }
 
-function RosterSync({ th, roster }) {
+export function RosterSync({ th, roster, onDone }) {
   const [busy, setBusy] = useState(false);
   const [deact, setDeact] = useState(false);
   const [res, setRes] = useState(null);
@@ -32,6 +32,7 @@ function RosterSync({ th, roster }) {
       const fin = await api.post('/users/sync-agents/finish', { waves: roster.map(a => a.wave_id), deactivate: deact });
       setRes({ ...t, ...fin.data });
       toast.success(`Agents synced: ${t.created} created, ${t.updated} updated`);
+      if (onDone) onDone();
     } catch (e) { toast.error(e.response?.data?.error || 'Agent sync failed. You can run it again.'); }
     setBusy(false);
   };

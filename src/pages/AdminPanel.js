@@ -7,6 +7,8 @@ import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
 import { QaHub } from '../components/QaReports';
+import { RosterSync, useTheme as useQaTheme } from '../components/QaUpload';
+import { parseRosterFile } from '../utils/qaParse';
 import { PageContentEditor, ExternalToolsAdmin } from '../components/ContentEditor';
 import { TicketDescriptionsAdmin } from '../components/TicketDescriptions';
 import { ZonesAdmin } from '../components/Zones';
@@ -240,6 +242,16 @@ export default function AdminPanel({ darkMode }) {
   const deleteUser = async id => { if (!window.confirm('Delete this user?')) return; await api.delete(`/users/${id}`); toast.success('Deleted'); load(); };
 
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [rosterFile, setRosterFile] = useState(null);
+  const qaTheme = useQaTheme(darkMode);
+  const readRosterFile = async file => {
+    if (!file) return;
+    try {
+      const r = parseRosterFile(await file.arrayBuffer(), /\.csv$/i.test(file.name));
+      if (!r.length) throw new Error('No agents found. The file needs the columns Name and Wave ID.');
+      setRosterFile(r);
+    } catch (e) { toast.error(e.message || 'Could not read the file'); }
+  };
   const [bulkText, setBulkText] = useState('');
   const [bulkResult, setBulkResult] = useState(null);
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -475,7 +487,7 @@ export default function AdminPanel({ darkMode }) {
 
                 </select>
                 <button style={{ background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, color:'#fff', border:'none', borderRadius:'12px', padding:'11px 22px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', boxShadow:`0 4px 12px ${ORANGE}40` }} onClick={() => setShowAdd(true)}>+ Add User</button>
-                <button style={{ background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setBulkText(''); setBulkResult(null); setShowBulkImport(true); }}>📋 Bulk Import Agents</button>
+                <button style={{ background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setBulkText(''); setBulkResult(null); setRosterFile(null); setShowBulkImport(true); }}>📋 Bulk Import Agents</button>
                 <button style={{ background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setBulkStaffText(''); setBulkStaffResult(null); setShowBulkStaff(true); }}>👔 Bulk Import Staff</button>
                 <button style={{ background: darkMode?'rgba(239,68,68,0.12)':'#fef2f2', color:'#ef4444', border: darkMode?'1px solid rgba(239,68,68,0.25)':'1px solid #fecaca', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setDeleteAllConfirmText(''); setShowDeleteAllAgents(true); }}>🗑️ Delete All Agents</button>
               </div>
@@ -518,8 +530,17 @@ export default function AdminPanel({ darkMode }) {
                   <div style={{ ...S.modal, maxWidth:'560px' }}>
                     <div style={S.modalHead}><h3 style={S.modalTitle}>📋 Bulk Import Agents</h3><button style={S.modalClose} onClick={() => setShowBulkImport(false)}>✕</button></div>
 
+                    <div style={{ marginBottom:'16px', paddingBottom:'16px', borderBottom: darkMode?'1px solid rgba(255,255,255,0.08)':'1px solid #e2e8f0' }}>
+                      <div style={{ fontSize:'13px', fontWeight:700, color: darkMode?'#f1f5f9':NAVY, marginBottom:'6px' }}>Upload the agent roster file</div>
+                      <div style={{ fontSize:'12.5px', color: darkMode?'rgba(255,255,255,0.5)':'#64748b', marginBottom:'8px', lineHeight:1.6 }}>
+                        CSV or Excel with the columns Name, Wave ID, Email Address, Queue, Status (the Unique ID tab works as it is). Creates missing agents and updates existing ones.
+                      </div>
+                      <input type="file" accept=".csv,.xlsx,.xls" onChange={e => readRosterFile(e.target.files[0])} style={{ fontSize:'13px', color: darkMode?'#f1f5f9':NAVY }} />
+                      {rosterFile && <div style={{ marginTop:'12px' }}><RosterSync th={qaTheme} roster={rosterFile} onDone={load} /></div>}
+                    </div>
+
                     <div style={{ fontSize:'12.5px', color: darkMode?'rgba(255,255,255,0.5)':'#64748b', marginBottom:'12px', lineHeight:1.6 }}>
-                      One agent per line: <strong>Name, Email, WaveID, Title</strong> (Title optional).<br/>
+                      Or type them in. One agent per line: <strong>Name, Email, WaveID, Title</strong> (Title optional).<br/>
                       Role is always set to Agent and status to Active. Each agent logs in with their Wave ID and the password <code style={{ background: darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', padding:'2px 6px', borderRadius:'4px' }}>Wave@&lt;WaveID&gt;</code>.<br/>
                       Example: <code style={{ background: darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', padding:'2px 6px', borderRadius:'4px' }}>Ahmed Karim, ahmed.karim@highperformanceco.net, 10432, Outbound Agent</code>
                     </div>
