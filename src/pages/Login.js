@@ -39,9 +39,9 @@ const SKIES = {
 
 // Greetings: English, Sorani and Arabic. Hello is used in the afternoon.
 const GREET = {
-  morning: { en: 'Good morning.', ku: 'بەیانی باش', ar: 'صباح الخير' },
-  hello: { en: 'Hello.', ku: 'سڵاو', ar: 'مرحباً' },
-  evening: { en: 'Good evening.', ku: 'ئێوارە باش', ar: 'مساء الخير' },
+  morning: { en: 'Good morning.', ku: 'بەیانی باش', ba: 'سپێدە باش', ar: 'صباح الخير' },
+  hello: { en: 'Hello.', ku: 'سڵاو', ba: 'ڕۆژ باش', ar: 'مرحباً' },
+  evening: { en: 'Good evening.', ku: 'ئێوارە باش', ba: 'ئێڤارە باش', ar: 'مساء الخير' },
 };
 
 function phaseFor(hour) {
@@ -154,8 +154,9 @@ function Hero({ phase, hour, compact }) {
   return (
     <div style={{ position: 'relative', zIndex: 2, padding: compact ? '34px 28px' : '72px 64px', maxWidth: compact ? 'none' : 760 }}>
       <h2 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 700, fontSize: compact ? 38 : 'clamp(46px, 5.4vw, 76px)', lineHeight: 1.02, letterSpacing: '-0.025em', color: k.text }}>{g.en}</h2>
-      <div style={{ display: 'flex', gap: compact ? 18 : 26, marginTop: compact ? 10 : 18, fontFamily: ARABIC, fontWeight: 600, fontSize: compact ? 19 : 26, color: k.text }}>
+      <div style={{ display: 'flex', gap: compact ? 14 : 24, flexWrap: 'wrap', marginTop: compact ? 10 : 18, fontFamily: ARABIC, fontWeight: 600, fontSize: compact ? 19 : 26, color: k.text }}>
         <span dir="rtl" lang="ckb">{g.ku}</span>
+        <span dir="rtl" lang="kmr">{g.ba}</span>
         <span dir="rtl" lang="ar">{g.ar}</span>
       </div>
       {!compact && (
