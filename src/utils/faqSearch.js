@@ -21,7 +21,7 @@ const STOP = new Set((
 ).split(' '));
 
 // Groups of words that mean the same thing. First word of a group is the canonical one.
-const SYNONYM_GROUPS = [
+export const SYNONYM_GROUPS = [
   ['pay', 'paid', 'payment', 'payments', 'paying', 'paymnt', 'pai'],
   ['bill', 'billing', 'invoice', 'charge', 'charged', 'fatura', 'فاتورە', 'فاتوره', 'فاتورة'],
   ['disconnect', 'disconnected', 'disconnection', 'cut', 'cutoff', 'cuts', 'outage', 'blackout', 'maqtu3', 'maqtu', 'maqtoo3', 'maqtou3', 'مقطوع'],
@@ -45,10 +45,27 @@ const SYNONYM_GROUPS = [
 ];
 
 const SYN = new Map();
-SYNONYM_GROUPS.forEach(group => {
-  const canon = normalizeWord(group[0]);
-  group.forEach(w => { if (!SYN.has(normalizeWord(w))) SYN.set(normalizeWord(w), canon); });
-});
+function rebuildSyn(extraGroups = []) {
+  // merge the groups of your own (set in the admin panel) into the built-in ones: a group that shares a word
+  // with an existing group joins it, so "fatora = bill" also finds everything that means "bill"
+  const groups = SYNONYM_GROUPS.map(g => g.map(normalizeWord));
+  (extraGroups || []).forEach(g => {
+    const words = (g || []).map(normalizeWord).filter(Boolean);
+    if (words.length < 2) return;
+    const hit = groups.filter(grp => grp.some(w => words.includes(w)));
+    if (hit.length) {
+      const base = hit[0];
+      words.forEach(w => { if (!base.includes(w)) base.push(w); });
+      hit.slice(1).forEach(other => { other.forEach(w => { if (!base.includes(w)) base.push(w); }); groups.splice(groups.indexOf(other), 1); });
+    } else groups.push(words);
+  });
+  SYN.clear();
+  groups.forEach(group => group.forEach(w => { if (!SYN.has(w)) SYN.set(w, group[0]); }));
+}
+// Called once the agent's app has loaded the synonym groups saved in the admin panel. Rebuild the index afterwards.
+export function applySynonyms(groups) { rebuildSyn(groups); }
+
+rebuildSyn();
 
 // ---------- text normalisation ----------
 function foldChars(s) {

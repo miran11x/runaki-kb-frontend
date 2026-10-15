@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 import RichAnswer from './RichAnswer';
 import { buildIndex, searchFaqs, detectLanguage } from '../utils/faqSearch';
@@ -33,7 +34,7 @@ const pick = (f, k, lang) => {
 function readRecent() { try { return JSON.parse(localStorage.getItem('rk_ai_recent') || '[]').slice(0, 5); } catch { return []; } }
 function saveRecent(q) { try { localStorage.setItem('rk_ai_recent', JSON.stringify([q, ...readRecent().filter(x => x !== q)].slice(0, 5))); } catch { /* optional */ } }
 
-export default function KnowledgeAssistant({ darkMode, DM, faqs }) {
+export default function KnowledgeAssistant({ darkMode, DM, faqs, synV = 0, onOpen }) {
   const [question, setQuestion] = useState('');
   const [asked, setAsked] = useState('');
   const [results, setResults] = useState([]);
@@ -42,7 +43,51 @@ export default function KnowledgeAssistant({ darkMode, DM, faqs }) {
   const [auto, setAuto] = useState('en');
   const [limit, setLimit] = useState(5);
   const [recent, setRecent] = useState(readRecent);
-  const index = useMemo(() => buildIndex(faqs), [faqs]);
+  const index = useMemo(() => buildIndex(faqs), [faqs, synV]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [votes, setVotes] = useState({});
+  const [flows, setFlows] = useState([]);
+  const [scripts, setScripts] = useState([]);
+
+  // call flows and scripts, so each answer can point to the matching next step
+  useEffect(() => {
+    api.get('/callflows').then(r => setFlows(Array.isArray(r.data) ? r.data : [])).catch(() => {});
+    api.get('/page-content/scripts').then(r => {
+      const d = r.data && r.data.data; if (!d) return;
+      const cards = (d.cards || []).map(c => ({ id: `s${(c.t && c.t.en) || ''}`, title: (c.t && c.t.en) || '', text: (c.s && c.s.en) || '' }));
+      const closing = ((d.closing && d.closing.steps) || []).map(c => ({ id: `c${(c.label && c.label.en) || ''}`, title: (c.label && c.label.en) || '', text: (c.s && c.s.en) || '' }));
+      setScripts([...cards, ...closing].filter(x => x.title));
+    }).catch(() => {});
+  }, []);
+  const flowIndex = useMemo(() => buildIndex(flows.map(f => {
+    let steps = f.steps; try { if (typeof steps === 'string') steps = JSON.parse(steps); } catch { steps = []; }
+    return { id: f.id, question_en: f.title, answer_en: `${f.description || ''} ${(steps || []).map(x => x.text).join(' ')}`, category: '', _flow: f };
+  })), [flows, synV]); // eslint-disable-line react-hooks/exhaustive-deps
+  const scriptIndex = useMemo(() => buildIndex(scripts.map((x, i) => ({ id: i, question_en: x.title, answer_en: x.text, category: '', _script: x }))), [scripts, synV]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // "Also see": FAQs on the same topic, the matching call flow, the matching script
+  const related = useMemo(() => {
+    const out = {};
+    results.forEach(({ faq }) => {
+      const probe = `${faq.question_en || ''} ${faq.tags || ''}`;
+      const sim = searchFaqs(index, probe, { limit: 6, minScore: 6 }).map(r => r.faq).filter(f => f.id !== faq.id);
+      const same = (faqs || []).filter(f => f.id !== faq.id && f.subcategory && f.subcategory === faq.subcategory && f.category === faq.category);
+      const faqsRel = [...sim, ...same.filter(f => !sim.some(x => x.id === f.id))].slice(0, 3);
+      const fl = searchFaqs(flowIndex, probe, { limit: 1, minScore: 5 }).map(r => r.faq._flow);
+      const sc = searchFaqs(scriptIndex, probe, { limit: 1, minScore: 5 }).map(r => r.faq._script);
+      out[faq.id] = { faqs: faqsRel, flow: fl[0] || null, script: sc[0] || null };
+    });
+    return out;
+  }, [results, index, flowIndex, scriptIndex, faqs]);
+
+  const sendFeedback = (faq, position, action, vote) => {
+    api.post('/search-feedback', { query: asked, faq_id: faq.id, position, action, vote }).catch(() => {});
+  };
+  const vote = (faq, position, v) => {
+    const cur = votes[faq.id];
+    const next = cur === v ? 0 : v;
+    setVotes(x => ({ ...x, [faq.id]: next }));
+    sendFeedback(faq, position, 'vote', next);
+  };
   const shown = lang === 'auto' ? auto : lang;
 
   const ask = (q = question, lim = 5) => {
@@ -51,11 +96,11 @@ export default function KnowledgeAssistant({ darkMode, DM, faqs }) {
     setAuto(detectLanguage(query));
     setLimit(lim);
     const found = searchFaqs(index, query, { limit: lim, minScore: 3 });
-    setResults(found); setSearched(true); setAsked(query);
+    setResults(found); setSearched(true); setAsked(query); setVotes({});
     logSearch(query, found.length, 'assistant');
     saveRecent(query); setRecent(readRecent());
   };
-  const clear = () => { setQuestion(''); setResults([]); setSearched(false); setAsked(''); };
+  const clear = () => { setQuestion(''); setResults([]); setSearched(false); setAsked(''); setVotes({}); };
   const copy = async text => { try { await navigator.clipboard.writeText(text); toast.success('Answer copied'); } catch { toast.error('Could not copy'); } };
 
   const chip = (active, c = ORANGE) => ({
@@ -142,7 +187,7 @@ export default function KnowledgeAssistant({ darkMode, DM, faqs }) {
                     <div style={{ padding: '16px 20px 18px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
                         <span style={{ color: '#10b981', fontWeight: 900, fontSize: 13 }}>{idx === 0 ? '🏆 Best match · approved by QA' : '✅ Approved by QA'}</span>
-                        <button onClick={() => copy(`${q}\n\n${a}`)} style={{ ...chip(false, c), padding: '5px 12px', fontSize: 12.5 }}>📋 Copy answer</button>
+                        <button onClick={() => { copy(`${q}\n\n${a}`); sendFeedback(faq, idx + 1, 'copy'); }} style={{ ...chip(false, c), padding: '5px 12px', fontSize: 12.5 }}>📋 Copy answer</button>
                       </div>
                       <h3 dir={rtl ? 'rtl' : 'ltr'} style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 900, color: DM.text, textAlign: rtl ? 'right' : 'left', lineHeight: 1.5 }}>{q}</h3>
                       <RichAnswer style={{ color: DM.text, opacity: 0.88, lineHeight: 1.85, fontSize: 14.5, direction: rtl ? 'rtl' : 'ltr', textAlign: rtl ? 'right' : 'left' }} text={a} />
@@ -151,6 +196,30 @@ export default function KnowledgeAssistant({ darkMode, DM, faqs }) {
                         {faq.subcategory && <span style={{ background: darkMode ? 'rgba(255,255,255,.08)' : '#f1f5f9', color: DM.text, borderRadius: 999, padding: '3px 11px', fontSize: 12, fontWeight: 700 }}>{faq.subcategory}</span>}
                         {(matchedTerms || []).map(t => <span key={t} title="Found through this key word" style={{ background: darkMode ? 'rgba(249,115,22,.22)' : '#fff7ed', color: darkMode ? '#fdba74' : '#c2410c', border: '1px solid #fdba7466', borderRadius: 999, padding: '3px 11px', fontSize: 12, fontWeight: 700 }}>🔑 {t}</span>)}
                       </div>
+                      <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${DM.border}`, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: DM.text }}>Was this the answer you needed?</span>
+                        <button onClick={() => vote(faq, idx + 1, 1)} aria-pressed={votes[faq.id] === 1} style={chip(votes[faq.id] === 1, '#10b981')}>👍 Yes</button>
+                        <button onClick={() => vote(faq, idx + 1, -1)} aria-pressed={votes[faq.id] === -1} style={chip(votes[faq.id] === -1, '#ef4444')}>👎 No</button>
+                        {votes[faq.id] === 1 && <span style={{ fontSize: 12.5, color: '#10b981', fontWeight: 800 }}>Thanks!</span>}
+                        {votes[faq.id] === -1 && <span style={{ fontSize: 12.5, color: DM.subText }}>Thanks, QA will look at this search.</span>}
+                      </div>
+                      {(() => {
+                        const rel = related[faq.id];
+                        if (!rel || (!rel.faqs.length && !rel.flow && !rel.script)) return null;
+                        return (
+                          <div style={{ marginTop: 12, background: darkMode ? 'rgba(255,255,255,.04)' : '#f8fafc', border: `1px solid ${DM.border}`, borderRadius: 14, padding: '12px 14px' }}>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: DM.text, marginBottom: 8 }}>👀 Also see</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                              {rel.flow && onOpen && <button onClick={() => onOpen('_callflows')} style={{ ...chip(false, '#38bdf8'), borderColor: '#38bdf8aa' }}>🗺️ Call flow: {rel.flow.title}</button>}
+                              {rel.script && onOpen && <button onClick={() => onOpen('_scripts')} style={{ ...chip(false, '#ec4899'), borderColor: '#ec4899aa' }}>📝 Script: {rel.script.title}</button>}
+                              {rel.faqs.map(f => (
+                                <button key={f.id} onClick={() => { const t = f.question_en; setQuestion(t); ask(t); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                  style={{ ...chip(false, '#8b5cf6'), borderColor: '#8b5cf6aa', textAlign: 'start' }}>🔗 {f.question_en}</button>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </article>
                 );

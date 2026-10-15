@@ -1,5 +1,5 @@
 import RichAnswer from '../components/RichAnswer';
-import { buildIndex, searchFaqs, detectLanguage as detectQueryLanguage } from '../utils/faqSearch';
+import { buildIndex, searchFaqs, applySynonyms } from '../utils/faqSearch';
 import React, {
   useState,
   useEffect,
@@ -258,7 +258,12 @@ setFaqs(fr.data);
       localStorage.setItem('rk_dark', next ? '1' : '0');
     };
 
-    const searchIndex = useMemo(() => buildIndex(faqs), [faqs]);
+    // synonym groups the QA team manages in the admin panel; the search index is rebuilt once they arrive
+    const [synV, setSynV] = useState(0);
+    useEffect(() => {
+      api.get('/search-synonyms').then(r => { applySynonyms((r.data && r.data.groups) || []); setSynV(v => v + 1); }).catch(() => {});
+    }, []);
+    const searchIndex = useMemo(() => buildIndex(faqs), [faqs, synV]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // log what agents type in the main search box (after they stop typing)
     useEffect(() => {
@@ -536,6 +541,8 @@ const isSpecial = String(panel).startsWith('_tool_') || [
 
            {['_ai', '_ai-kb', '_ai-categorizer'].includes(panel) && (
   <KnowledgeAssistant
+    synV={synV}
+    onOpen={p => { setSearch(''); setPanel(p); }}
     darkMode={darkMode}
     DM={DM}
     faqs={faqs}
