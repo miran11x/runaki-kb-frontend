@@ -14,6 +14,7 @@ import api from '../utils/api';
   import Topbar from '../components/Topbar';
   import toast from 'react-hot-toast';
   import { Scripts, KYCPlatform, HoldUnhold } from '../components/OpsPages';
+  import { TicketDescriptions } from '../components/TicketDescriptions';
   import { ExternalToolView } from '../components/ContentEditor';
   import UpdateScripts from '../components/UpdateScripts';
   import AdminPanel from './AdminPanel';
@@ -47,6 +48,7 @@ import api from '../utils/api';
   _shortlisted: () => false,
   _kyc: () => false,
   _holdunhold: () => false,
+  _tickets: () => false,
   _traccess: () => false,
   _callflows: () => false,
   _maintenance: () => false,
@@ -69,6 +71,7 @@ import api from '../utils/api';
   '_updates':'New Updates',
   '_restree':'Resolution Tree',
   '_scripts':'Scripts & Processes',
+  '_tickets':'Ticket Descriptions',
   '_priority':'Case Priorities',
   '_search':'Search Results',
   '_bookmarks':' Bookmarks',
@@ -271,6 +274,7 @@ const grouped = items => {
 const groups = grouped(items);
 
 const isSpecial = String(panel).startsWith('_tool_') || [
+      '_tickets',
       '_feedback',
   '_scripts',
   '_priority',
@@ -387,6 +391,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
 
             {/* Special panels */}
             {String(panel).startsWith('_tool_') && <ExternalToolView toolId={String(panel).slice(6)} DM={DM} />}
+            {panel === '_tickets'  && <TicketDescriptions darkMode={darkMode} DM={DM} />}
             {panel === '_scripts'  && <Scripts darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
             {panel === '_priority' && <Priority darkMode={darkMode} DM={DM} />}
             {panel === '_kyc'       && <KYCPlatform darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}

@@ -64,7 +64,7 @@ export default function Sidebar({
   }
 
   if (
-    ['_callflows', '_scripts', '_priority', '_holdunhold']
+    ['_callflows', '_tickets', '_scripts', '_priority', '_holdunhold']
       .includes(panel)
   ) {
     setOpsOpen(true);
@@ -472,6 +472,7 @@ folder
   active={
   [
     '_callflows',
+    '_tickets',
     '_scripts',
     '_priority',
     '_holdunhold'
@@ -523,6 +524,12 @@ folder
 
       active={panel === '_callflows'}
       onClick={() => go('_callflows')}
+    />
+
+    <NI sub icon="🎫" label="Ticket Descriptions" collapsed={collapsed}
+      darkMode={darkMode}
+      active={panel === '_tickets'}
+      onClick={() => go('_tickets')}
     />
 
     <NI sub icon="📋" label="Scripts & Processes" collapsed={collapsed}
