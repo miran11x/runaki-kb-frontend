@@ -10,7 +10,6 @@ import { normalizeText } from '../utils/faqSearch';
 const ORANGE = '#FF6B35';
 const NAVY = '#0B1120';
 const LEVEL_NAMES = ['Level 1', 'Level 2', 'Level 3'];
-const LEVEL_HINTS = ['Category', 'Reason', 'Detail'];
 
 async function copyText(text) {
   try { await navigator.clipboard.writeText(text); return true; }
@@ -43,132 +42,106 @@ function buildTree(rows) {
 }
 
 /* ================================================================== */
-/*  AGENT PAGE                                                         */
+/*  AGENT PAGE — the whole tree is visible, nothing to expand           */
 /* ================================================================== */
+const TREE_CSS = `
+.cr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;align-items:start}
+.cr-kids{list-style:none;margin:0;padding:0;margin-inline-start:12px}
+.cr-kids>li{position:relative;padding-inline-start:20px}
+.cr-kids>li::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;border-inline-start:2px solid var(--cr-line)}
+.cr-kids>li:last-child::before{bottom:auto;height:17px}
+.cr-kids>li::after{content:"";position:absolute;inset-inline-start:0;top:17px;width:14px;border-top:2px solid var(--cr-line)}
+.cr-node{display:block;width:100%;text-align:start;border:none;background:transparent;font-family:inherit;color:inherit;cursor:pointer;border-radius:8px;padding:6px 8px;line-height:1.45}
+.cr-node:hover{background:var(--cr-hover)}
+.cr-node:focus-visible{outline:2px solid #FF6B35;outline-offset:1px}
+@media (max-width:520px){.cr-grid{grid-template-columns:1fr}}
+`;
+
 export function ContactReasons({ DM }) {
   const [rows, setRows] = useState(null);
-  const [path, setPath] = useState([]);     // selected ids: [level1, level2, level3]
   const [query, setQuery] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
     api.get('/contact-reasons').then(r => setRows(r.data || [])).catch(() => { setRows([]); toast.error('Could not load contact reasons'); });
   }, []);
 
   const tree = useMemo(() => buildTree(rows || []), [rows]);
+  const q = normalizeText(query);
 
-  const matches = useMemo(() => {
-    const q = normalizeText(query);
-    if (!rows || !q) return [];
-    return rows
-      .filter(r => normalizeText(r.name).includes(q))
-      .map(r => tree.pathOf(r.id))
-      .slice(0, 12);
-  }, [rows, query, tree]);
+  // with a search: keep a node if it matches or has a matching descendant
+  const keep = useMemo(() => {
+    if (!q) return null;
+    const set = new Set();
+    (rows || []).forEach(r => {
+      if (normalizeText(r.name).includes(q)) tree.pathOf(r.id).forEach(n => set.add(n.id));
+    });
+    return set;
+  }, [rows, q, tree]);
 
-  const choose = (level, id) => {
-    setCopied(false);
-    setPath(p => (p[level] === id ? p.slice(0, level) : [...p.slice(0, level), id]));
-  };
-  const jump = ids => { setPath(ids); setQuery(''); setCopied(false); };
-
-  const selectedNodes = path.map(id => tree.byId.get(id)).filter(Boolean);
-  const last = selectedNodes[selectedNodes.length - 1];
-  const fullPath = selectedNodes.map(n => n.name).join(' › ');
-  const atEnd = last && tree.kids(last.id).length === 0;
-
-  const doCopy = async () => {
-    const ok = await copyText(fullPath);
+  const doCopy = async node => {
+    const text = tree.pathOf(node.id).map(n => n.name).join(' › ');
+    const ok = await copyText(text);
     if (!ok) return toast.error('Copy failed');
-    setCopied(true); setTimeout(() => setCopied(false), 1500);
+    setCopiedId(node.id); setTimeout(() => setCopiedId(null), 1400);
   };
 
   if (rows === null) return <div style={{ color: DM.subText }}>Loading…</div>;
   if (!rows.length) return <div style={{ color: DM.subText }}>No contact reasons have been added yet.</div>;
 
-  const columns = [tree.kids(0)];
-  selectedNodes.forEach(n => { const k = tree.kids(n.id); if (k.length) columns.push(k); });
+  const renderKids = (parent, level) => {
+    const list = tree.kids(parent.id).filter(n => !keep || keep.has(n.id));
+    if (!list.length) return null;
+    return (
+      <ul className="cr-kids">
+        {list.map(n => (
+          <li key={n.id}>
+            <button className="cr-node" onClick={() => doCopy(n)} title="Click to copy the full path"
+              style={{ fontSize: level === 1 ? 14 : 13.5, fontWeight: level === 1 ? 700 : 500 }}>
+              {n.name}
+              {copiedId === n.id && <span style={{ color: '#10b981', fontWeight: 800, fontSize: 12 }}>  ✓ copied</span>}
+              {n.note && <span style={{ display: 'block', fontSize: 12.5, fontWeight: 400, color: DM.subText, marginTop: 2 }}>{n.note}</span>}
+            </button>
+            {renderKids(n, level + 1)}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  const tops = tree.kids(0).filter(n => !keep || keep.has(n.id));
+  const vars = { '--cr-line': DM.border === '#e2e8f0' ? '#cbd5e1' : 'rgba(255,255,255,0.22)', '--cr-hover': DM.border === '#e2e8f0' ? '#f1f5f9' : 'rgba(255,255,255,0.06)' };
 
   return (
-    <div style={{ maxWidth: 980 }}>
+    <div style={{ maxWidth: 1100, ...vars }}>
+      <style>{TREE_CSS}</style>
       <input
         value={query}
         onChange={e => setQuery(e.target.value)}
         placeholder="🔍 Search a reason, e.g. “bill not received”…"
-        style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 10, border: `1px solid ${DM.border}`, background: DM.cardBg, color: DM.text, fontSize: 14, fontFamily: 'inherit', marginBottom: 14 }}
+        style={{ width: '100%', maxWidth: 520, boxSizing: 'border-box', padding: '11px 14px', borderRadius: 10, border: `1px solid ${DM.border}`, background: DM.cardBg, color: DM.text, fontSize: 14, fontFamily: 'inherit', marginBottom: 6 }}
       />
-
-      {query.trim() && (
-        <div style={{ background: DM.cardBg, border: `1px solid ${DM.border}`, borderRadius: 14, padding: 8, marginBottom: 16, boxShadow: DM.shadow }}>
-          {matches.length === 0
-            ? <div style={{ padding: 12, fontSize: 13.5, color: DM.subText }}>Nothing matches “{query}”.</div>
-            : matches.map(p => (
-              <button key={p[p.length - 1].id} onClick={() => jump(p.map(n => n.id))}
-                style={{ display: 'block', width: '100%', textAlign: 'start', border: 'none', borderBottom: `1px solid ${DM.border}`, background: 'transparent', padding: '10px 12px', cursor: 'pointer', color: DM.text, fontFamily: 'inherit', fontSize: 13.5 }}>
-                {p.map((n, i) => (
-                  <span key={n.id} style={{ fontWeight: i === p.length - 1 ? 800 : 500, color: i === p.length - 1 ? DM.text : DM.subText }}>
-                    {i > 0 && ' › '}{n.name}
-                  </span>
-                ))}
-              </button>
-            ))}
-        </div>
-      )}
-
-      <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        {columns.map((list, level) => (
-          <div key={level} style={{ flex: '1 1 260px', minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, margin: '0 4px 8px' }}>
-              <span style={{ fontSize: 13, fontWeight: 800, color: DM.text }}>{LEVEL_NAMES[level]}</span>
-              <span style={{ fontSize: 12, color: DM.subText }}>{LEVEL_HINTS[level]}</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {list.map(n => {
-                const on = path[level] === n.id;
-                const hasKids = tree.kids(n.id).length > 0;
-                return (
-                  <button key={n.id} onClick={() => choose(level, n.id)} aria-pressed={on}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                      textAlign: 'start', padding: '12px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-                      border: `1.5px solid ${on ? ORANGE : DM.border}`,
-                      background: on ? `${ORANGE}1a` : DM.cardBg, color: DM.text,
-                      fontSize: 14, fontWeight: on ? 800 : 600, boxShadow: on ? 'none' : DM.shadow,
-                    }}>
-                    <span>{n.name}</span>
-                    {hasKids && <span style={{ color: on ? ORANGE : DM.subText, fontSize: 13 }}>›</span>}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+      <div style={{ fontSize: 12.5, color: DM.subText, margin: '0 2px 16px' }}>
+        Click any item to copy its full path, for example “General Complaints › Outage (cutoff) › Meter Trip”.
       </div>
 
-      {last && (
-        <div style={{ marginTop: 20, background: DM.cardBg, border: `1px solid ${ORANGE}66`, borderRadius: 16, padding: '16px 18px', boxShadow: DM.shadow }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: DM.subText, marginBottom: 6 }}>
-            {atEnd ? 'Your selection' : 'Your selection so far, pick the next level above'}
+      {tops.length === 0
+        ? <div style={{ padding: '20px 4px', color: DM.subText, fontSize: 13.5 }}>Nothing matches “{query}”.</div>
+        : (
+          <div className="cr-grid">
+            {tops.map(c => (
+              <div key={c.id} style={{ background: DM.cardBg, border: `1px solid ${DM.border}`, borderRadius: 16, padding: '14px 12px 12px', boxShadow: DM.shadow, color: DM.text }}>
+                <button className="cr-node" onClick={() => doCopy(c)} title="Click to copy"
+                  style={{ fontSize: 15.5, fontWeight: 800, borderInlineStart: `4px solid ${ORANGE}`, borderRadius: 4, paddingInlineStart: 10, marginBottom: 6 }}>
+                  {c.name}
+                  {copiedId === c.id && <span style={{ color: '#10b981', fontWeight: 800, fontSize: 12 }}>  ✓ copied</span>}
+                  {c.note && <span style={{ display: 'block', fontSize: 12.5, fontWeight: 400, color: DM.subText, marginTop: 2 }}>{c.note}</span>}
+                </button>
+                {renderKids(c, 1)}
+              </div>
+            ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ flex: '1 1 260px', fontSize: 16, fontWeight: 800, color: DM.text, lineHeight: 1.5 }}>{fullPath}</div>
-            <button onClick={doCopy} style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: copied ? '#10b981' : ORANGE, color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-              {copied ? '✓ Copied' : '📋 Copy path'}
-            </button>
-          </div>
-          {selectedNodes.filter(n => n.note).map(n => (
-            <div key={n.id} style={{ marginTop: 10, fontSize: 13.5, color: DM.subText, lineHeight: 1.6 }}>
-              {selectedNodes.length > 1 && <strong style={{ color: DM.text }}>{n.name}: </strong>}{n.note}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!last && !query.trim() && (
-        <div style={{ textAlign: 'center', padding: '26px 0 6px', color: DM.subText, fontSize: 13.5 }}>
-          Pick a Level 1 category to see its reasons.
-        </div>
-      )}
+        )}
     </div>
   );
 }
@@ -264,7 +237,7 @@ export function ContactReasonsAdmin({ darkMode }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 17, fontWeight: 800, color: th.text }}>Contact Reasons</div>
-          <div style={{ fontSize: 13, color: th.sub }}>Three levels: category, reason, detail. Agents see this under Operations.</div>
+          <div style={{ fontSize: 13, color: th.sub }}>Three levels: category, reason, detail. Agents see the whole tree under Operations.</div>
         </div>
         <button onClick={() => setForm({ parent_id: null, name: '', note: '', level: 0 })}
           style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: ORANGE, color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
