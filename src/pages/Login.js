@@ -170,7 +170,7 @@ function Hero({ phase, hour, compact }) {
   return (
     <div className="rk-pad" style={{ position: 'relative', zIndex: 2, padding: compact ? '34px 28px' : '64px 64px', maxWidth: compact ? 'none' : 760 }}>
       <h2 className="rk-h2" style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 700, fontSize: compact ? 38 : 'clamp(46px, 5.4vw, 76px)', lineHeight: 1.02, letterSpacing: '-0.025em', color: k.text }}>{g.en}</h2>
-      <div style={{ display: 'flex', alignItems: 'center', marginTop: compact ? 10 : 16, fontFamily: ARABIC, fontWeight: 600, fontSize: compact ? 19 : 25, color: k.text }}>
+      <div className="rk-greets" style={{ display: 'flex', alignItems: 'center', marginTop: compact ? 10 : 16, fontFamily: ARABIC, fontWeight: 600, fontSize: compact ? 19 : 25, color: k.text }}>
         {greets.map(([lang, word], i) => (
           <span key={lang} dir="rtl" lang={lang} style={{ paddingRight: i < greets.length - 1 ? (compact ? 14 : 22) : 0, marginRight: i < greets.length - 1 ? (compact ? 14 : 22) : 0, borderRight: i < greets.length - 1 ? `1.5px solid ${k.text}55` : 'none', lineHeight: 1.1 }}>{word}</span>
         ))}
@@ -183,7 +183,7 @@ function Hero({ phase, hour, compact }) {
           <ul className="rk-list" style={{ listStyle: 'none', margin: '16px 0 0', padding: 0, maxWidth: 440 }}>
             {FEATURES.map(([title, desc]) => (
               <li key={title} className="rk-li" style={{ marginBottom: 12 }}>
-                <div style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 16, color: k.text }}>{title}</div>
+                <div className="rk-title" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 16, color: k.text }}>{title}</div>
                 <div className="rk-desc" style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 14.5, lineHeight: 1.4, color: k.sub }}>{desc}</div>
               </li>
             ))}
@@ -274,7 +274,7 @@ export default function Login() {
       </div>
 
       <h1 className="rk-h1" style={{ margin: 0, fontFamily: DISPLAY, fontSize: 38, fontWeight: 700, letterSpacing: '-0.02em', color: P.text }}>Sign in</h1>
-      <p style={{ margin: '10px 0 0', fontFamily: DISPLAY, fontSize: 16, color: P.muted }}>Sign in with your Wave ID or work email.</p>
+      <p className="rk-sub" style={{ margin: '10px 0 0', fontFamily: DISPLAY, fontSize: 16, color: P.muted }}>Sign in with your Wave ID or work email.</p>
 
       <form className="rk-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 30 }}>
         <div>
@@ -353,7 +353,28 @@ export default function Login() {
           .rk-in { padding-top: 11px !important; padding-bottom: 11px !important; }
           .rk-foot { margin-top: 20px !important; padding-top: 14px !important; }
         }
-        @media (max-height: 580px) { .rk-desc { display: none !important; } }
+        @media (max-height: 640px) {
+          .rk-pad { padding-top: 26px !important; padding-bottom: 12px !important; }
+          .rk-h2 { font-size: min(76px, 8.2vh) !important; }
+          .rk-greets { margin-top: 8px !important; font-size: 19px !important; }
+          .rk-list { margin-top: 10px !important; }
+          .rk-li { margin-bottom: 6px !important; }
+          .rk-title { font-size: 14.5px !important; }
+          .rk-desc { font-size: 12.5px !important; line-height: 1.3 !important; }
+          .rk-logo { margin-bottom: 14px !important; gap: 12px !important; }
+          .rk-logo-img { height: 44px !important; }
+          .rk-logo-tile { width: 48px !important; height: 48px !important; }
+          .rk-h1 { font-size: 27px !important; }
+          .rk-sub { margin-top: 6px !important; font-size: 14px !important; }
+          .rk-form { gap: 10px !important; margin-top: 14px !important; }
+          .rk-in { padding-top: 9px !important; padding-bottom: 9px !important; font-size: 15px !important; }
+          .rk-btn { padding: 12px !important; }
+          .rk-foot { margin-top: 14px !important; padding-top: 10px !important; font-size: 12.5px !important; }
+          .rk-left { padding-top: 16px !important; padding-bottom: 16px !important; }
+        }
+        @media (max-height: 470px) { .rk-desc { display: none !important; } }
+        .rk-left { scrollbar-width: none; -ms-overflow-style: none; }
+        .rk-left::-webkit-scrollbar { display: none; }
         @media (prefers-reduced-motion: reduce) { .rk-orb, .rk-cloud-a, .rk-cloud-b { animation: none; } }
       `}</style>
 
@@ -365,7 +386,7 @@ export default function Login() {
           </div>
         )}
 
-        <div style={{ flex: isMobile ? '1 0 auto' : '0 0 500px', background: P.bg, display: 'flex', overflowY: isMobile ? 'visible' : 'auto', minHeight: 0, padding: isMobile ? '34px 24px 40px' : '40px 56px', boxSizing: 'border-box',
+        <div className="rk-left" style={{ flex: isMobile ? '1 0 auto' : '0 0 500px', background: P.bg, display: 'flex', overflowY: isMobile ? 'visible' : 'auto', minHeight: 0, padding: isMobile ? '34px 24px 40px' : '40px 56px', boxSizing: 'border-box',
           borderRadius: isMobile ? '26px 26px 0 0' : 0, marginTop: isMobile ? -26 : 0, position: 'relative', zIndex: 3 }}>
           {form_}
         </div>
