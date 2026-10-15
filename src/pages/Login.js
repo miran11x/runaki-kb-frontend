@@ -40,7 +40,7 @@ const SKIES = {
 // Greetings: English, Sorani and Arabic. Hello is used in the afternoon.
 const GREET = {
   morning: { en: 'Good morning.', ku: 'بەیانی باش', ba: 'سپێدە باش', ar: 'صباح الخير' },
-  hello: { en: 'Hello.', ku: 'سڵاو', ba: 'ڕۆژ باش', ar: 'مرحباً' },
+  hello: { en: 'Hello.', ku: 'سڵاو', ba: 'سڵاڤ', ar: 'مرحباً' },
   evening: { en: 'Good evening.', ku: 'ئێوارە باش', ba: 'ئێڤارە باش', ar: 'مساء الخير' },
 };
 
