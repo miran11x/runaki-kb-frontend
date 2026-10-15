@@ -121,6 +121,21 @@ export function parseCsv(buffer) {
   return parseWorkbook(null, { 'Raw Data': w.Sheets[w.SheetNames[0]] });
 }
 
+// A roster file on its own: the Unique ID tab saved as CSV, or a CSV/Excel with Name, Wave ID, Email Address, Queue, Status columns
+export function parseRosterFile(buffer, isCsv) {
+  let ws;
+  if (isCsv) {
+    let text;
+    try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); } catch { text = decodeWin1252(buffer); }
+    const w = XLSX.read(text, { type: 'string', raw: true });
+    ws = w.Sheets[w.SheetNames[0]];
+  } else {
+    const w = XLSX.read(buffer, { type: 'array' });
+    ws = w.Sheets['Unique ID'] || w.Sheets[w.SheetNames[0]];
+  }
+  return parseRoster({ Sheets: { 'Unique ID': ws } });
+}
+
 export function parseWorkbook(buffer, sheets) {
   const wb = sheets ? { Sheets: sheets } : XLSX.read(buffer, { type: 'array', sheets: ['Raw Data', 'QA Scoring Rubric', 'Unique ID'] });
   const raw = sheetRows(wb, 'Raw Data');

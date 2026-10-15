@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
-import { parseWorkbook, parseCsv } from '../utils/qaParse';
+import { parseWorkbook, parseCsv, parseRosterFile } from '../utils/qaParse';
 
 // Admin → Quality → Upload: sync the monthly QA workbook (Raw Data tab) into the Knowledge Base.
 // Upload as often as you like (daily): new evaluations are added, changed ones updated, nothing is duplicated.
@@ -74,6 +74,17 @@ export default function QaUpload({ darkMode, onDone }) {
   const [result, setResult] = useState(null);
   const [fileName, setFileName] = useState('');
   const [drag, setDrag] = useState(false);
+  const [rosterOnly, setRosterOnly] = useState(null);
+  const rosterRef = useRef(null);
+  const readRoster = async file => {
+    if (!file) return;
+    try {
+      const r = parseRosterFile(await file.arrayBuffer(), /\.csv$/i.test(file.name));
+      if (!r.length) throw new Error('No agents found. The file needs the columns Name and Wave ID.');
+      setRosterOnly(r);
+    } catch (e) { toast.error(e.message || 'Could not read the roster'); }
+    if (rosterRef.current) rosterRef.current.value = '';
+  };
 
   const reset = () => { setStep('idle'); setParsed(null); setPreview(null); setResult(null); setProgress(0); if (fileRef.current) fileRef.current.value = ''; };
 
@@ -146,6 +157,18 @@ export default function QaUpload({ darkMode, onDone }) {
           <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={e => readFile(e.target.files[0])} />
         </div>
       )}
+
+      {step === 'idle' && (
+        <div style={{ ...card, marginTop: 14 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: th.text, marginBottom: 4 }}>Agent accounts only</div>
+          <div style={{ fontSize: 13, color: th.sub, lineHeight: 1.7, marginBottom: 12 }}>
+            Upload a roster file (the Unique ID tab saved as CSV, or a file with Name, Wave ID, Email Address, Queue and Status columns) to create or update the agent accounts without uploading evaluations.
+          </div>
+          <button onClick={() => rosterRef.current && rosterRef.current.click()} style={{ background: 'transparent', color: th.text, border: `1px solid ${th.border}`, borderRadius: 10, padding: '9px 18px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>Choose roster file</button>
+          <input ref={rosterRef} type="file" accept=".csv,.xlsx,.xls" style={{ display: 'none' }} onChange={e => readRoster(e.target.files[0])} />
+        </div>
+      )}
+      {step === 'idle' && rosterOnly && <RosterSync th={th} roster={rosterOnly} />}
 
       {step === 'reading' && <div style={{ ...card, color: th.sub }}>Reading {fileName}. This takes about 10 seconds…</div>}
 
