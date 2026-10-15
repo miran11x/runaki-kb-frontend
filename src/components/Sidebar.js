@@ -699,6 +699,12 @@ folder
 
 {personalOpen && (
   <>
+    <NI sub icon="⭐" label="My Evaluations" collapsed={collapsed}
+      darkMode={darkMode}
+      active={panel === '_evaluations'}
+      onClick={() => go('_evaluations')}
+    />
+
     <NI
       sub
       icon="✨"
@@ -715,12 +721,6 @@ folder
       darkMode={darkMode}
       active={panel === '_mystats'}
       onClick={() => go('_mystats')}
-    />
-
-    <NI sub icon="⭐" label="My Evaluations" collapsed={collapsed}
-      darkMode={darkMode}
-      active={panel === '_evaluations'}
-      onClick={() => go('_evaluations')}
     />
 
     <NI sub icon="💬" label="Send Feedback" collapsed={collapsed}

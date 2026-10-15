@@ -16,12 +16,14 @@ export function defOf(rubric, attrIndex, reason) {
   return hit ? hit.definition : '';
 }
 
-export function EvalCard({ th, r, rubric, showAgent }) {
+export const ATTR_EMOJI = ['👋', '🪪', '👂', '📚', '💬', '🧩', '🏷️', '🎙️', '🎬', '🙂', '📞'];
+
+export function EvalCard({ th, r, rubric, showAgent, fun }) {
   const [open, setOpen] = useState(false);
   const res = resultOf(r);
   const fails = (r.fl || []).map((f, i) => (f ? { i, f } : null)).filter(Boolean);
   return (
-    <div style={{ border: `1px solid ${th.border}`, borderRadius: 14, background: th.card, overflow: 'hidden' }}>
+    <div style={{ border: `1px solid ${th.border}`, borderRadius: 14, background: th.card, overflow: 'hidden', ...(fun ? { borderInlineStart: `6px solid ${resultColor(res)}`, boxShadow: `0 4px 18px ${resultColor(res)}22` } : {}) }}>
       <button onClick={() => setOpen(!open)} aria-expanded={open}
         style={{ all: 'unset', boxSizing: 'border-box', width: '100%', cursor: 'pointer', padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ minWidth: 64, textAlign: 'center' }}>
@@ -43,14 +45,14 @@ export function EvalCard({ th, r, rubric, showAgent }) {
       </button>
       {open && (
         <div style={{ padding: '4px 14px 14px', borderTop: `1px solid ${th.border}` }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 8, margin: '12px 0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 8, margin: '12px 0', alignItems: 'start' }}>
             {ATTR_LABELS.map((label, i) => {
               const f = r.fl && r.fl[i];
               const p = (r.pt || [])[i] ?? 0;
               return (
-                <div key={label} style={{ background: th.soft, borderRadius: 10, padding: '8px 10px', borderInlineStart: `3px solid ${f ? (p === 0 ? RED : ORANGE) : GREEN}` }}>
+                <div key={label} style={{ background: fun ? `${f ? (p === 0 ? RED : ORANGE) : GREEN}18` : th.soft, borderRadius: 10, padding: '8px 10px', borderInlineStart: `3px solid ${f ? (p === 0 ? RED : ORANGE) : GREEN}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 12.5, fontWeight: 700, color: th.text }}>
-                    <span>{label}</span><span>{p}/3</span>
+                    <span>{fun ? `${ATTR_EMOJI[i]} ` : ''}{label}</span><span style={fun ? { color: f ? (p === 0 ? RED : ORANGE) : GREEN } : undefined}>{fun ? (f ? `${p}/3` : '✓ 3/3') : `${p}/3`}</span>
                   </div>
                   <div style={{ fontSize: 12, color: f ? th.text : th.sub, marginTop: 2 }}>{f || 'Pass'}</div>
                   {f && defOf(rubric, i, f) && <div style={{ fontSize: 11.5, color: th.sub, marginTop: 4, lineHeight: 1.5 }}>{defOf(rubric, i, f)}</div>}
@@ -82,10 +84,10 @@ export function EvalCard({ th, r, rubric, showAgent }) {
   );
 }
 
-export function EvalList({ th, rows, rubric, showAgent }) {
+export function EvalList({ th, rows, rubric, showAgent, fun }) {
   const sorted = useMemo(() => [...rows].sort((a, b) => (a.d < b.d ? 1 : -1)), [rows]);
   if (!sorted.length) return <Empty th={th}>No evaluations to show.</Empty>;
-  return <div style={{ display: 'grid', gap: 10 }}>{sorted.map(r => <EvalCard key={r.id} th={th} r={r} rubric={rubric} showAgent={showAgent} />)}</div>;
+  return <div style={{ display: 'grid', gap: 10 }}>{sorted.map(r => <EvalCard key={r.id} th={th} r={r} rubric={rubric} showAgent={showAgent} fun={fun} />)}</div>;
 }
 
 export function AttributeBars({ th, rows }) {
