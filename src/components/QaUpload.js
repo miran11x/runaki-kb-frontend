@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
-import { parseWorkbook } from '../utils/qaParse';
+import { parseWorkbook, parseCsv } from '../utils/qaParse';
 
 // Admin → Quality → Upload: sync the monthly QA workbook (Raw Data tab) into the Knowledge Base.
 // Upload as often as you like (daily): new evaluations are added, changed ones updated, nothing is duplicated.
@@ -79,11 +79,12 @@ export default function QaUpload({ darkMode, onDone }) {
 
   const readFile = async file => {
     if (!file) return;
-    if (!/\.xlsx?$/i.test(file.name)) return toast.error('Please choose the Excel workbook (.xlsx).');
+    if (!/\.(xlsx?|csv)$/i.test(file.name)) return toast.error('Please choose the workbook (.xlsx) or the Raw Data CSV.');
     setStep('reading'); setFileName(file.name);
     try {
       await new Promise(r => setTimeout(r, 30));           // let the "reading" message paint first
-      const p = parseWorkbook(await file.arrayBuffer());
+      const buf = await file.arrayBuffer();
+      const p = /\.csv$/i.test(file.name) ? parseCsv(buf) : parseWorkbook(buf);
       if (!p.rows.length) throw new Error('No evaluations were found in the Raw Data tab.');
       const pv = await api.post('/qa/preview', { items: p.rows.map(r => ({ key: r.eval_key, hash: r.row_hash, month: r.eval_date.slice(0, 7) })) });
       setParsed(p); setPreview(pv.data); setStep('ready');
@@ -104,7 +105,7 @@ export default function QaUpload({ darkMode, onDone }) {
         inserted += r.data.inserted; updated += r.data.updated;
         setProgress(Math.min(100, Math.round(((i + CH) / parsed.rows.length) * 100)));
       }
-      if (parsed.rubric.length) await api.post('/qa/rubric', { rows: parsed.rubric });
+      if (parsed.rubric.length) await api.post('/qa/rubric', { rows: parsed.rubric, onlyIfEmpty: !parsed.rubricFromFile });
       const fin = await api.post('/qa/finish', { batch, months: parsed.months, remove: removeStale });
       setResult({ inserted, updated, removed: fin.data.removed, total: parsed.rows.length });
       setStep('done');
@@ -128,7 +129,7 @@ export default function QaUpload({ darkMode, onDone }) {
       <div style={{ ...card }}>
         <div style={{ fontSize: 16, fontWeight: 800, color: th.text, marginBottom: 6 }}>Upload the QA evaluation workbook</div>
         <div style={{ fontSize: 13.5, color: th.sub, lineHeight: 1.7 }}>
-          Choose the monthly Excel workbook. Only its <strong style={{ color: th.text }}>Raw Data</strong> tab (and the scoring rubric tab) is read.
+          Choose the monthly Excel workbook, or just the Raw Data tab saved as a CSV. From the workbook only its <strong style={{ color: th.text }}>Raw Data</strong> tab (and the rubric tab) is read; a CSV is read as the Raw Data tab.
           You can upload every day: evaluations already in the system stay as they are, new ones are added, ones that changed in the sheet are updated, and nothing is duplicated.
         </div>
       </div>
@@ -141,8 +142,8 @@ export default function QaUpload({ darkMode, onDone }) {
           style={{ border: `2px dashed ${drag ? ORANGE : th.border}`, borderRadius: 16, padding: '44px 20px', textAlign: 'center', cursor: 'pointer', background: drag ? `${ORANGE}11` : th.card }}>
           <div style={{ fontSize: 34 }}>📊</div>
           <div style={{ fontWeight: 800, color: th.text, marginTop: 8 }}>Drop the workbook here or click to choose it</div>
-          <div style={{ fontSize: 12.5, color: th.sub, marginTop: 4 }}>.xlsx, up to 35 MB</div>
-          <input ref={fileRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={e => readFile(e.target.files[0])} />
+          <div style={{ fontSize: 12.5, color: th.sub, marginTop: 4 }}>.xlsx or .csv</div>
+          <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={e => readFile(e.target.files[0])} />
         </div>
       )}
 

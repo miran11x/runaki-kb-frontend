@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import defaultRubric from './qaRubricDefault.json';
 
 // Reads the monthly "Runaki QA Evaluation" workbook: the Raw Data tab (the evaluations) and the
 // QA Scoring Rubric tab (points + definitions for every failure reason).
@@ -11,17 +12,19 @@ export const ATTRS = [
 const RUBRIC_NAME = { 'Greeting Script': 'Greeting' };
 export const MAX_SCORE = 33;
 
-const txt = v => (v == null ? '' : String(v).trim());
+const txt = v => (v == null ? '' : String(v).replace(/\r\n?/g, '\n').trim());
 const key = s => txt(s).toLowerCase().replace(/\s+/g, ' ');
 
-const serialToIso = n => new Date(Math.round((n - 25569) * 86400000)).toISOString().slice(0, 19); // naive sheet time, no time-zone shift
+const serialToIso = n => new Date(Math.round((n - 25569) * 86400000)).toISOString().slice(0, 19);
+// the CSV has no seconds, so they are dropped everywhere: both file types then give identical rows
+const toMinute = iso => `${iso.slice(0, 16)}:00`;
 const pad = n => String(n).padStart(2, '0');
 
 function toDateTime(v) {
-  if (typeof v === 'number' && v > 1) return serialToIso(v);
+  if (typeof v === 'number' && v > 1) return toMinute(serialToIso(v));
   if (typeof v === 'string' && v.trim()) {
     const d = new Date(v);
-    if (!isNaN(d)) return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    if (!isNaN(d)) return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
   }
   return null;
 }
@@ -100,8 +103,26 @@ export function parseRoster(wb) {
   return out;
 }
 
-export function parseWorkbook(buffer) {
-  const wb = XLSX.read(buffer, { type: 'array', sheets: ['Raw Data', 'QA Scoring Rubric', 'Unique ID'] });
+const WIN1252 = '\u20ac\u0081\u201a\u0192\u201e\u2026\u2020\u2021\u02c6\u2030\u0160\u2039\u0152\u008d\u017d\u008f\u0090\u2018\u2019\u201c\u201d\u2022\u2013\u2014\u02dc\u2122\u0161\u203a\u0153\u009d\u017e\u0178';
+function decodeWin1252(buffer) {
+  const b = new Uint8Array(buffer);
+  let out = '';
+  for (let i = 0; i < b.length; i += 8192) {
+    out += String.fromCharCode.apply(null, Array.from(b.subarray(i, i + 8192), c => (c >= 0x80 && c <= 0x9f ? WIN1252.charCodeAt(c - 0x80) : c)));
+  }
+  return out;
+}
+
+// The Raw Data tab saved on its own as a CSV (Windows files are often not UTF-8, so decode carefully).
+export function parseCsv(buffer) {
+  let text;
+  try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); } catch { text = decodeWin1252(buffer); }
+  const w = XLSX.read(text, { type: 'string', raw: true });
+  return parseWorkbook(null, { 'Raw Data': w.Sheets[w.SheetNames[0]] });
+}
+
+export function parseWorkbook(buffer, sheets) {
+  const wb = sheets ? { Sheets: sheets } : XLSX.read(buffer, { type: 'array', sheets: ['Raw Data', 'QA Scoring Rubric', 'Unique ID'] });
   const raw = sheetRows(wb, 'Raw Data');
   if (!raw) throw new Error("This workbook has no 'Raw Data' tab.");
   const hi = raw.findIndex(r => r && r.some(c => txt(c) === 'Agent Name') && r.some(c => txt(c) === 'QA Officer'));
@@ -113,7 +134,8 @@ export function parseWorkbook(buffer) {
   const missing = need.filter(n => !(n in col));
   if (missing.length) throw new Error(`Columns missing in Raw Data: ${missing.join(', ')}`);
 
-  const rubric = parseRubric(wb);
+  const fileRubric = parseRubric(wb);
+  const rubric = fileRubric.length ? fileRubric : defaultRubric;   // a CSV has no rubric tab: use the standard one
   const pointsOf = new Map(rubric.map(r => [`${key(r.attribute)}|${key(r.reason)}`, r.points]));
   const get = (r, name) => (name in col ? r[col[name]] : null);
 
@@ -178,5 +200,5 @@ export function parseWorkbook(buffer) {
     rows.push(row);
   }
   const months = [...new Set(rows.map(r => r.eval_date.slice(0, 7)))].sort();
-  return { rows, rubric, months, problems, roster: parseRoster(wb) };
+  return { rows, rubric, rubricFromFile: fileRubric.length > 0, months, problems, roster: parseRoster(wb) };
 }
