@@ -122,6 +122,11 @@ function Scene({ phase, hour }) {
           <stop offset="0%" stopColor={k.glow} stopOpacity={k.glowOp} />
           <stop offset="100%" stopColor={k.glow} stopOpacity="0" />
         </radialGradient>
+        <linearGradient id="cloudfade" x1="760" x2="940" y1="0" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#000" />
+          <stop offset="1" stopColor="#fff" />
+        </linearGradient>
+        <mask id="cloudmask"><rect x="0" y="0" width="1200" height="800" fill="url(#cloudfade)" /></mask>
         <mask id="crescent">
           <rect x="0" y="0" width="1200" height="800" fill="black" />
           <circle cx={cx} cy={cy} r={r} fill="white" />
@@ -139,7 +144,7 @@ function Scene({ phase, hour }) {
       </g>
 
       {k.clouds > 0 && (
-        <g opacity={k.clouds} fill="#fff">
+        <g opacity={k.clouds} fill="#fff" mask="url(#cloudmask)">
           <g className="rk-cloud rk-cloud-a"><ellipse cx="150" cy="250" rx="110" ry="18" /><ellipse cx="205" cy="236" rx="70" ry="16" /></g>
           <g className="rk-cloud rk-cloud-b"><ellipse cx="760" cy="150" rx="90" ry="14" /><ellipse cx="810" cy="138" rx="55" ry="12" /></g>
         </g>
@@ -163,8 +168,8 @@ function Hero({ phase, hour, compact }) {
   const g = greetingFor(hour);
   const greets = [['ckb', g.ku], ['kmr', g.ba], ['ar', g.ar]];
   return (
-    <div style={{ position: 'relative', zIndex: 2, padding: compact ? '34px 28px' : '64px 64px', maxWidth: compact ? 'none' : 760 }}>
-      <h2 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 700, fontSize: compact ? 38 : 'clamp(46px, 5.4vw, 76px)', lineHeight: 1.02, letterSpacing: '-0.025em', color: k.text }}>{g.en}</h2>
+    <div className="rk-pad" style={{ position: 'relative', zIndex: 2, padding: compact ? '34px 28px' : '64px 64px', maxWidth: compact ? 'none' : 760 }}>
+      <h2 className="rk-h2" style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 700, fontSize: compact ? 38 : 'clamp(46px, 5.4vw, 76px)', lineHeight: 1.02, letterSpacing: '-0.025em', color: k.text }}>{g.en}</h2>
       <div style={{ display: 'flex', alignItems: 'center', marginTop: compact ? 10 : 16, fontFamily: ARABIC, fontWeight: 600, fontSize: compact ? 19 : 25, color: k.text }}>
         {greets.map(([lang, word], i) => (
           <span key={lang} dir="rtl" lang={lang} style={{ paddingRight: i < greets.length - 1 ? (compact ? 14 : 22) : 0, marginRight: i < greets.length - 1 ? (compact ? 14 : 22) : 0, borderRight: i < greets.length - 1 ? `1.5px solid ${k.text}55` : 'none', lineHeight: 1.1 }}>{word}</span>
@@ -175,9 +180,9 @@ function Hero({ phase, hour, compact }) {
           <p className="rk-intro" style={{ margin: '30px 0 0', fontFamily: DISPLAY, fontWeight: 600, fontSize: 19, lineHeight: 1.4, color: k.text }}>
             Everything you need during a call, in one place.
           </p>
-          <ul style={{ listStyle: 'none', margin: '16px 0 0', padding: 0, maxWidth: 440 }}>
+          <ul className="rk-list" style={{ listStyle: 'none', margin: '16px 0 0', padding: 0, maxWidth: 440 }}>
             {FEATURES.map(([title, desc]) => (
-              <li key={title} style={{ marginBottom: 12 }}>
+              <li key={title} className="rk-li" style={{ marginBottom: 12 }}>
                 <div style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 16, color: k.text }}>{title}</div>
                 <div className="rk-desc" style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 14.5, lineHeight: 1.4, color: k.sub }}>{desc}</div>
               </li>
@@ -257,10 +262,10 @@ export default function Login() {
   const ico = { position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: P.muted, display: 'flex', pointerEvents: 'none' };
 
   const form_ = (
-    <div style={{ width: '100%', maxWidth: 380 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 34 }}>
-        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 76, height: 76, borderRadius: k.dark ? 20 : 0, background: k.dark ? '#fff' : 'transparent', boxShadow: k.dark ? P.logoShadow : 'none', flex: '0 0 auto' }}>
-          <img src={RK_LOGO} alt="Runaki" style={{ height: k.dark ? 56 : 76, width: 'auto', display: 'block' }} />
+    <div style={{ width: '100%', maxWidth: 380, margin: 'auto' }}>
+      <div className="rk-logo" style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 34 }}>
+        <span className="rk-logo-tile" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 76, height: 76, borderRadius: k.dark ? 20 : 0, background: k.dark ? '#fff' : 'transparent', boxShadow: k.dark ? P.logoShadow : 'none', flex: '0 0 auto' }}>
+          <img className="rk-logo-img" src={RK_LOGO} alt="Runaki" style={{ height: k.dark ? 56 : 76, width: 'auto', display: 'block' }} />
         </span>
         <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
           <span style={{ fontFamily: DISPLAY, fontSize: 28, fontWeight: 800, letterSpacing: '0.01em', color: P.text }}>Runaki</span>
@@ -268,17 +273,17 @@ export default function Login() {
         </span>
       </div>
 
-      <h1 style={{ margin: 0, fontFamily: DISPLAY, fontSize: 38, fontWeight: 700, letterSpacing: '-0.02em', color: P.text }}>Sign in</h1>
+      <h1 className="rk-h1" style={{ margin: 0, fontFamily: DISPLAY, fontSize: 38, fontWeight: 700, letterSpacing: '-0.02em', color: P.text }}>Sign in</h1>
       <p style={{ margin: '10px 0 0', fontFamily: DISPLAY, fontSize: 16, color: P.muted }}>Sign in with your Wave ID or work email.</p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 30 }}>
+      <form className="rk-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 30 }}>
         <div>
           <label htmlFor="rk-id" style={{ display: 'block', marginBottom: 8, fontFamily: DISPLAY, fontSize: 14, fontWeight: 600, color: P.label }}>Email or Wave ID</label>
           <div style={{ position: 'relative' }}>
             <span style={ico}><UserIcon /></span>
             <input id="rk-id" type="text" autoComplete="username" autoFocus placeholder="you@runaki.com or Wave ID"
               value={form.identifier} onChange={e => setForm({ ...form, identifier: e.target.value })}
-              onFocus={() => setFocused('id')} onBlur={() => setFocused('')} style={input(focused === 'id')} required />
+              onFocus={() => setFocused('id')} onBlur={() => setFocused('')} className="rk-in" style={input(focused === 'id')} required />
           </div>
         </div>
 
@@ -290,7 +295,7 @@ export default function Login() {
               value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
               onKeyUp={e => setCapsOn(e.getModifierState && e.getModifierState('CapsLock'))}
               onFocus={() => setFocused('pw')} onBlur={() => { setFocused(''); setCapsOn(false); }}
-              style={{ ...input(focused === 'pw'), paddingRight: 48 }} required />
+              className="rk-in" style={{ ...input(focused === 'pw'), paddingRight: 48 }} required />
             <button type="button" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'}
               style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: P.muted, padding: 6, display: 'flex', borderRadius: 8 }}>
               {showPass ? <EyeOffIcon /> : <EyeIcon />}
@@ -309,9 +314,9 @@ export default function Login() {
         </button>
       </form>
 
-      <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid ${P.border}`, fontFamily: DISPLAY, fontSize: 13.5, lineHeight: 1.65, color: P.muted }}>
-        <div><b style={{ color: P.label, fontWeight: 600 }}>Forgot your password?</b> Your QA Team Lead can reset it.</div>
-        <div style={{ marginTop: 4 }}>You stay signed in on this device for 30 days.</div>
+      <div className="rk-foot" style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid ${P.border}`, fontFamily: DISPLAY, fontSize: 13.5, lineHeight: 1.65, color: P.muted }}>
+        <div>Need access or a password reset? Ask your Team Lead.</div>
+        <div style={{ marginTop: 4 }}>For authorised Runaki staff only.</div>
       </div>
     </div>
   );
@@ -333,7 +338,22 @@ export default function Login() {
         @keyframes rkRise { from { transform: translateY(330px); } to { transform: translateY(0); } }
         @keyframes rkDrift { from { transform: translateX(-340px); } to { transform: translateX(1500px); } }
         @keyframes rkSpin { to { transform: rotate(360deg); } }
-        @media (max-height: 780px) { .rk-intro, .rk-desc { display: none; } }
+        @media (max-height: 780px) {
+          .rk-intro { display: none !important; }
+          .rk-pad { padding-top: 36px !important; padding-bottom: 20px !important; }
+          .rk-h2 { font-size: min(76px, 9.5vh) !important; }
+          .rk-list { margin-top: 14px !important; }
+          .rk-li { margin-bottom: 8px !important; }
+          .rk-desc { font-size: 13.5px !important; }
+          .rk-logo { margin-bottom: 20px !important; }
+          .rk-logo-img { height: 54px !important; }
+          .rk-logo-tile { width: 60px !important; height: 60px !important; }
+          .rk-h1 { font-size: 32px !important; }
+          .rk-form { gap: 14px !important; margin-top: 20px !important; }
+          .rk-in { padding-top: 11px !important; padding-bottom: 11px !important; }
+          .rk-foot { margin-top: 20px !important; padding-top: 14px !important; }
+        }
+        @media (max-height: 580px) { .rk-desc { display: none !important; } }
         @media (prefers-reduced-motion: reduce) { .rk-orb, .rk-cloud-a, .rk-cloud-b { animation: none; } }
       `}</style>
 
@@ -345,7 +365,7 @@ export default function Login() {
           </div>
         )}
 
-        <div style={{ flex: isMobile ? '1 0 auto' : '0 0 500px', background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '34px 24px 40px' : '48px 56px', boxSizing: 'border-box',
+        <div style={{ flex: isMobile ? '1 0 auto' : '0 0 500px', background: P.bg, display: 'flex', overflowY: isMobile ? 'visible' : 'auto', minHeight: 0, padding: isMobile ? '34px 24px 40px' : '40px 56px', boxSizing: 'border-box',
           borderRadius: isMobile ? '26px 26px 0 0' : 0, marginTop: isMobile ? -26 : 0, position: 'relative', zIndex: 3 }}>
           {form_}
         </div>
