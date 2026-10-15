@@ -113,13 +113,6 @@ export function TicketDescriptions({ DM, darkMode }) {
       setFlagging(false); setNote('');
     } catch { toast.error('Could not send'); }
   };
-  const printIt = () => {
-    const w = window.open('', '_blank', 'width=700,height=600');
-    if (!w) return;
-    const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    w.document.write(`<pre style="font:15px/1.7 sans-serif;white-space:pre-wrap"><b>${esc(pathOf(selected))}</b>\n\n${esc(selected.english)}</pre>`);
-    w.document.close(); w.print();
-  };
 
   const input = {
     padding: '10px 12px', borderRadius: 10, border: `1px solid ${DM.border}`, background: DM.cardBg,
@@ -203,7 +196,6 @@ export function TicketDescriptions({ DM, darkMode }) {
               {copied ? '✓ Copied' : '📋 Copy'}
             </button>
             <button onClick={async () => { await togglePin(selected.id); toast.success('Pin updated — see “Pinned & recently used”'); }} style={btn(DM, '#64748b')}>📌 Pin / unpin</button>
-            <button onClick={printIt} style={btn(DM, '#64748b')}>🖨️ Print</button>
             <button onClick={() => setFlagging(!flagging)} style={btn(DM, '#ef4444')}>🚩 Report as outdated</button>
           </div>
           {flagging && (
