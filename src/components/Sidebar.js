@@ -64,7 +64,7 @@ export default function Sidebar({
   }
 
   if (
-    ['_callflows', '_scripts', '_priority', '_holdunhold']
+    ['_callflows', '_scripts', '_priority', '_holdunhold', '_contactreasons']
       .includes(panel)
   ) {
     setOpsOpen(true);
@@ -565,7 +565,8 @@ folder
     '_callflows',
     '_scripts',
     '_priority',
-    '_holdunhold'
+    '_holdunhold',
+    '_contactreasons'
   ].includes(panel)
 }
   onClick={() => setOpsOpen(!opsOpen)}
@@ -638,6 +639,12 @@ folder
 
       active={panel === '_holdunhold'}
       onClick={() => go('_holdunhold')}
+    />
+
+    <NI sub icon="🌳" label="Contact Reasons" collapsed={collapsed}
+      darkMode={darkMode}
+      active={panel === '_contactreasons'}
+      onClick={() => go('_contactreasons')}
     />
   </>
 )}

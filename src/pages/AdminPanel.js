@@ -10,6 +10,7 @@ import EvaluationsUpload from '../components/EvaluationsUpload';
 import { PageContentEditor, ExternalToolsAdmin } from '../components/ContentEditor';
 import { TicketDescriptionsAdmin } from '../components/TicketDescriptions';
 import { ZonesAdmin } from '../components/Zones';
+import { ContactReasonsAdmin } from '../components/ContactReasons';
 import { FeedbackAdmin } from '../components/MyStatsFeedback';
 import { ToolReports } from '../components/ToolReports';
 
@@ -404,6 +405,7 @@ export default function AdminPanel({ darkMode }) {
     ['exttools','🧰','External Tools'],
     ['tickets','🎫','Ticket Descriptions'],
     ['zones','📍','Zones'],
+    ['contactreasons','🌳','Contact Reasons'],
     ['agentfeedback','💬','Agent Feedback'],
     ['toolreports','📈','Tool Reports'],
     ['maintenance','🔧','Maintenance'],
@@ -1189,6 +1191,7 @@ export default function AdminPanel({ darkMode }) {
           {tab === 'content' && <PageContentEditor darkMode={darkMode} />}
           {tab === 'exttools' && <ExternalToolsAdmin darkMode={darkMode} />}
           {tab === 'tickets' && <TicketDescriptionsAdmin darkMode={darkMode} />}
+          {tab === 'contactreasons' && <ContactReasonsAdmin darkMode={darkMode} />}
           {tab === 'zones' && <ZonesAdmin darkMode={darkMode} />}
           {tab === 'agentfeedback' && <FeedbackAdmin darkMode={darkMode} />}
           {tab === 'toolreports' && <ToolReports darkMode={darkMode} />}

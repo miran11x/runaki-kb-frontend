@@ -16,6 +16,7 @@ import api from '../utils/api';
   import { Scripts, KYCPlatform, HoldUnhold } from '../components/OpsPages';
   import { TicketDescriptions } from '../components/TicketDescriptions';
   import { ZoneLookup } from '../components/Zones';
+  import { ContactReasons } from '../components/ContactReasons';
   import { MyStats, SendFeedback } from '../components/MyStatsFeedback';
   import { ExternalToolView } from '../components/ContentEditor';
   import UpdateScripts from '../components/UpdateScripts';
@@ -52,6 +53,7 @@ import api from '../utils/api';
   _holdunhold: () => false,
   _tickets: () => false,
   _zones: () => false,
+  _contactreasons: () => false,
   _mystats: () => false,
   _sendfeedback: () => false,
   _traccess: () => false,
@@ -78,6 +80,7 @@ import api from '../utils/api';
   '_scripts':'Scripts & Processes',
   '_tickets':'Ticket Descriptions',
   '_zones':'Zone Lookup',
+  '_contactreasons':'Contact Reasons',
   '_mystats':'My Stats',
   '_sendfeedback':'Send Feedback',
   '_priority':'Case Priorities',
@@ -291,6 +294,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
   '_priority',
   '_kyc',
   '_holdunhold',
+  '_contactreasons',
   '_traccess',
   '_callflows',
   '_updatescripts',
@@ -404,6 +408,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
             {String(panel).startsWith('_tool_') && <ExternalToolView toolId={String(panel).slice(6)} DM={DM} />}
             {panel === '_mystats'  && <MyStats DM={DM} />}
             {panel === '_sendfeedback' && <SendFeedback DM={DM} />}
+            {panel === '_contactreasons' && <ContactReasons DM={DM} />}
             {panel === '_zones'    && <ZoneLookup darkMode={darkMode} DM={DM} />}
             {panel === '_tickets'  && <TicketDescriptions darkMode={darkMode} DM={DM} />}
             {panel === '_scripts'  && <Scripts darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
