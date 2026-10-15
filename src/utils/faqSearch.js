@@ -1,0 +1,241 @@
+// Free, in-browser FAQ search used by BOTH the top search bar and the Runaki AI Assistant.
+// No API, no cost, no data leaves the browser.
+//
+// What it does better than a plain "includes" search:
+//  1. Key terms (the Excel "Key terms (search)" column, stored in faq.tags) are a first-class,
+//     high-weight field, together with the FAQ id ("FAQ13") and the assigned team.
+//  2. Spelling variants of Kurdish / Arabic letters are folded together, so ي = ی, ك = ک,
+//     ة = ه = ە, ڤ = ف, Arabic-Indic digits = 0-9, and diacritics / tatweel / ZWNJ are ignored.
+//  3. Words are matched whole, by prefix ("disconnect" finds "disconnected") and with
+//     one-letter typo tolerance ("recieved" finds "received").
+//  4. Rare words count for more than common ones (IDF), so "maqtu3" outranks "customer".
+//  5. A small synonym list (English + the local words agents actually say).
+//  6. Results are ranked: question and key terms count most, the answer text least.
+
+const STOP = new Set((
+  'a an the and or of to in on at for with is are was were be been it this that these those ' +
+  'i me my we our you your he she they them his her their what which who whom how why when where ' +
+  'do does did can could should would will shall may might must have has had not no yes if then ' +
+  'than so as by from about into out up down over under again also very just please tell say ' +
+  'ku ba ar'
+).split(' '));
+
+// Groups of words that mean the same thing. First word of a group is the canonical one.
+const SYNONYM_GROUPS = [
+  ['pay', 'paid', 'payment', 'payments', 'paying', 'paymnt', 'pai'],
+  ['bill', 'billing', 'invoice', 'charge', 'charged', 'fatura', 'فاتورە', 'فاتوره', 'فاتورة'],
+  ['disconnect', 'disconnected', 'disconnection', 'cut', 'cutoff', 'cuts', 'outage', 'blackout', 'maqtu3', 'maqtu', 'maqtoo3', 'maqtou3', 'مقطوع'],
+  ['electricity', 'power', 'electric', 'current', 'کارەبا', 'کهربا', 'كهرباء', 'کهرباء'],
+  ['kyc', 'registration', 'register', 'registered', 'verify', 'verification', 'validate', 'validated', 'validation'],
+  ['meter', 'counter', 'mitr', 'عداد', 'مەتەر', 'مەتر'],
+  ['balance', 'debt', 'debts', 'arrears', 'owed', 'owe', 'outstanding', 'unpaid', 'dues'],
+  ['tariff', 'rate', 'rates', 'price', 'prices', 'pricing', 'cost'],
+  ['app', 'application', 'mobile'],
+  ['high', 'expensive', 'large', 'big', 'huge'],
+  ['refund', 'reimburse', 'reimbursement', 'moneyback'],
+  ['complaint', 'complain', 'issue', 'problem', 'trouble'],
+  ['instalment', 'installment', 'instalments', 'installments', 'split'],
+  ['discount', 'waiver', 'reduction', 'reduce'],
+  ['leaflet', 'warning', 'notice', 'message', 'sms', 'text'],
+  ['customer', 'costumer', 'client', 'consumer', 'subscriber', 'beneficiary', 'bnf', 'کڕیار', 'عميل'],
+  ['received', 'recived', 'get', 'got', 'receive', 'recieved'],
+  ['phone', 'number', 'mobile', 'telephone'],
+  ['transfer', 'move', 'moved', 'relocate', 'relocation'],
+  ['escalate', 'escalation', 'ticket', 'crm'],
+];
+
+const SYN = new Map();
+SYNONYM_GROUPS.forEach(group => {
+  const canon = normalizeWord(group[0]);
+  group.forEach(w => { if (!SYN.has(normalizeWord(w))) SYN.set(normalizeWord(w), canon); });
+});
+
+// ---------- text normalisation ----------
+function foldChars(s) {
+  return s
+    .replace(/[ً-ٰٟـ‌‍‎‏]/g, '')   // diacritics, tatweel, ZWNJ, direction marks
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/[يىیێ]/g, 'ی')
+    .replace(/[كک]/g, 'ک')
+    .replace(/[ةەھهـ]/g, 'ه')
+    .replace(/[ۆوؤ]/g, 'و')
+    .replace(/[ڕ]/g, 'ر')
+    .replace(/[ڵ]/g, 'ل')
+    .replace(/[ڤ]/g, 'ف')
+    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x06F0));
+}
+
+function stemEn(w) {
+  if (!/^[a-z0-9]+$/.test(w) || w.length < 5) return w;
+  return w
+    .replace(/(ies)$/, 'y')
+    .replace(/(ing|ed|es)$/, '')
+    .replace(/s$/, '');
+}
+
+function normalizeWord(w) {
+  const base = foldChars(
+    String(w).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  );
+  return stemEn(base);
+}
+
+export function normalizeText(text) {
+  const t = String(text || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')   // Psûle -> psule
+    .replace(/\bfaq\s*#?\s*(\d+)\b/g, 'faq$1')            // "faq 13" -> "faq13"
+    .replace(/[*_•◦▪→–—\-/\\]/g, ' ');
+  return foldChars(t).replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+
+export function tokenize(text, { keepStop = false } = {}) {
+  const out = [];
+  normalizeText(text).split(' ').forEach(raw => {
+    if (!raw) return;
+    if (!keepStop && STOP.has(raw)) return;
+    if (raw.length < 2 && !/\d/.test(raw)) return;
+    const w = stemEn(raw);
+    out.push(SYN.get(w) || w);
+  });
+  return out;
+}
+
+// Splits a stored key-terms string ("a, b, c; d") into separate terms, keeping the phrases.
+export function splitKeyTerms(tags) {
+  return String(tags || '').split(/[,;،؛\n]+/).map(s => s.trim()).filter(Boolean);
+}
+
+// ---------- fuzzy matching ----------
+function withinOneEdit(a, b) {
+  if (a === b) return true;
+  const la = a.length, lb = b.length;
+  if (Math.abs(la - lb) > 1) return false;
+  let i = 0, j = 0, edits = 0;
+  while (i < la && j < lb) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (la === lb) {
+      // substitution, or adjacent swap
+      if (a[i + 1] === b[j] && a[i] === b[j + 1]) { i += 2; j += 2; } else { i++; j++; }
+    } else if (la > lb) i++; else j++;
+  }
+  return edits + (la - i) + (lb - j) <= 1;
+}
+
+// ---------- index ----------
+const FIELD_WEIGHT = { tags: 3.2, question: 3.0, subcategory: 1.6, category: 1.0, answer: 1.0 };
+
+export function buildIndex(faqs) {
+  const docs = (faqs || []).map(faq => {
+    const question = tokenize([faq.question_en, faq.question_ku, faq.question_ba, faq.question_ar].filter(Boolean).join(' '));
+    const answer = tokenize([faq.answer_en, faq.answer_ku, faq.answer_ba, faq.answer_ar].filter(Boolean).join(' '));
+    const tags = tokenize(faq.tags);
+    const subcategory = tokenize([faq.subcategory, faq.third_level].filter(Boolean).join(' '));
+    const category = tokenize(faq.category);
+    return {
+      faq,
+      fields: {
+        question: new Set(question),
+        tags: new Set(tags),
+        subcategory: new Set(subcategory),
+        category: new Set(category),
+        answer: new Set(answer),
+      },
+      phrase: {
+        question: normalizeText([faq.question_en, faq.question_ku, faq.question_ba, faq.question_ar].filter(Boolean).join(' | ')),
+        tags: splitKeyTerms(faq.tags).map(normalizeText),
+      },
+    };
+  });
+
+  // document frequency for IDF
+  const df = new Map();
+  docs.forEach(d => {
+    const all = new Set();
+    Object.values(d.fields).forEach(set => set.forEach(t => all.add(t)));
+    all.forEach(t => df.set(t, (df.get(t) || 0) + 1));
+  });
+  return { docs, df, n: docs.length };
+}
+
+const idf = (index, t) => {
+  const f = index.df.get(t) || 0;
+  return Math.log(1 + (index.n + 1) / (f + 0.5));
+};
+
+// How well does query token `qt` match field token set `set`?  1 exact, .7 prefix, .5 one typo, 0 none.
+function matchIn(set, qt) {
+  if (set.has(qt)) return 1;
+  if (qt.length < 3) return 0;
+  let best = 0;
+  for (const t of set) {
+    if (t.length >= qt.length && t.startsWith(qt)) { best = Math.max(best, 0.7); }
+    else if (qt.length >= 5 && withinOneEdit(qt, t)) { best = Math.max(best, 0.5); }
+    if (best === 1) break;
+  }
+  return best;
+}
+
+/**
+ * Rank FAQs for a query.
+ * returns [{ faq, score, coverage, matchedTerms:[...key terms that matched] }]
+ */
+export function searchFaqs(index, query, { limit = 0, minScore = 0 } = {}) {
+  const q = normalizeText(query);
+  if (!q) return [];
+  const qTokens = tokenize(query);
+  if (qTokens.length === 0) return [];
+  const uniq = Array.from(new Set(qTokens));
+
+  const results = [];
+  index.docs.forEach(d => {
+    let score = 0;
+    let matchedCount = 0;
+    uniq.forEach(qt => {
+      const w = idf(index, qt);
+      let bestForToken = 0;
+      Object.entries(d.fields).forEach(([field, set]) => {
+        const m = matchIn(set, qt);
+        if (m > 0) bestForToken = Math.max(bestForToken, m * FIELD_WEIGHT[field]);
+      });
+      if (bestForToken > 0) { matchedCount++; score += w * bestForToken; }
+    });
+    if (matchedCount === 0) return;
+
+    const coverage = matchedCount / uniq.length;
+    // multi-word questions: require at least half of the words to be found
+    if (uniq.length >= 3 && coverage < 0.5) return;
+    score *= 0.4 + 0.6 * coverage;
+
+    // exact phrase bonuses
+    if (q.length >= 3) {
+      if (d.phrase.question.includes(q)) score += 12;
+      if (d.phrase.tags.some(t => t === q)) score += 18;
+      else if (d.phrase.tags.some(t => t && (t.includes(q) || (t.length >= 4 && q.includes(t))))) score += 9;
+    }
+
+    // which stored key terms explain the match
+    const matchedTerms = splitKeyTerms(d.faq.tags).filter(term => {
+      const tt = tokenize(term);
+      return tt.length > 0 && tt.some(x => uniq.some(qt => x === qt || (qt.length >= 3 && x.startsWith(qt))));
+    }).slice(0, 4);
+
+    results.push({ faq: d.faq, score, coverage, matchedTerms });
+  });
+
+  results.sort((a, b) => b.score - a.score || b.coverage - a.coverage);
+  const top = results.length ? results[0].score : 0;
+  const kept = results.filter(r => r.score >= minScore && r.score >= top * 0.25);
+  return limit ? kept.slice(0, limit) : kept;
+}
+
+// Language of what the agent typed (used by the assistant to answer in the same language)
+export function detectLanguage(text) {
+  const t = String(text || '');
+  if (/[ڤ]|ئەز|هەوە|هەوە|چاوا|کیڤە|ناڤ/.test(t)) return 'ba';
+  if (/[ڕڵۆێە]/.test(t)) return 'ku';
+  if (/[؀-ۿ]/.test(t)) return 'ar';
+  return 'en';
+}

@@ -59,14 +59,14 @@ export default function Sidebar({
   }
 
   if (
-    ['_callflows', '_restree', '_scripts', '_priority', '_holdunhold']
+    ['_callflows', '_scripts', '_priority', '_holdunhold']
       .includes(panel)
   ) {
     setOpsOpen(true);
   }
 
   if (
-    ['_maintenance', '_kyc'].includes(panel)
+    ['_kyc'].includes(panel)
   ) {
     setToolsOpen(true);
   }
@@ -87,7 +87,6 @@ const rm = ROLE_META[user?.role] || ROLE_META.agent;
     billingComplaints: general.filter(f => f.category?.toLowerCase().includes('billing')).length,
     generalComplaints: general.filter(f => f.category?.toLowerCase() === 'general complaints').length,
     serviceRequests: general.filter(f => f.category?.toLowerCase().includes('service')).length,
-    feedback: general.filter(f => f.category?.toLowerCase().includes('feedback')).length,
   };
 }, [faqs]);
 
@@ -305,9 +304,7 @@ active={
     'inquiries',
     'billing',
     'general',
-    'service',
-    'feedback',
-    '_updates'
+    'service'
   ].includes(panel)
 }
   onClick={() => setFaqOpen(!faqOpen)}
@@ -388,24 +385,6 @@ color: darkMode ? 'rgba(255,255,255,0.75)' : '#475569',    letterSpacing:'0.08em
       onClick={() => go('service')}
     />
 
-    <NI
-      icon="💌"
-      label="Feedback & Others"
-      badge={faqCounts.feedback}
-      darkMode={darkMode}
-      collapsed={collapsed}
-      active={panel === 'feedback'}
-      onClick={() => go('feedback')}
-    />
-
-    <NI
-      icon="🆕"
-      label="New Updates"
-      darkMode={darkMode}
-      collapsed={collapsed}
-      active={panel === '_updates'}
-      onClick={() => go('_updates')}
-    />
   </>
 )}
 {/* RUNAKI AI */}
@@ -488,7 +467,6 @@ folder
   active={
   [
     '_callflows',
-    '_restree',
     '_scripts',
     '_priority',
     '_holdunhold'
@@ -542,14 +520,6 @@ folder
       onClick={() => go('_callflows')}
     />
 
-    <NI sub icon="🌳" label="Resolution Tree" collapsed={collapsed}
-    
-  darkMode={darkMode}
-
-      active={panel === '_restree'}
-      onClick={() => go('_restree')}
-    />
-
     <NI sub icon="📋" label="Scripts & Processes" collapsed={collapsed}
     
   darkMode={darkMode}
@@ -586,7 +556,7 @@ folder
   label="Tools"
   collapsed={collapsed}
   active={
-  ['_maintenance','_kyc']
+  ['_kyc']
     .includes(panel)
 }
   onClick={() => setToolsOpen(!toolsOpen)}
@@ -629,19 +599,7 @@ folder
 
 {toolsOpen && (
   <>
-    <NI
-      sub
-      icon="🔧"
-      
-  darkMode={darkMode}
-
-      label="Maintenance Lookup"
-      collapsed={collapsed}
-      active={panel === '_maintenance'}
-      onClick={() => go('_maintenance')}
-    />
-
-    <NI
+<NI
       sub
       icon="📱"
       

@@ -332,23 +332,25 @@ const bulkDeleteFaqs = async () => {
     if (!window.confirm(
       `Import ${rows.length} FAQs from "${file.name}" (${sheetsUsed.join(', ')}) ` +
       (shortlisted ? "into SHORTLISTED FAQ's?" : 'as general FAQs?') +
-      '\n\nFAQs that already exist (same English question) are skipped, not duplicated.'
+      '\n\nFAQs that already exist (same English question) are never duplicated or overwritten — but any translation (Sorani / Badini / Arabic) that is still empty on the existing FAQ will be filled in from this file.'
     )) return;
 
     // send in small batches so long multi-language FAQs never exceed a request size limit
     let imported = 0;
+    let updated = 0;
     const skipped = [];
     const BATCH = 15;
     for (let i = 0; i < rows.length; i += BATCH) {
       if (rows.length > BATCH) toast.loading(`Importing… ${Math.min(i + BATCH, rows.length)} / ${rows.length}`, { id: 'faq-import' });
       const response = await api.post('/faqs/import', { rows: rows.slice(i, i + BATCH), shortlisted });
       imported += response.data.imported;
+      updated += response.data.updated || 0;
       skipped.push(...(response.data.skipped || []));
     }
     toast.dismiss('faq-import');
 
     toast.success(
-      `${imported} FAQs imported` + (skipped.length ? ` — ${skipped.length} skipped` : ''),
+      `${imported} FAQs imported` + (updated ? ` — ${updated} existing FAQs got new translations` : '') + (skipped.length ? ` — ${skipped.length} unchanged/skipped` : ''),
       { duration: 6000 }
     );
     if (skipped.length) console.warn('Skipped FAQs:', skipped);

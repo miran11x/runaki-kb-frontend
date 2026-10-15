@@ -1,4 +1,5 @@
 import RichAnswer from '../components/RichAnswer';
+import { buildIndex, searchFaqs, detectLanguage as detectQueryLanguage } from '../utils/faqSearch';
 import React, {
   useState,
   useEffect,
@@ -12,7 +13,7 @@ import api from '../utils/api';
   import Sidebar from '../components/Sidebar';
   import Topbar from '../components/Topbar';
   import toast from 'react-hot-toast';
-  import MaintenanceLookup from '../components/MaintenanceLookup';
+  import { Scripts, KYCPlatform, HoldUnhold } from '../components/OpsPages';
   import UpdateScripts from '../components/UpdateScripts';
   import AdminPanel from './AdminPanel';
   import EditorPanel from './EditorPanel';
@@ -78,40 +79,6 @@ import api from '../utils/api';
   '_admin':'Admin Panel',
   '_faqeditor':'FAQ Editor',
   '_feedback':'Feedback Center',
-};
-
-const buildResolutionTree = (faqs) => {
-  const tree = {};
-
-  faqs.forEach(faq => {
-    const category = faq.category || 'Uncategorized';
-    const subcategory = faq.subcategory || 'General';
-    const thirdLevel = faq.third_level || null;
-
-    if (!tree[category]) {
-      tree[category] = {};
-    }
-
-    if (!tree[category][subcategory]) {
-      tree[category][subcategory] = {};
-    }
-
-    if (thirdLevel) {
-      if (!tree[category][subcategory][thirdLevel]) {
-        tree[category][subcategory][thirdLevel] = [];
-      }
-
-      tree[category][subcategory][thirdLevel].push(faq);
-    } else {
-      if (!tree[category][subcategory]._faqs) {
-        tree[category][subcategory]._faqs = [];
-      }
-
-      tree[category][subcategory]._faqs.push(faq);
-    }
-  });
-
-  return tree;
 };
 
 export default function AgentView() {
@@ -268,37 +235,14 @@ setFaqs(fr.data);
       localStorage.setItem('rk_dark', next ? '1' : '0');
     };
 
+    const searchIndex = useMemo(() => buildIndex(faqs), [faqs]);
+
     const panelFaqs = () => {
 
       if (panel === '_bookmarks') return faqs.filter(f => bookmarks.includes(f.id));
       // keep the order the FAQs were imported in (the order of the source document)
       if (panel === '_shortlisted') return faqs.filter(f => f.is_shortlisted).sort((a, b) => a.id - b.id);
-      if (search) {
-
-    const q = search.toLowerCase();
-
-    return faqs.filter(f =>
-      [
-        f.question_en,
-        f.answer_en,
-
-        f.question_ku,
-        f.answer_ku,
-
-        f.question_ba,
-        f.answer_ba,
-
-        f.question_ar,
-        f.answer_ar,
-
-        f.category,
-        f.subcategory,
-        f.tags
-      ].some(x =>
-        (x || '').toLowerCase().includes(q)
-      )
-    );
-  }
+      if (search) return searchFaqs(searchIndex, search).map(r => r.faq);
       const fn = PANEL_FILTER[panel];
       return fn ? faqs.filter(fn) : [];
     };
@@ -325,21 +269,14 @@ const grouped = items => {
     const items = panelFaqs();
 const groups = grouped(items);
 
-const resolutionTree = useMemo(
-  () => buildResolutionTree(faqs),
-  [faqs]
-);
-
 const isSpecial = [
       '_feedback',
-  '_restree',
   '_scripts',
   '_priority',
   '_kyc',
   '_holdunhold',
   '_traccess',
   '_callflows',
-  '_maintenance',
   '_updatescripts',
   '_ai',
   '_ai-kb',
@@ -448,20 +385,12 @@ const isSpecial = [
             )}
 
             {/* Special panels */}
-            {panel === '_restree' &&
-  <ResolutionTree
-    darkMode={darkMode}
-    DM={DM}
-    tree={resolutionTree}
-  />
-}
-            {panel === '_scripts'  && <Scripts darkMode={darkMode} DM={DM} />}
+            {panel === '_scripts'  && <Scripts darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
             {panel === '_priority' && <Priority darkMode={darkMode} DM={DM} />}
-            {panel === '_kyc'       && <KYCPlatform darkMode={darkMode} DM={DM} />}
-            {panel === '_holdunhold'&& <HoldUnhold darkMode={darkMode} DM={DM} />}
+            {panel === '_kyc'       && <KYCPlatform darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
+            {panel === '_holdunhold'&& <HoldUnhold darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
             {panel === '_traccess'  && <TRAccess darkMode={darkMode} DM={DM} />}
             {panel === '_callflows' && <CallFlows darkMode={darkMode} DM={DM} />}
-            {panel === '_maintenance'   && <MaintenanceLookup darkMode={darkMode} />}
             {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
             
 {panel === '_admin' && (
@@ -751,161 +680,6 @@ const isSpecial = [
     );
   }
 
-  function ResolutionTree({
-  darkMode,
-  DM,
-  tree
-}) {
-    const [expanded, setExpanded] = React.useState({});
-    const tog = key => setExpanded(p => ({ ...p, [key]: !p[key] }));
-    const TreeNode = ({ node, depth, parentKey, color }) => {
-      const key = `${parentKey}-${node.label}`;
-      const isOpen = expanded[key];
-      const hasChildren = node.children && node.children.length > 0;
-      const indent = depth * 14;
-      const bg = depth === 0
-        ? (darkMode ? 'rgba(255,255,255,0.1)' : '#0B1120')
-        : depth === 1
-          ? (darkMode ? 'rgba(255,255,255,0.06)' : `${color}12`)
-          : (darkMode ? 'rgba(255,255,255,0.03)' : `${color}08`);
-      const textColor = depth === 0 ? '#fff' : depth === 1 ? (darkMode?'#e2e8f0':color) : DM.subText;
-      const fontSize = depth === 0 ? '12px' : depth === 1 ? '11.5px' : '11px';
-      const fontWeight = depth === 0 ? '700' : depth === 1 ? '600' : '500';
-      const borderColor = depth === 0 ? 'transparent' : darkMode ? 'rgba(255,255,255,0.07)' : `${color}25`;
-
-      return (
-        <div style={{ marginLeft: `${indent}px` }}>
-          <button
-            onClick={() => hasChildren && tog(key)}
-            style={{
-              width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:'6px',
-              padding:'6px 10px', borderRadius:'9px', border:`1px solid ${borderColor}`,
-              background:bg, cursor: hasChildren ? 'pointer':'default',
-              fontFamily:'inherit', fontSize, fontWeight, color: textColor,
-              marginBottom:'3px', transition:'all .15s',
-            }}
-          >
-            {depth > 0 && <span style={{ opacity:0.3, fontSize:'10px' }}>{'└'}</span>}
-            <span style={{ flex:1 }}>{node.label}</span>
-            {hasChildren && (
-              <span style={{ fontSize:'10px', opacity:0.6, transition:'transform .2s', display:'inline-block', transform: isOpen?'rotate(90deg)':'none' }}>›</span>
-            )}
-          </button>
-          {isOpen && hasChildren && (
-            <div style={{ marginBottom:'3px' }}>
-              {node.children.map((child, i) => (
-                <TreeNode key={i} node={child} depth={depth+1} parentKey={key} color={color} />
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    };
-
-    return (
-      <div>
-        <div style={{ display:'flex', justifyContent:'center', marginBottom:'24px' }}>
-          <div style={{ background:'linear-gradient(135deg,#0B1120,#1e293b)', color:'#fff', padding:'12px 36px', borderRadius:'16px', fontWeight:'800', fontSize:'15px', boxShadow:'0 8px 24px rgba(11,17,32,0.4)', display:'flex', alignItems:'center', gap:'10px' }}>
-            📞 Call Center -- Click to Expand
-          </div>
-        </div>
-        {/* Resolution Method Trees */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'12px', marginBottom:'24px' }}>
-          {[
-            { t:'Resolved with FAQ', icon:'📖', color:'#6366f1', steps:['Agent identifies customer issue','Matches to FAQ category','Reads approved answer','Confirms customer understood','Closes ticket as resolved'] },
-            { t:'Resolved with Process', icon:'⚙️', color:'#10b981', steps:['Agent identifies issue requiring action','Follows standard process steps','Creates/updates CRM ticket','Notifies relevant team if needed','Closes ticket once process done'] },
-            { t:'Resolved with CRM Access', icon:'💻', color:'#f59e0b', steps:['Agent checks CRM for customer data','Verifies account/meter details','Makes update or correction in CRM','Confirms change with customer','Closes ticket as resolved'] },
-          ].map((tree,i) => (
-            <div key={i} style={{ background: DM.cardBg, borderRadius:'16px', overflow:'hidden', border:`1.5px solid ${tree.color}30`, boxShadow:`0 4px 16px ${tree.color}12` }}>
-              <div style={{ background:`linear-gradient(135deg,${tree.color}20,${tree.color}08)`, padding:'14px 18px', borderBottom:`1px solid ${tree.color}20`, display:'flex', alignItems:'center', gap:'10px' }}>
-                <span style={{ fontSize:'20px' }}>{tree.icon}</span>
-                <span style={{ fontSize:'13px', fontWeight:'800', color:tree.color }}>{tree.t}</span>
-              </div>
-              <div style={{ padding:'14px 18px' }}>
-                {tree.steps.map((step,j) => (
-                  <div key={j} style={{ display:'flex', gap:'10px', padding:'6px 0', borderBottom:j<tree.steps.length-1?`1px solid ${DM.border}`:'none', alignItems:'flex-start' }}>
-                    <span style={{ background:tree.color, color:'#fff', borderRadius:'50%', width:'18px', height:'18px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:'900', flexShrink:0, marginTop:'2px' }}>{j+1}</span>
-                    <span style={{ fontSize:'12.5px', color:DM.subText, lineHeight:'1.5' }}>{step}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ fontSize:'13px', fontWeight:'800', color:DM.subText, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'12px' }}>📞 Call Category Tree</div>
-        <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'16px', alignItems:'flex-start' }}>
-          {Object.entries(tree).map(
-  ([category, subcategories]) => (
-    <div
-      key={category}
-      style={{
-        flex: 1,
-        minWidth: '220px'
-      }}
-    >
-      <div
-        style={{
-          background:
-            'linear-gradient(135deg,#0B1120,#1e293b)',
-          color: '#fff',
-          padding: '10px 12px',
-          borderRadius: '14px',
-          fontWeight: '800',
-          marginBottom: '8px'
-        }}
-      >
-        {category}
-      </div>
-
-      {Object.entries(subcategories).map(
-        ([subcategory, thirdLevels]) => (
-          <div key={subcategory}>
-            <TreeNode
-              node={{
-                label: subcategory,
-                children: Object.keys(thirdLevels)
-                  .filter(k => k !== '_faqs')
-                  .map(k => ({
-                    label: k
-                  }))
-              }}
-              depth={0}
-              parentKey={category}
-              color="#6366f1"
-            />
-          </div>
-        )
-      )}
-    </div>
-  )
-)}
-        </div>
-      </div>
-    );
-}
-  function Scripts({ darkMode, DM }) {
-    const scripts = [
-      { t:'👋 Greeting', s:'Good [morning/afternoon/evening], thank you for calling Runaki. My name is [name], how may I assist you today?' },
-      { t:'📋 Get User Info', s:'May I please have your name and account/meter number to look up your account?' },
-      { t:'⏸️ Requesting Hold', s:'I need to place you on a brief hold while I look into this. It should take no more than 1 minute. Is that okay?' },
-      { t:'⏰ Still on Hold', s:"Thank you for holding. I'm still looking into this for you, I appreciate your patience." },
-      { t:'▶️ Returning from Hold', s:'Thank you for holding, [customer name]. I have the information you need.' },
-      { t:'✅ Closing', s:'Is there anything else I can help you with today? Thank you for calling Runaki. Have a great day!' },
-    ];
-    return (
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:'14px' }}>
-        {scripts.map((s,i) => (
-          <div key={i} style={{ background:DM.cardBg, borderRadius:'16px', padding:'20px 22px', border:`1px solid ${DM.border}`, overflow:'hidden', position:'relative' }}>
-            <div style={{ position:'absolute', top:0, left:0, right:0, height:'3px', background:`linear-gradient(90deg,${ORANGE},#ff9a6c)` }} />
-            <div style={{ fontSize:'11px', fontWeight:'800', color:DM.text, marginBottom:'12px', textTransform:'uppercase', letterSpacing:'0.08em' }}>{s.t}</div>
-            <div style={{ fontSize:'14px', color:DM.subText, fontStyle:'italic', lineHeight:'1.75', borderLeft:`3px solid ${ORANGE}`, paddingLeft:'14px' }}>
-              "{s.s}"
-            </div>
-          </div>
-        ))}
-      </div>
-);
-}
   function Priority({ DM, darkMode }) {
     const levels = [
       {
@@ -965,106 +739,6 @@ const isSpecial = [
             </div>
           </div>
         ))}
-      </div>
-    );
-  }
-
-  function KYCPlatform({ darkMode, DM }) {
-    const statuses = [
-      { status:'✅ Validated', color:'#16a34a', bg:'#f0fdf4', action:'No issues from the KYC team. Be patient and wait.', badge:'Resolve the ticket.' },
-      { status:'🕐 KYC Not Started', color:'#6366f1', bg:'#eef2ff', action:'Still in process. Be patient and wait.', badge:'Resolve the ticket.' },
-      { status:'❌ Rejected', color:'#dc2626', bg:'#fef2f2', action:'Customer needs to re-submit their KYC.', badge:'Resolve the ticket.' },
-      { status:'🚩 Flagged', color:'#d97706', bg:'#fffbeb', action:'Still in process. Be patient and wait.', badge:'Resolve the ticket.' },
-      { status:'📋 KYC Not Submitted', color:'#8b5cf6', bg:'#f5f3ff', action:'Under validation process. Be patient and wait.', badge:'Resolve the ticket.' },
-      { status:'⚙️ Pending Mechanical Meter Update', color:'#ea580c', bg:'#fff7ed', action:'BNF submitted a Mechanical meter instead of a bill.', badge:'Escalate to BNF team.' },
-      { status:'🔍 Number Not Found in Sheet', color:'#64748b', bg:'#f8fafc', action:"BNF has not KYC'd with this phone number.", badge:'Verify with customer.' },
-    ];
-    return (
-      <div>
-        <div style={{ background: darkMode?'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))':'linear-gradient(135deg,#eef2ff,#f5f3ff)', border:'1px solid #6366f130', borderRadius:'18px', padding:'20px 24px', marginBottom:'24px' }}>
-          <div style={{ fontSize:'16px', fontWeight:'800', color:'#6366f1', marginBottom:'8px' }}>📱 KYC Platform -- How to Handle</div>
-          <div style={{ fontSize:'13.5px', color:DM.subText, lineHeight:'1.75' }}>
-            Whenever a customer has a KYC-related issue, always check their phone number in the system first, verify the KYC status, and ensure all details match before taking any further steps. This helps identify whether the issue is with the system, the BNF submission, or another stage of the process.
-          </div>
-        </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:'14px' }}>
-          {statuses.map((s,i) => (
-            <div key={i} style={{ background:DM.cardBg, borderRadius:'16px', overflow:'hidden', border:`1.5px solid ${s.color}30`, boxShadow:`0 4px 16px ${s.color}12` }}>
-              <div style={{ background: darkMode?`${s.color}15`:s.bg, padding:'14px 18px', borderBottom:`1px solid ${s.color}20` }}>
-                <div style={{ fontSize:'15px', fontWeight:'800', color:s.color }}>{s.status}</div>
-              </div>
-              <div style={{ padding:'14px 18px' }}>
-                <div style={{ fontSize:'13.5px', color:DM.text, lineHeight:'1.6', marginBottom:'10px' }}>{s.action}</div>
-                <div style={{ display:'inline-block', background:`${s.color}15`, color:s.color, fontSize:'11px', fontWeight:'800', padding:'4px 12px', borderRadius:'100px', border:`1px solid ${s.color}30` }}>
-                  {s.badge}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  function HoldUnhold({ darkMode, DM }) {
-    const steps = [
-      {
-        phase:'1 -- Pre-Hold', icon:'🎙️', color:'#6366f1',
-        title:'Before placing on hold',
-        desc:'Before placing the customer on hold, clearly inform them and explain the reason using the approved pre-hold script.',
-        script:'"I need to place you on a brief hold while I look into this for you. It should take no more than 1 minute. Is that okay?"',
-        rules:['Always inform the customer before holding','Explain the reason clearly','Get their agreement first'],
-      },
-      {
-        phase:'2 -- During Hold', icon:'⏸️', color:'#f59e0b',
-        title:'While customer is on hold',
-        desc:'The call must be placed on hold -- not muted -- so that hold music plays for the customer.',
-        script:null,
-        rules:['Use the HOLD button -- never mute the call','Hold music must play for the customer','Check back every 1 minute if hold is longer'],
-      },
-      {
-        phase:'3 -- Post-Hold', icon:'▶️', color:'#10b981',
-        title:'Returning from hold',
-        desc:'After returning, use the approved post-hold script, apologize for the wait, and continue assisting professionally.',
-        script:'"Thank you for holding, [customer name]. I have the information you need. I apologize for the wait."',
-        rules:['Always thank the customer for holding','Apologize for the wait time','Use their name when returning'],
-      },
-    ];
-    return (
-      <div>
-        <div style={{ background: darkMode?'rgba(99,102,241,0.1)':'#eef2ff', border:'1px solid #6366f130', borderRadius:'18px', padding:'18px 22px', marginBottom:'24px' }}>
-          <div style={{ fontSize:'15px', fontWeight:'800', color:'#6366f1', marginBottom:'6px' }}>📞 Hold & Unhold -- Professional Standards</div>
-          <div style={{ fontSize:'13px', color:DM.subText, lineHeight:'1.7' }}>Placing a customer on hold should be done professionally by informing them first, ensuring hold music plays, and apologizing when returning to the call.</div>
-        </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
-          {steps.map((step,i) => (
-            <div key={i} style={{ background:DM.cardBg, borderRadius:'18px', overflow:'hidden', border:`1.5px solid ${step.color}30`, boxShadow:`0 4px 20px ${step.color}12` }}>
-              <div style={{ background:`linear-gradient(135deg,${step.color}20,${step.color}08)`, padding:'18px 22px', display:'flex', alignItems:'center', gap:'14px', borderBottom:`1px solid ${step.color}20` }}>
-                <div style={{ width:'48px', height:'48px', borderRadius:'14px', background:`linear-gradient(135deg,${step.color},${step.color}88)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0, boxShadow:`0 4px 12px ${step.color}40` }}>{step.icon}</div>
-                <div>
-                  <div style={{ fontSize:'11px', fontWeight:'800', color:step.color, textTransform:'uppercase', letterSpacing:'0.1em' }}>{step.phase}</div>
-                  <div style={{ fontSize:'16px', fontWeight:'800', color:DM.text, marginTop:'2px' }}>{step.title}</div>
-                </div>
-              </div>
-              <div style={{ padding:'18px 22px' }}>
-                <div style={{ fontSize:'13.5px', color:DM.subText, lineHeight:'1.7', marginBottom:'14px' }}>{step.desc}</div>
-                {step.script && (
-                  <div style={{ background: darkMode?'rgba(255,255,255,0.04)':'#f8fafc', border:`2px solid ${step.color}30`, borderLeft:`4px solid ${step.color}`, borderRadius:'10px', padding:'12px 16px', fontSize:'13.5px', color:DM.text, fontStyle:'italic', lineHeight:'1.7', marginBottom:'14px' }}>
-                    {step.script}
-                  </div>
-                )}
-                <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
-                  {step.rules.map((r,j) => (
-                    <div key={j} style={{ display:'flex', alignItems:'center', gap:'6px', background:`${step.color}12`, border:`1px solid ${step.color}25`, borderRadius:'8px', padding:'5px 12px' }}>
-                      <span style={{ color:step.color, fontSize:'10px' }}>✓</span>
-                      <span style={{ fontSize:'12px', fontWeight:'600', color:DM.text }}>{r}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     );
   }
@@ -1254,155 +928,20 @@ function RUNAKIAIAssistant({
   const [resultLanguage, setResultLanguage] =
     React.useState('en');
 
-const detectLanguage = (text) => {
-  const t = text.toLowerCase();
-
-  // Badini
-  if (
-    t.includes('ئه‌ز') ||
-    t.includes('ئه‌ڤ') ||
-    t.includes('چاوا') ||
-    t.includes('دبیت') ||
-    t.includes('دێت')
-  ) {
-    return 'ba';
-  }
-
-  // Sorani
-  if (
-    t.includes('ڕ') ||
-    t.includes('ڵ') ||
-    t.includes('ۆ') ||
-    t.includes('ێ') ||
-    t.includes('ە')
-  ) {
-    return 'ku';
-  }
-
-  // Arabic
-  if (/[\u0600-\u06FF]/.test(t)) {
-    return 'ar';
-  }
-
-  return 'en';
-};
+const searchIndex = React.useMemo(() => buildIndex(faqs), [faqs]);
+const [searched, setSearched] = React.useState(false);
 
 const askAI = (q = question) => {
-
-  const query = q.trim().toLowerCase();
-
-  const synonyms = {
-    customer: ['customer','costumer','client','consumer'],
-    received: ['received','recived','got'],
-    bill: ['bill','billing','invoice'],
-    high: ['high','expensive','large']
-  };
-
-  const detectedLang = detectLanguage(query);
-  setResultLanguage(detectedLang);
-
+  const query = (typeof q === 'string' ? q : question).trim();
+  setResultLanguage(detectQueryLanguage(query));
   if (!query) {
     setResults([]);
+    setSearched(false);
     return;
   }
-
-  const queryWords = query
-  .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-  .split(/\s+/)
-  .filter(w => w.length > 1);
-
-  const matches = faqs
-    .map(faq => {
-
-      let score = 0;
-
-      const questionText = [
-  faq.question_en,
-  faq.question_ku,
-  faq.question_ba,
-  faq.question_ar
-]
-  .filter(Boolean)
-  .join(' ')
-  .toLowerCase();
-
-const answerText = [
-  faq.answer_en,
-  faq.answer_ku,
-  faq.answer_ba,
-  faq.answer_ar
-]
-  .filter(Boolean)
-  .join(' ')
-  .toLowerCase();
-
-      const categoryText =
-        (faq.category || '').toLowerCase();
-
-      const subcategoryText =
-        (faq.subcategory || '').toLowerCase();
-
-      const tagsText =
-        (faq.tags || '').toLowerCase();
-
-
-     const questionWords = questionText.split(/\s+/);
-const answerWords = answerText.split(/\s+/);
-
-queryWords.forEach(word => {
-
-  // Question
-  if (questionWords.includes(word))
-    score += 40;
-  else if (questionText.includes(word))
-    score += 15;
-
-
-  // Tags
-  if (tagsText.includes(word))
-    score += 30;
-
-  // Subcategory
-  if (subcategoryText.includes(word))
-    score += 25;
-
-  // Category
-  if (categoryText.includes(word))
-    score += 20;
-
-  // Answer
-  if (answerWords.includes(word))
-    score += 15;
-  else if (answerText.includes(word))
-    score += 5;
-});
-
-      if (questionText.includes(query))
-  score += 100;
-
-if (tagsText.includes(query))
-  score += 80;
-
-if (subcategoryText.includes(query))
-  score += 70;
-
-if (categoryText.includes(query))
-  score += 60;
-
-if (answerText.includes(query))
-  score += 50;
-
-      return {
-        faq,
-        score
-      };
-
-    })
-    .filter(x => x.score >= 25)
-    .sort((a,b) => b.score - a.score)
-    .slice(0,5);
-
-  setResults(matches);
+  // same free ranking engine as the top search bar (key terms, synonyms, typo tolerance, Kurdish/Arabic letter folding)
+  setResults(searchFaqs(searchIndex, query, { limit: 5, minScore: 3 }));
+  setSearched(true);
 };
 
   const quickActions = [
@@ -1543,7 +1082,7 @@ if (answerText.includes(query))
   }}
 >
 
-  {results.map(({ faq, score }) => (
+  {results.map(({ faq, score, matchedTerms }, idx) => (
 
     <div
       key={faq.id}
@@ -1562,7 +1101,7 @@ if (answerText.includes(query))
           marginBottom:'10px'
         }}
       >
-        ✅ Approved Runaki Knowledge
+        {idx === 0 ? '✅ Best match · Approved Runaki Knowledge' : '✅ Approved Runaki Knowledge'}
       </div>
 
       <div
@@ -1606,45 +1145,21 @@ if (answerText.includes(query))
   }
 </div>
 
-      <div
-  style={{
-    color:DM.subText,
-    lineHeight:'1.8',
-    whiteSpace:'pre-wrap',
-    direction:
-      resultLanguage === 'ku' ||
-      resultLanguage === 'ba' ||
-      resultLanguage === 'ar'
-        ? 'rtl'
-        : 'ltr',
-    textAlign:
-      resultLanguage === 'ku' ||
-      resultLanguage === 'ba' ||
-      resultLanguage === 'ar'
-        ? 'right'
-        : 'left'
-  }}
->
- {
-  resultLanguage === 'ba'
-    ? (
-        faq.answer_ba ||
-        faq.answer_ku ||
-        faq.answer_en
-      )
-    : resultLanguage === 'ku'
-    ? (
-        faq.answer_ku ||
-        faq.answer_en
-      )
-    : resultLanguage === 'ar'
-    ? (
-        faq.answer_ar ||
-        faq.answer_en
-      )
-    : faq.answer_en
-}
-      </div>
+      <RichAnswer
+        style={{
+          color:DM.subText,
+          lineHeight:'1.8',
+          fontSize:'14px',
+          direction: resultLanguage === 'en' ? 'ltr' : 'rtl',
+          textAlign: resultLanguage === 'en' ? 'left' : 'right'
+        }}
+        text={
+          resultLanguage === 'ba' ? (faq.answer_ba || faq.answer_ku || faq.answer_en)
+          : resultLanguage === 'ku' ? (faq.answer_ku || faq.answer_en)
+          : resultLanguage === 'ar' ? (faq.answer_ar || faq.answer_en)
+          : faq.answer_en
+        }
+      />
 
       <div
         style={{
@@ -1674,6 +1189,12 @@ if (answerText.includes(query))
         >
           {faq.subcategory}
         </span>
+        {(matchedTerms || []).map(t => (
+          <span key={t} title="Matched your search through this key term"
+            style={{ background:'#fff7ed', color:'#c2410c', border:'1px solid #fed7aa', padding:'4px 10px', borderRadius:'999px', fontSize:'12px', fontWeight:'600' }}>
+            🔑 {t}
+          </span>
+        ))}
       </div>
 
     </div>
@@ -1683,6 +1204,13 @@ if (answerText.includes(query))
 </div>
 
 )}
+      {searched && results.length === 0 && (
+        <div style={{ background:DM.cardBg, border:`1px dashed ${DM.border}`, borderRadius:'20px', padding:'22px', marginBottom:'24px', color:DM.subText, lineHeight:'1.8' }}>
+          <div style={{ fontWeight:'800', color:DM.text, marginBottom:'6px' }}>🔎 No approved answer found</div>
+          Try different or fewer words (for example the key words from the customer's problem: bill, disconnected, KYC, Maqtu3, tariff).
+          If it is still not covered, ask your Team Coordinator or QA and do not guess.
+        </div>
+      )}
       {/* Quick Actions */}
       <div
         style={{
