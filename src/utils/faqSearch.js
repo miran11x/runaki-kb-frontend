@@ -237,6 +237,8 @@ export function searchFaqs(index, query, { limit = 0, minScore = 0 } = {}) {
   // "what is maqtu3", "meaning of KYC": the agent wants the definition of one thing
   const wantsDefinition = /^(what is|what s|whats|what are|what does|meaning of|define|explain)\b/.test(q)
     || /\b(meaning|means?|chiya|chiye|chye|cheya)\b/.test(q) || /(چییه|چیه|یعنی|معنی)$/.test(q) || /^ما هو\b/.test(q);
+  // a lone term ("maqtu3") usually means "what is that?" too, just less sure than when the agent says so
+  const defStrength = wantsDefinition ? 1 : (rawQ.length === 1 ? 0.45 : 0);
   const rawIdf = t => Math.log(1 + (index.n + 1) / ((index.rawDf.get(t) || 0) + 0.5));
 
   const results = [];
@@ -268,12 +270,15 @@ export function searchFaqs(index, query, { limit = 0, minScore = 0 } = {}) {
     if (uniq.length >= 3 && coverage < 0.5) return;
     score *= 0.4 + 0.6 * coverage;
     // Shortlisted FAQs are the most-asked questions QA has pinned, so they edge ahead of equal matches
-    if (d.faq.is_shortlisted) score *= 1.08;
+    if (d.faq.is_shortlisted) score += 1.5;
 
+    let defBonus = 0;
     // every typed word is in the question title: the shorter and more focused the title, the better the match
     if (rawQ.length && literalInQuestion === rawQ.length) {
       score += 6 * Math.min(1, rawQ.length / d.qLen) + 3;
-      if (wantsDefinition && /^(what|why) (is|are|does|do)\b/.test(d.qEn)) score += 8;
+      // the agent asked "what is X" and this FAQ is literally titled "What is ... X": that is the answer, rank it first
+      // (the shorter and more focused the title, the higher, so "What is Maqtu3?" beats "What is this Maqtu3 charge...?")
+      if (defStrength && /^(what|why) (is|are|does|do)\b/.test(d.qEn)) { defBonus = defStrength * (60 + 20 * Math.min(1, rawQ.length / d.qLen)); score += defBonus; }
     }
 
     // exact phrase bonuses
@@ -289,12 +294,13 @@ export function searchFaqs(index, query, { limit = 0, minScore = 0 } = {}) {
       return tt.length > 0 && tt.some(x => uniq.some(qt => x === qt || (qt.length >= 3 && x.startsWith(qt))));
     }).slice(0, 4);
 
-    results.push({ faq: d.faq, score, coverage, matchedTerms });
+    results.push({ faq: d.faq, score, base: score - defBonus, coverage, matchedTerms });
   });
 
   results.sort((a, b) => b.score - a.score || b.coverage - a.coverage);
-  const top = results.length ? results[0].score : 0;
-  const kept = results.filter(r => r.score >= minScore && r.score >= top * 0.25);
+  // the cut-off ignores the "what is X" bonus, so the other related answers still show below the first one
+  const top = results.length ? Math.max(...results.map(r => r.base)) : 0;
+  const kept = results.filter(r => r.score >= minScore && r.base >= top * 0.25);
   return limit ? kept.slice(0, limit) : kept;
 }
 
