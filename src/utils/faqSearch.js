@@ -102,6 +102,18 @@ export function tokenize(text, { keepStop = false } = {}) {
   return out;
 }
 
+// Same as tokenize() but WITHOUT the synonym mapping, so the exact word the agent typed can be told apart
+// from a word that only means the same thing ("maqtu3" must beat a generic "disconnected" question).
+function tokenizeRaw(text) {
+  const out = [];
+  normalizeText(text).split(' ').forEach(raw => {
+    if (!raw || STOP.has(raw)) return;
+    if (raw.length < 2 && !/\d/.test(raw)) return;
+    out.push(stemEn(raw));
+  });
+  return out;
+}
+
 // Splits a stored key-terms string ("a, b, c; d") into separate terms, keeping the phrases.
 export function splitKeyTerms(tags) {
   return String(tags || '').split(/[,;،؛\n]+/).map(s => s.trim()).filter(Boolean);
@@ -134,8 +146,17 @@ export function buildIndex(faqs) {
     const tags = tokenize(faq.tags);
     const subcategory = tokenize([faq.subcategory, faq.third_level].filter(Boolean).join(' '));
     const category = tokenize(faq.category);
+    const qAll = [faq.question_en, faq.question_ku, faq.question_ba, faq.question_ar].filter(Boolean).join(' ');
+    const raw = {
+      question: new Set(tokenizeRaw(qAll)),
+      tags: new Set(tokenizeRaw(faq.tags)),
+      answer: new Set(tokenizeRaw([faq.answer_en, faq.answer_ku, faq.answer_ba, faq.answer_ar].filter(Boolean).join(' '))),
+    };
     return {
       faq,
+      raw,
+      qLen: new Set(question).size || 1,
+      qEn: String(faq.question_en || '').toLowerCase().trim(),
       fields: {
         question: new Set(question),
         tags: new Set(tags),
@@ -157,7 +178,12 @@ export function buildIndex(faqs) {
     Object.values(d.fields).forEach(set => set.forEach(t => all.add(t)));
     all.forEach(t => df.set(t, (df.get(t) || 0) + 1));
   });
-  return { docs, df, n: docs.length };
+  const rawDf = new Map();
+  docs.forEach(d => {
+    const all = new Set([...d.raw.question, ...d.raw.tags, ...d.raw.answer]);
+    all.forEach(t => rawDf.set(t, (rawDf.get(t) || 0) + 1));
+  });
+  return { docs, df, rawDf, n: docs.length };
 }
 
 const idf = (index, t) => {
@@ -188,6 +214,10 @@ export function searchFaqs(index, query, { limit = 0, minScore = 0 } = {}) {
   const qTokens = tokenize(query);
   if (qTokens.length === 0) return [];
   const uniq = Array.from(new Set(qTokens));
+  const rawQ = Array.from(new Set(tokenizeRaw(query)));
+  // "what is maqtu3", "meaning of KYC": the agent wants the definition of one thing
+  const wantsDefinition = /^(what is|what s|whats|what are|what does|meaning of|define|explain)\b/.test(q);
+  const rawIdf = t => Math.log(1 + (index.n + 1) / ((index.rawDf.get(t) || 0) + 0.5));
 
   const results = [];
   index.docs.forEach(d => {
@@ -204,10 +234,25 @@ export function searchFaqs(index, query, { limit = 0, minScore = 0 } = {}) {
     });
     if (matchedCount === 0) return;
 
+    // the exact words typed, found in the question or the key terms (not just a synonym of them)
+    let literal = 0, literalInQuestion = 0;
+    rawQ.forEach(rt => {
+      const inQ = d.raw.question.has(rt), inT = d.raw.tags.has(rt);
+      if (inQ || inT) literal += rawIdf(rt) * (inQ ? 3.0 : 2.4);
+      if (inQ) literalInQuestion++;
+    });
+    score += literal;
+
     const coverage = matchedCount / uniq.length;
     // multi-word questions: require at least half of the words to be found
     if (uniq.length >= 3 && coverage < 0.5) return;
     score *= 0.4 + 0.6 * coverage;
+
+    // every typed word is in the question title: the shorter and more focused the title, the better the match
+    if (rawQ.length && literalInQuestion === rawQ.length) {
+      score += 6 * Math.min(1, rawQ.length / d.qLen) + 3;
+      if (wantsDefinition && /^(what|why) (is|are|does|do)\b/.test(d.qEn)) score += 8;
+    }
 
     // exact phrase bonuses
     if (q.length >= 3) {
