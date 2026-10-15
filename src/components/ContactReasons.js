@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { normalizeText } from '../utils/faqSearch';
@@ -45,22 +45,35 @@ function buildTree(rows) {
 /*  AGENT PAGE — the whole tree is visible, nothing to expand           */
 /* ================================================================== */
 const TREE_CSS = `
-.cr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;align-items:start}
+.cr-grid{display:flex;gap:14px;align-items:flex-start}
+.cr-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:14px}
 .cr-kids{list-style:none;margin:0;padding:0;margin-inline-start:12px}
-.cr-kids>li{position:relative;padding-inline-start:20px}
+.cr-kids>li{position:relative;padding-inline-start:18px}
 .cr-kids>li::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;border-inline-start:2px solid var(--cr-line)}
-.cr-kids>li:last-child::before{bottom:auto;height:17px}
-.cr-kids>li::after{content:"";position:absolute;inset-inline-start:0;top:17px;width:14px;border-top:2px solid var(--cr-line)}
-.cr-node{display:block;width:100%;text-align:start;border:none;background:transparent;font-family:inherit;color:inherit;cursor:pointer;border-radius:8px;padding:6px 8px;line-height:1.45}
+.cr-kids>li:last-child::before{bottom:auto;height:12px}
+.cr-kids>li::after{content:"";position:absolute;inset-inline-start:0;top:12px;width:12px;border-top:2px solid var(--cr-line)}
+.cr-node{display:block;width:100%;text-align:start;border:none;background:transparent;font-family:inherit;color:inherit;cursor:pointer;border-radius:8px;padding:3px 8px;line-height:1.4}
 .cr-node:hover{background:var(--cr-hover)}
 .cr-node:focus-visible{outline:2px solid #FF6B35;outline-offset:1px}
-@media (max-width:520px){.cr-grid{grid-template-columns:1fr}}
 `;
 
 export function ContactReasons({ DM }) {
   const [rows, setRows] = useState(null);
   const [query, setQuery] = useState('');
   const [copiedId, setCopiedId] = useState(null);
+  const [cols, setCols] = useState(3);
+  const wrapRef = useRef(null);
+
+  // as many columns as fit (about 290px each), so every category stays on one screen
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return undefined;
+    const fit = () => setCols(Math.max(1, Math.min(5, Math.floor(el.clientWidth / 290))));
+    fit();
+    if (typeof ResizeObserver === 'undefined') { window.addEventListener('resize', fit); return () => window.removeEventListener('resize', fit); }
+    const ro = new ResizeObserver(fit); ro.observe(el);
+    return () => ro.disconnect();
+  }, [rows]);
 
   useEffect(() => {
     api.get('/contact-reasons').then(r => setRows(r.data || [])).catch(() => { setRows([]); toast.error('Could not load contact reasons'); });
@@ -97,7 +110,7 @@ export function ContactReasons({ DM }) {
         {list.map(n => (
           <li key={n.id}>
             <button className="cr-node" onClick={() => doCopy(n)} title="Click to copy the full path"
-              style={{ fontSize: level === 1 ? 14 : 13.5, fontWeight: level === 1 ? 700 : 500 }}>
+              style={{ fontSize: level === 1 ? 13.5 : 13, fontWeight: level === 1 ? 700 : 500 }}>
               {n.name}
               {copiedId === n.id && <span style={{ color: '#10b981', fontWeight: 800, fontSize: 12 }}>  ✓ copied</span>}
               {n.note && <span style={{ display: 'block', fontSize: 12.5, fontWeight: 400, color: DM.subText, marginTop: 2 }}>{n.note}</span>}
@@ -110,10 +123,14 @@ export function ContactReasons({ DM }) {
   };
 
   const tops = tree.kids(0).filter(n => !keep || keep.has(n.id));
+  // biggest categories first, each into the shortest column, so the columns end up about the same height
+  const weight = n => 2 + (function count(id) { return tree.kids(id).filter(k => !keep || keep.has(k.id)).reduce((t, k) => t + 1 + count(k.id), 0); })(n.id);
+  const columns = Array.from({ length: cols }, () => ({ h: 0, items: [] }));
+  [...tops].sort((x, y) => weight(y) - weight(x)).forEach(c => { const col = columns.reduce((a, b) => (b.h < a.h ? b : a)); col.items.push(c); col.h += weight(c); });
   const vars = { '--cr-line': DM.border === '#e2e8f0' ? '#cbd5e1' : 'rgba(255,255,255,0.22)', '--cr-hover': DM.border === '#e2e8f0' ? '#f1f5f9' : 'rgba(255,255,255,0.06)' };
 
   return (
-    <div style={{ maxWidth: 1100, ...vars }}>
+    <div ref={wrapRef} style={{ maxWidth: 1500, ...vars }}>
       <style>{TREE_CSS}</style>
       <input
         value={query}
@@ -121,7 +138,7 @@ export function ContactReasons({ DM }) {
         placeholder="🔍 Search a reason, e.g. “bill not received”…"
         style={{ width: '100%', maxWidth: 520, boxSizing: 'border-box', padding: '11px 14px', borderRadius: 10, border: `1px solid ${DM.border}`, background: DM.cardBg, color: DM.text, fontSize: 14, fontFamily: 'inherit', marginBottom: 6 }}
       />
-      <div style={{ fontSize: 12.5, color: DM.subText, margin: '0 2px 16px' }}>
+      <div style={{ fontSize: 12.5, color: DM.subText, margin: '0 2px 12px' }}>
         Click any item to copy its full path, for example “General Complaints › Outage (cutoff) › Meter Trip”.
       </div>
 
@@ -129,15 +146,19 @@ export function ContactReasons({ DM }) {
         ? <div style={{ padding: '20px 4px', color: DM.subText, fontSize: 13.5 }}>Nothing matches “{query}”.</div>
         : (
           <div className="cr-grid">
-            {tops.map(c => (
-              <div key={c.id} style={{ background: DM.cardBg, border: `1px solid ${DM.border}`, borderRadius: 16, padding: '14px 12px 12px', boxShadow: DM.shadow, color: DM.text }}>
+            {columns.filter(col => col.items.length).map((col, ci) => (
+              <div key={ci} className="cr-col">
+              {col.items.map(c => (
+              <div key={c.id} style={{ background: DM.cardBg, border: `1px solid ${DM.border}`, borderRadius: 16, padding: '10px 10px 8px', boxShadow: DM.shadow, color: DM.text }}>
                 <button className="cr-node" onClick={() => doCopy(c)} title="Click to copy"
-                  style={{ fontSize: 15.5, fontWeight: 800, borderInlineStart: `4px solid ${ORANGE}`, borderRadius: 4, paddingInlineStart: 10, marginBottom: 6 }}>
+                  style={{ fontSize: 15, fontWeight: 800, borderInlineStart: `4px solid ${ORANGE}`, borderRadius: 4, paddingInlineStart: 10, marginBottom: 4 }}>
                   {c.name}
                   {copiedId === c.id && <span style={{ color: '#10b981', fontWeight: 800, fontSize: 12 }}>  ✓ copied</span>}
                   {c.note && <span style={{ display: 'block', fontSize: 12.5, fontWeight: 400, color: DM.subText, marginTop: 2 }}>{c.note}</span>}
                 </button>
                 {renderKids(c, 1)}
+              </div>
+              ))}
               </div>
             ))}
           </div>
