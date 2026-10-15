@@ -66,11 +66,11 @@ const MiniList = ({ th, rows, empty, render }) =>
 /* ------------------------------------------------------------------ */
 /*  Agent detail                                                       */
 /* ------------------------------------------------------------------ */
-function AgentDetail({ th, id, onClose }) {
+function AgentDetail({ th, id, days, onClose }) {
   const [d, setD] = useState(null);
   useEffect(() => {
-    api.get(`/admin/agents/${id}?days=30`).then(r => setD(r.data)).catch(() => { toast.error('Could not load this agent'); onClose(); });
-  }, [id, onClose]);
+    api.get(`/admin/agents/${id}?days=${days === 'all' ? 'all' : Math.max(days, 30)}`).then(r => setD(r.data)).catch(() => { toast.error('Could not load this agent'); onClose(); });
+  }, [id, days, onClose]);
 
   const sec = { fontSize: 12.5, fontWeight: 800, color: th.sub, margin: '16px 0 6px' };
   const line = { padding: '6px 0', borderBottom: `1px solid ${th.border}`, fontSize: 13, color: th.text, display: 'flex', justifyContent: 'space-between', gap: 10 };
@@ -82,7 +82,7 @@ function AgentDetail({ th, id, onClose }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
           <div>
             <div style={{ fontSize: 19, fontWeight: 900, color: th.text }}>{d ? d.user.name : 'Loading…'}</div>
-            {d && <div style={{ fontSize: 12.5, color: th.sub, marginTop: 2 }}>Wave ID {d.user.wave_id || '—'} · last seen {ago(d.user.last_seen)} · last 30 days</div>}
+            {d && <div style={{ fontSize: 12.5, color: th.sub, marginTop: 2 }}>Wave ID {d.user.wave_id || '—'} · last seen {ago(d.user.last_seen)} · {days === 'all' ? 'all time' : `last ${Math.max(days, 30)} days`}</div>}
           </div>
           <button onClick={onClose} aria-label="Close" style={{ border: `1px solid ${th.border}`, background: 'transparent', color: th.text, borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>Close</button>
         </div>
@@ -90,7 +90,7 @@ function AgentDetail({ th, id, onClose }) {
         {d && (
           <>
             <div style={sec}>Logins per day</div>
-            {d.logins.length === 0 ? <Empty th={th}>No logins in the last 30 days.</Empty> : (
+            {d.logins.length === 0 ? <Empty th={th}>No logins in this period.</Empty> : (
               <div style={{ height: 120 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={d.logins} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
@@ -180,13 +180,13 @@ export function AdminDashboard({ darkMode }) {
 
   const exportXlsx = () => {
     const data = rows.map(a => ({
-      Agent: a.name, 'Wave ID': a.wave_id, 'Last seen': a.last_seen ? fmt(a.last_seen) : '', [`Logins (${days}d)`]: a.logins,
+      Agent: a.name, 'Wave ID': a.wave_id, 'Last seen': a.last_seen ? fmt(a.last_seen) : '', [days === 'all' ? 'Logins (all time)' : `Logins (${days}d)`]: a.logins,
       'Ticket descriptions copied': a.copies, 'Zone lookups': a.zones, Searches: a.searches, 'FAQs read (all time)': a.faqs_viewed,
       Bookmarks: a.bookmarks, 'Feedback sent': a.feedback, 'Avg evaluation score': a.avg_score, Evaluations: a.evals,
     }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Agents');
-    XLSX.writeFile(wb, `agent-activity-${days}d.xlsx`);
+    XLSX.writeFile(wb, `agent-activity-${days === 'all' ? 'all-time' : `${days}d`}.xlsx`);
   };
 
   const closeDetail = useCallback(() => setOpenId(null), []);
@@ -209,7 +209,7 @@ export function AdminDashboard({ darkMode }) {
       {/* toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {[[1, 'Today'], [7, '7 days'], [30, '30 days'], [90, '90 days']].map(([n, l]) => (
+          {[[1, 'Today'], [7, '7 days'], [30, '30 days'], [90, '90 days'], ['all', 'All time']].map(([n, l]) => (
             <button key={n} style={rangeBtn(days === n)} onClick={() => setDays(n)}>{l}</button>
           ))}
         </div>
@@ -225,7 +225,7 @@ export function AdminDashboard({ darkMode }) {
         <Kpi th={th} label="Agents" value={k.agents} sub="active accounts" />
         <Kpi th={th} label="Online now" value={k.online} color={GREEN} sub="seen in the last 5 minutes" />
         <Kpi th={th} label="Agents who logged in" value={`${k.activeAgents}`} sub={`${pct}% of agents`} />
-        <Kpi th={th} label="Logins" value={k.logins} sub={`in ${days === 1 ? 'the last day' : `${days} days`}`} />
+        <Kpi th={th} label="Logins" value={k.logins} sub={days === 'all' ? 'all time' : `in ${days === 1 ? 'the last day' : `${days} days`}`} />
         <Kpi th={th} label="Ticket descriptions copied" value={k.copies} color={ORANGE} />
         <Kpi th={th} label="Zone lookups" value={k.zones} color={BLUE} />
         <Kpi th={th} label="Searches" value={k.searches} sub={k.searches ? `${k.noResult} found nothing` : 'logging started'} />
@@ -315,7 +315,7 @@ export function AdminDashboard({ darkMode }) {
       <Panel
         th={th}
         title="Every agent"
-        hint={`Activity in the last ${days === 1 ? 'day' : `${days} days`}. Click a column to sort, click an agent to see everything they did.`}
+        hint={`Activity ${days === 'all' ? 'over all time' : `in the last ${days === 1 ? 'day' : `${days} days`}`}. Click a column to sort, click an agent to see everything they did.`}
         style={{ marginBottom: 14 }}
         right={(
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -399,7 +399,7 @@ export function AdminDashboard({ darkMode }) {
         </Panel>
       </div>
 
-      {openId && <AgentDetail th={th} id={openId} onClose={closeDetail} />}
+      {openId && <AgentDetail th={th} id={openId} days={days} onClose={closeDetail} />}
     </div>
   );
 }
