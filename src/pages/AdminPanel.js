@@ -11,6 +11,7 @@ import { PageContentEditor, ExternalToolsAdmin } from '../components/ContentEdit
 import { TicketDescriptionsAdmin } from '../components/TicketDescriptions';
 import { ZonesAdmin } from '../components/Zones';
 import { ContactReasonsAdmin } from '../components/ContactReasons';
+import { AdminDashboard } from '../components/AdminDashboard';
 import { FeedbackAdmin } from '../components/MyStatsFeedback';
 import { ToolReports } from '../components/ToolReports';
 
@@ -392,24 +393,15 @@ export default function AdminPanel({ darkMode }) {
   ] : [];
 
   // ✅ Fixed: all use 'tab' state, label capitalised, evaluations added
-  const TABS = [
-    ['dashboard','📊','Dashboard'],
-    ['users','👥','Users'],
-    ['active','🟢','Live'],
-    ['activity','📋','Activity'],
-    ['leaderboard','🏆','Leaderboard'],
-    ['callflows','📞','Call Flows'],
-    ['evaluations','📤','Evaluations'],
-    ['scripts','📋','Update Scripts'],
-    ['content','📝','Page Content'],
-    ['exttools','🧰','External Tools'],
-    ['tickets','🎫','Ticket Descriptions'],
-    ['zones','📍','Zones'],
-    ['contactreasons','🌳','Contact Reasons'],
-    ['agentfeedback','💬','Agent Feedback'],
-    ['toolreports','📈','Tool Reports'],
-    ['maintenance','🔧','Maintenance'],
+  const GROUPS = [
+    ['Overview', '📊', [['dashboard','📊','Dashboard']]],
+    ['People', '👥', [['users','👥','Users'], ['active','🟢','Live now'], ['activity','📋','Activity log'], ['leaderboard','🏆','Leaderboard']]],
+    ['Content', '📚', [['callflows','📞','Call Flows'], ['scripts','📋','Update Scripts'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons']]],
+    ['Tools', '🛠️', [['tickets','🎫','Ticket Descriptions'], ['zones','📍','Zones'], ['exttools','🧰','External Tools'], ['toolreports','📈','Tool Reports']]],
+    ['Quality', '✅', [['evaluations','📤','Evaluations'], ['agentfeedback','💬','Agent Feedback']]],
+    ['System', '🔧', [['maintenance','🔧','Maintenance']]],
   ];
+  const activeGroup = GROUPS.find(g => g[2].some(t => t[0] === tab)) || GROUPS[0];
 
   const CT = ({ active, payload, label }) => {
     if (active && payload?.length) return (
@@ -439,162 +431,35 @@ export default function AdminPanel({ darkMode }) {
 
       <div style={S.body}>
         <div style={{ ...S.tabBar, background: darkMode ? '#0d1526' : '#fff', borderBottomColor: darkMode ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}>
-          {TABS.map(([k,ico,l]) => (
-            <button key={k} onClick={() => setTab(k)} style={{ ...S.tab, ...(tab===k ? S.tabOn : {}), color: tab===k ? (darkMode?'#fff':NAVY) : (darkMode?'rgba(255,255,255,0.4)':'#94a3b8') }}>
-              <span>{ico}</span> {l}
-              {tab===k && <div style={S.tabUnderline} />}
-            </button>
-          ))}
+          {GROUPS.map(([name, ico, items]) => {
+            const on = activeGroup[0] === name;
+            return (
+              <button key={name} onClick={() => setTab(items[0][0])} aria-current={on ? 'true' : undefined}
+                style={{ ...S.tab, ...(on ? S.tabOn : {}), color: on ? (darkMode?'#fff':NAVY) : (darkMode?'rgba(255,255,255,0.4)':'#94a3b8') }}>
+                <span>{ico}</span> {name}
+                {on && <div style={S.tabUnderline} />}
+              </button>
+            );
+          })}
         </div>
+        {activeGroup[2].length > 1 && (
+          <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', padding:'12px 28px', background: darkMode ? '#0a111f' : '#f8fafc', borderBottom: `1px solid ${darkMode ? 'rgba(255,255,255,0.06)' : '#eef2f7'}` }}>
+            {activeGroup[2].map(([k, ico, l]) => (
+              <button key={k} onClick={() => setTab(k)}
+                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'7px 14px', borderRadius:'999px', fontSize:'13px', fontWeight: tab===k ? 800 : 600, cursor:'pointer', fontFamily:'inherit',
+                  border: `1px solid ${tab===k ? ORANGE : (darkMode ? 'rgba(255,255,255,0.12)' : '#e2e8f0')}`,
+                  background: tab===k ? 'rgba(255,107,53,0.12)' : 'transparent',
+                  color: tab===k ? (darkMode ? '#fff' : NAVY) : (darkMode ? 'rgba(255,255,255,0.6)' : '#64748b') }}>
+                <span>{ico}</span> {l}
+              </button>
+            ))}
+          </div>
+        )}
         <div style={{ ...S.content, background: darkMode ? '#080e18' : '#f0f4ff' }}>
 
-          {/* ── DASHBOARD ── */}
-          {tab === 'dashboard' && (
-            <div>
-              <div style={S.kpiGrid}>
-                {STAT_CARDS.map((sc,i) => <GlowCard key={i} {...sc} dark={darkMode} />)}
-              </div>
-              <div style={S.row3}>
-                <ChartCard title="Login Activity" sub="Last 7 days" accent="#FF6B35" dark={darkMode}>
-                  {loginData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={190}>
-                      <AreaChart data={loginData} margin={{ top:5, right:5, bottom:0, left:-20 }}>
-                        <defs><linearGradient id="lgO" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={ORANGE} stopOpacity={0.3}/><stop offset="95%" stopColor={ORANGE} stopOpacity={0}/></linearGradient></defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                        <XAxis dataKey="day" tick={{ fontSize:11, fill:'#94a3b8' }} />
-                        <YAxis tick={{ fontSize:11, fill:'#94a3b8' }} allowDecimals={false} />
-                        <Tooltip content={<CT />} />
-                        <Area type="monotone" dataKey="logins" stroke={ORANGE} strokeWidth={2.5} fill="url(#lgO)" dot={{ fill:ORANGE, r:4, strokeWidth:0 }} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  ) : <EmptyState />}
-                </ChartCard>
+          {/* ── OVERVIEW ── */}
+          {tab === 'dashboard' && <AdminDashboard darkMode={darkMode} />}
 
-                <ChartCard title="Users by Role" sub={`${stats?.totalUsers||0} total`} accent="#8b5cf6" dark={darkMode}>
-                  {roleData.length > 0 ? (
-                    <div style={{ display:'flex', alignItems:'center', gap:'14px' }}>
-                      <div style={{ position:'relative', flexShrink:0 }}>
-                        <ResponsiveContainer width={150} height={150}>
-                          <PieChart>
-                            <Pie data={roleData} cx="50%" cy="50%" innerRadius={44} outerRadius={68} paddingAngle={3} dataKey="value" strokeWidth={0}>
-                              {roleData.map((e,i) => <Cell key={i} fill={e.color} />)}
-                            </Pie>
-                          </PieChart>
-                        </ResponsiveContainer>
-                        <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
-                          <div style={{ fontSize:'22px', fontWeight:'900', color: darkMode?'#fff':NAVY }}>{stats?.totalUsers||0}</div>
-                          <div style={{ fontSize:'9px', color: darkMode?'rgba(255,255,255,0.4)':'#94a3b8', fontWeight:'700', textTransform:'uppercase' }}>Total</div>
-                        </div>
-                      </div>
-                      <div style={{ display:'flex', flexDirection:'column', gap:'9px', flex:1 }}>
-                        {roleData.map((r,i) => (
-                          <div key={i} style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                            <span style={{ width:'8px', height:'8px', borderRadius:'50%', background:r.color, boxShadow:`0 0 6px ${r.color}`, flexShrink:0 }} />
-                            <span style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.6)':'#475569', fontWeight:'600', flex:1 }}>{r.name}</span>
-                            <span style={{ fontSize:'14px', fontWeight:'800', color: darkMode?'#fff':NAVY }}>{r.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : <EmptyState />}
-                </ChartCard>
-
-                <ChartCard title="Agents by Queue" sub="Language distribution" accent="#10b981" dark={darkMode}>
-                  {queueData.length > 0 ? (
-                    <div>
-                      {queueData.map((q,i) => {
-                        const total = queueData.reduce((a,b) => a+b.value, 0);
-                        const pct = Math.round((q.value/total)*100);
-                        return (
-                          <div key={i} style={{ marginBottom:'18px' }}>
-                            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
-                              <span style={{ fontSize:'13px', fontWeight:'700', color: darkMode?'#f1f5f9':NAVY }}>{q.name}</span>
-                              <span style={{ fontSize:'12px', fontWeight:'800', color:q.color }}>{q.value} <span style={{ color:'#94a3b8', fontWeight:'500' }}>({pct}%)</span></span>
-                            </div>
-                            <div style={{ height:'8px', background: darkMode?'rgba(255,255,255,0.08)':'#f1f5f9', borderRadius:'100px', overflow:'hidden' }}>
-                              <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${q.color},${q.color}cc)`, borderRadius:'100px', boxShadow:`0 0 8px ${q.color}50` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : <EmptyState />}
-                </ChartCard>
-              </div>
-
-              <div style={S.row2}>
-                <ChartCard title="Top Viewed FAQs" sub="By total views" accent="#6366f1" dark={darkMode}>
-                  {topFAQs.length > 0 ? (
-                    <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
-                      {topFAQs.slice(0,8).map((f,i) => {
-                        const maxViews = topFAQs[0]?.views || 1;
-                        const pct = Math.round((f.views/maxViews)*100);
-                        return (
-                          <div key={i}>
-                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'5px', gap:'8px' }}>
-                              <span style={{ fontSize:'12px', fontWeight:'600', color: darkMode?'#e2e8f0':NAVY, lineHeight:'1.4', flex:1 }}>
-                                <span style={{ color:'#6366f1', fontWeight:'800', marginRight:'6px' }}>#{i+1}</span>
-                                {f.question_en}
-                              </span>
-                              <span style={{ fontSize:'11px', fontWeight:'800', color:'#6366f1', whiteSpace:'nowrap', flexShrink:0 }}>{f.views} views</span>
-                            </div>
-                            <div style={{ height:'4px', background: darkMode?'rgba(255,255,255,0.06)':'#f1f5f9', borderRadius:'100px', overflow:'hidden' }}>
-                              <div style={{ height:'100%', width:`${pct}%`, background:'linear-gradient(90deg,#6366f1,#8b5cf6)', borderRadius:'100px' }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : <EmptyState />}
-                </ChartCard>
-
-                <ChartCard title="FAQ Views by Category" sub="Which sections agents use most" accent="#f59e0b" dark={darkMode}>
-                  {faqCategoryData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={faqCategoryData} margin={{ top:5, right:5, bottom:30, left:-15 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                        <XAxis dataKey="name" tick={{ fontSize:10, fill:'#64748b' }} angle={-20} textAnchor="end" />
-                        <YAxis tick={{ fontSize:10, fill:'#94a3b8' }} />
-                        <Tooltip content={<CT />} />
-                        <Bar dataKey="views" radius={[6,6,0,0]} maxBarSize={40}>
-                          {faqCategoryData.map((e,i) => <Cell key={i} fill={e.color} />)}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : <EmptyState />}
-                </ChartCard>
-              </div>
-
-              <div style={{ background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', borderRadius:'20px', padding:'22px', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 4px 24px rgba(11,17,32,0.06)' }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
-                  <div>
-                    <div style={{ fontSize:'15px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>Currently Online</div>
-                    <div style={{ fontSize:'11px', color:'#94a3b8', marginTop:'2px' }}>Updates every 30 seconds</div>
-                  </div>
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                    <span style={{ width:'8px', height:'8px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 8px #22c55e', display:'inline-block', animation:'pulse 2s infinite' }} />
-                    <span style={{ fontSize:'13px', fontWeight:'700', color:'#22c55e' }}>{activeList.length} online</span>
-                  </div>
-                </div>
-                {activeList.length === 0 ? <EmptyState text="No agents online right now" /> : (
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:'10px' }}>
-                    {activeList.map(u => (
-                      <div key={u.id} style={{ background: darkMode?'rgba(255,255,255,0.05)':'#f8fafc', borderRadius:'12px 12px 0 0', padding:'14px 16px', display:'flex', alignItems:'center', gap:'12px', border: darkMode?'1px solid rgba(255,255,255,0.08)':'1px solid #e2e8f0' }}>
-                        <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:ROLE_COLORS[u.role]||'#6366f1', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', fontWeight:'800', color:'#fff', flexShrink:0 }}>{u.name[0]}</div>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontSize:'13.5px', fontWeight:'700', color: darkMode?'#f1f5f9':NAVY, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.name}</div>
-                          <div style={{ fontSize:'11px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8', marginTop:'2px' }}>{u.title||ROLE_LABELS[u.role]}</div>
-                        </div>
-                        <div style={{ width:'10px', height:'10px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 8px #22c55e80', flexShrink:0, animation:'pulse 2s infinite' }} />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── USERS ── */}
           {tab === 'users' && (
             <div>
               <div style={{ display:'flex', gap:'12px', marginBottom:'14px' }}>

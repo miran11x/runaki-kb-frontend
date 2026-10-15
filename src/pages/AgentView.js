@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 
 import api from '../utils/api';
+import { logSearch } from '../utils/searchLog';
   import { useAuth } from '../contexts/AuthContext';
   import Sidebar from '../components/Sidebar';
   import Topbar from '../components/Topbar';
@@ -251,6 +252,14 @@ setFaqs(fr.data);
     };
 
     const searchIndex = useMemo(() => buildIndex(faqs), [faqs]);
+
+    // log what agents type in the main search box (after they stop typing)
+    useEffect(() => {
+      const q = (search || '').trim();
+      if (q.length < 2) return undefined;
+      const t = setTimeout(() => logSearch(q, searchFaqs(searchIndex, q).length, 'search'), 1500);
+      return () => clearTimeout(t);
+    }, [search, searchIndex]);
 
     const panelFaqs = () => {
 
@@ -966,8 +975,10 @@ const askAI = (q = question) => {
     return;
   }
   // same free ranking engine as the top search bar (key terms, synonyms, typo tolerance, Kurdish/Arabic letter folding)
-  setResults(searchFaqs(searchIndex, query, { limit: 5, minScore: 3 }));
+  const found = searchFaqs(searchIndex, query, { limit: 5, minScore: 3 });
+  setResults(found);
   setSearched(true);
+  logSearch(query, found.length, 'assistant');
 };
 
   const quickActions = [
