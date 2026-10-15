@@ -11,6 +11,7 @@ import { PageContentEditor, ExternalToolsAdmin } from '../components/ContentEdit
 import { TicketDescriptionsAdmin } from '../components/TicketDescriptions';
 import { ZonesAdmin } from '../components/Zones';
 import { FeedbackAdmin } from '../components/MyStatsFeedback';
+import { ToolReports } from '../components/ToolReports';
 
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -404,6 +405,7 @@ export default function AdminPanel({ darkMode }) {
     ['tickets','🎫','Ticket Descriptions'],
     ['zones','📍','Zones'],
     ['agentfeedback','💬','Agent Feedback'],
+    ['toolreports','📈','Tool Reports'],
     ['maintenance','🔧','Maintenance'],
   ];
 
@@ -1189,6 +1191,7 @@ export default function AdminPanel({ darkMode }) {
           {tab === 'tickets' && <TicketDescriptionsAdmin darkMode={darkMode} />}
           {tab === 'zones' && <ZonesAdmin darkMode={darkMode} />}
           {tab === 'agentfeedback' && <FeedbackAdmin darkMode={darkMode} />}
+          {tab === 'toolreports' && <ToolReports darkMode={darkMode} />}
 
           {tab === 'evaluations' && (
             <EvaluationsUpload token={token} darkMode={darkMode} />
