@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import api from '../utils/api';
 import QaUpload from './QaUpload';
-import AgentScorecard from './QaScorecard';
+import AgentScorecard, { EvalCard } from './QaScorecard';
 import {
   useTheme, Panel, Kpi, Empty, Pill, Bar as MiniBar, gridStyle, tableStyles, useSort,
   ORANGE, GREEN, RED, AMBER, BLUE, QUEUE_COLORS, scoreColor, bandColor, trendColor, resultColor,
@@ -18,7 +18,7 @@ import {
 
 const monthName = m => { try { return new Date(`${m}-01T00:00:00`).toLocaleString('en-GB', { month: 'long', year: 'numeric' }); } catch { return m; } };
 const prevMonth = m => { const [y, mo] = m.split('-').map(Number); const d = new Date(y, mo - 2, 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
-const SECTIONS = [['performance', '📈 Performance'], ['agents', '👥 Agents'], ['coaching', '🎯 Coaching'], ['team', '🧑‍💼 QA team'], ['upload', '📤 Upload']];
+const SECTIONS = [['performance', '📈 Performance'], ['agents', '👥 Agents'], ['coaching', '🎯 Coaching'], ['team', '🧑‍💼 QA team'], ['all', '🗂️ All evaluations'], ['upload', '📤 Upload']];
 
 const deltaLabel = (cur, prev, invert) => {
   if (cur == null || prev == null) return null;
@@ -109,6 +109,7 @@ export function QaHub({ darkMode }) {
           {section === 'performance' && <Performance th={th} rows={rows} prev={prev} agents={agents} month={month} />}
           {section === 'agents' && <AgentsSection th={th} agents={agents} rows={rows} onOpen={setOpenAgent} month={month} />}
           {section === 'coaching' && <CoachingSection th={th} rows={rows} onOpen={a => setOpenAgent(a)} agents={agents} month={month} />}
+          {section === 'all' && <AllEvaluations th={th} rows={rows} rubric={data.rubric} month={month} />}
           {section === 'team' && <TeamSection th={th} rows={rows} agents={agents} roster={data.roster} month={month} onOpen={setOpenAgent} />}
         </>
       ))}
@@ -117,6 +118,68 @@ export function QaHub({ darkMode }) {
         <AgentScorecard th={th} agent={agents.find(a => a.key === openAgent) || null} rubric={data ? data.rubric : []} onClose={() => setOpenAgent(null)} />
       )}
     </div>
+  );
+}
+
+/* ================================================================== */
+/*  ALL EVALUATIONS: every evaluation of the month, searchable            */
+/* ================================================================== */
+function AllEvaluations({ th, rows, rubric, month }) {
+  const [q, setQ] = useState('');
+  const [f, setF] = useState({ result: '', qa: '', coord: '', coaching: '', crit: '' });
+  const [page, setPage] = useState(0);
+  const PAGE = 40;
+  const opts = useMemo(() => ({
+    qa: [...new Set(rows.map(r => r.q))].sort(),
+    coord: [...new Set(rows.map(r => r.c).filter(Boolean))].sort(),
+  }), [rows]);
+  const list = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    return rows.filter(r => {
+      if (t && !`${r.n} ${r.w} ${r.t} ${r.s} ${r.eval_id} ${r.cm || ''}`.toLowerCase().includes(t)) return false;
+      if (f.result && resultOf(r) !== f.result) return false;
+      if (f.qa && r.q !== f.qa) return false;
+      if (f.coord && r.c !== f.coord) return false;
+      if (f.crit && !r.cr) return false;
+      if (f.coaching === 'open' && !(r.fn && !delivered(r))) return false;
+      if (f.coaching === 'done' && !delivered(r)) return false;
+      return true;
+    }).sort((a, b) => (a.d < b.d ? 1 : -1));
+  }, [rows, q, f]);
+  useEffect(() => { setPage(0); }, [q, f, rows]);
+  const sel = { padding: '8px 12px', borderRadius: 10, border: `1px solid ${th.border}`, background: th.input, color: th.text, fontSize: 13, fontFamily: 'inherit' };
+  const set = k => e => setF({ ...f, [k]: e.target.value });
+  const pages = Math.max(1, Math.ceil(list.length / PAGE));
+  const exportAll = () => exportSheet(`evaluations-${month}`, list.map(r => ({
+    'Evaluation ID': r.eval_id, 'Evaluation date': fmtDay(r.d), 'Call date': r.cd, Agent: r.n, 'Wave ID': r.w, Queue: r.u, Coordinator: r.c, 'QA officer': r.q,
+    'Contact reason': r.s, Reference: r.t, ...Object.fromEntries(ATTR_LABELS.map((l, i) => [l, (r.fl && r.fl[i]) || 'Pass'])),
+    'Raw score': r.r, 'Final score': r.f, Result: resultOf(r), 'Critical failure': r.cr || '', Comments: r.cm || '', 'Feedback needed': r.fn ? 'Yes' : 'No',
+    'Coaching status': r.cs || '', 'Coaching date': r.cdt || '', 'Coaching notes': r.cn || '',
+  })));
+  return (
+    <Panel th={th} title={`All evaluations (${list.length} of ${rows.length})`} hint="Every evaluation uploaded for this month. Open one to see all 11 criteria, the comments and the coaching."
+      right={<button onClick={exportAll} style={{ ...sel, cursor: 'pointer', fontWeight: 700 }}>Export Excel</button>}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        <input style={{ ...sel, minWidth: 220, flex: 1 }} placeholder="Search agent, Wave ID, reference, reason, comment…" value={q} onChange={e => setQ(e.target.value)} />
+        <select style={sel} value={f.result} onChange={set('result')}><option value="">Any result</option><option value="Full">Full</option><option value="Partial">Partial</option><option value="Zero">Zero</option></select>
+        <select style={sel} value={f.qa} onChange={set('qa')}><option value="">All QA officers</option>{opts.qa.map(x => <option key={x}>{x}</option>)}</select>
+        <select style={sel} value={f.coord} onChange={set('coord')}><option value="">All coordinators</option>{opts.coord.map(x => <option key={x}>{x}</option>)}</select>
+        <select style={sel} value={f.coaching} onChange={set('coaching')}><option value="">Any coaching</option><option value="open">Feedback not delivered</option><option value="done">Feedback delivered</option></select>
+        <select style={sel} value={f.crit} onChange={set('crit')}><option value="">Critical or not</option><option value="1">Critical failures only</option></select>
+      </div>
+      {!list.length ? <Empty th={th}>No evaluations match.</Empty> : (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {list.slice(page * PAGE, page * PAGE + PAGE).map(r => <EvalCard key={r.id} th={th} r={r} rubric={rubric} showAgent />)}
+        </div>
+      )}
+      {pages > 1 && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'center', marginTop: 14, fontSize: 13, color: th.text }}>
+          <button style={{ ...sel, cursor: 'pointer' }} disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button>
+          <span>Page {page + 1} of {pages}</span>
+          <button style={{ ...sel, cursor: 'pointer' }} disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>Next</button>
+        </div>
+      )}
+    </Panel>
   );
 }
 

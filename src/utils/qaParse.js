@@ -79,8 +79,29 @@ export function parseRubric(wb) {
   return out;
 }
 
+// The 'Unique ID' tab is the agent roster: Name, Gender, Queue, Status, Wave ID, Email Address, Team Coordinator, ... QA
+export function parseRoster(wb) {
+  const raw = sheetRows(wb, 'Unique ID');
+  if (!raw) return [];
+  const hi = raw.findIndex(r => r && txt(r[0]) === 'Name' && r.some(c => txt(c) === 'Wave ID'));
+  if (hi < 0) return [];
+  const head = raw[hi];
+  const c = n => head.findIndex(h => txt(h) === n);
+  const ix = { name: c('Name'), queue: c('Queue'), status: c('Status'), wave: c('Wave ID'), email: c('Email Address') };
+  const seen = new Set();
+  const out = [];
+  for (let i = hi + 1; i < raw.length; i++) {
+    const r = raw[i];
+    const name = txt(r[ix.name]), wave = txt(r[ix.wave]);
+    if (!name || !wave || seen.has(wave)) continue;
+    seen.add(wave);
+    out.push({ name, wave_id: wave, queue: txt(r[ix.queue]), status: txt(r[ix.status]) || 'Active', email: txt(r[ix.email]).toLowerCase() });
+  }
+  return out;
+}
+
 export function parseWorkbook(buffer) {
-  const wb = XLSX.read(buffer, { type: 'array', sheets: ['Raw Data', 'QA Scoring Rubric'] });
+  const wb = XLSX.read(buffer, { type: 'array', sheets: ['Raw Data', 'QA Scoring Rubric', 'Unique ID'] });
   const raw = sheetRows(wb, 'Raw Data');
   if (!raw) throw new Error("This workbook has no 'Raw Data' tab.");
   const hi = raw.findIndex(r => r && r.some(c => txt(c) === 'Agent Name') && r.some(c => txt(c) === 'QA Officer'));
@@ -157,5 +178,5 @@ export function parseWorkbook(buffer) {
     rows.push(row);
   }
   const months = [...new Set(rows.map(r => r.eval_date.slice(0, 7)))].sort();
-  return { rows, rubric, months, problems };
+  return { rows, rubric, months, problems, roster: parseRoster(wb) };
 }

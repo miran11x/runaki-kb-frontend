@@ -16,6 +16,53 @@ function useTheme(dark) {
     : { card: '#fff', soft: '#f8fafc', border: '#e2e8f0', text: NAVY, sub: '#64748b' };
 }
 
+function RosterSync({ th, roster }) {
+  const [busy, setBusy] = useState(false);
+  const [deact, setDeact] = useState(false);
+  const [res, setRes] = useState(null);
+  const off = roster.filter(a => /resign|transfer|terminat/i.test(a.status)).length;
+  const run = async () => {
+    setBusy(true); setRes(null);
+    try {
+      const t = { created: 0, updated: 0, failed: [] };
+      for (let i = 0; i < roster.length; i += 40) {
+        const r = await api.post('/users/sync-agents', { agents: roster.slice(i, i + 40) });
+        t.created += r.data.created; t.updated += r.data.updated; t.failed.push(...r.data.failed);
+      }
+      const fin = await api.post('/users/sync-agents/finish', { waves: roster.map(a => a.wave_id), deactivate: deact });
+      setRes({ ...t, ...fin.data });
+      toast.success(`Agents synced: ${t.created} created, ${t.updated} updated`);
+    } catch (e) { toast.error(e.response?.data?.error || 'Agent sync failed. You can run it again.'); }
+    setBusy(false);
+  };
+  return (
+    <div style={{ background: th.card, border: `1px solid ${th.border}`, borderRadius: 16, padding: 20, marginBottom: 14 }}>
+      <div style={{ fontSize: 15, fontWeight: 800, color: th.text, marginBottom: 4 }}>Agent accounts from the Unique ID tab</div>
+      <div style={{ fontSize: 13, color: th.sub, lineHeight: 1.7, marginBottom: 12 }}>
+        {roster.length} agents with a Wave ID ({off} resigned or transferred). Everyone gets a Knowledge Base account that logs in with the Wave ID
+        (new accounts use the password <strong style={{ color: th.text }}>Wave@&lt;WaveID&gt;</strong>). Existing accounts are matched by Wave ID, email or name and keep their history.
+        Resigned and transferred agents are kept but switched off.
+      </div>
+      <label style={{ display: 'flex', gap: 8, fontSize: 13, color: th.text, marginBottom: 12, cursor: 'pointer' }}>
+        <input type="checkbox" checked={deact} onChange={e => setDeact(e.target.checked)} style={{ accentColor: ORANGE }} />
+        <span>Also switch off agent accounts that are not in this roster</span>
+      </label>
+      <button onClick={run} disabled={busy} style={{ background: ORANGE, color: '#fff', border: 'none', borderRadius: 10, padding: '10px 22px', fontWeight: 800, cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: busy ? 0.7 : 1 }}>
+        {busy ? 'Syncing…' : 'Sync agent accounts'}
+      </button>
+      {res && (
+        <div style={{ marginTop: 14, fontSize: 13, color: th.text, lineHeight: 1.8 }}>
+          <div><strong style={{ color: '#10b981' }}>{res.created}</strong> created · <strong>{res.updated}</strong> updated · <strong>{res.active}</strong> of {res.n} agent accounts active · {res.no_wave} without a Wave ID{res.deactivated ? ` · ${res.deactivated} switched off` : ''}</div>
+          {res.failed.length > 0 && <div style={{ color: '#ef4444' }}>Could not sync: {res.failed.map(f => `${f.name} (${f.reason})`).join('; ')}</div>}
+          {res.notInRoster.length > 0 && (
+            <div style={{ color: th.sub }}>Agent accounts not in the roster ({res.notInRoster.length}): {res.notInRoster.slice(0, 40).map(a => `${a.name}${a.wave_id ? ` (${a.wave_id})` : ' (no Wave ID)'}`).join(', ')}{res.notInRoster.length > 40 ? '…' : ''}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function QaUpload({ darkMode, onDone }) {
   const th = useTheme(darkMode);
   const fileRef = useRef(null);
@@ -136,6 +183,8 @@ export default function QaUpload({ darkMode, onDone }) {
           </div>
         </div>
       )}
+
+      {(step === 'ready' || step === 'done') && parsed && parsed.roster.length > 0 && <RosterSync th={th} roster={parsed.roster} />}
 
       {step === 'uploading' && (
         <div style={card}>
