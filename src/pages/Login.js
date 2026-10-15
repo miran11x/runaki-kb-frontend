@@ -177,10 +177,10 @@ function Hero({ phase, hour, compact }) {
       </div>
       {!compact && (
         <>
-          <p className="rk-intro" style={{ margin: '30px 0 0', fontFamily: DISPLAY, fontWeight: 600, fontSize: 19, lineHeight: 1.4, color: k.text }}>
+          <p className="rk-intro" style={{ margin: '34px 0 0', fontFamily: DISPLAY, fontWeight: 600, fontSize: 19, lineHeight: 1.4, color: k.text }}>
             Everything you need during a call, in one place.
           </p>
-          <ul className="rk-list" style={{ listStyle: 'none', margin: '16px 0 0', padding: 0, maxWidth: 440 }}>
+          <ul className="rk-list" style={{ listStyle: 'none', margin: '30px 0 0', padding: 0, maxWidth: 440 }}>
             {FEATURES.map(([title, desc]) => (
               <li key={title} className="rk-li" style={{ marginBottom: 12 }}>
                 <div className="rk-title" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 16, color: k.text }}>{title}</div>
@@ -263,13 +263,14 @@ export default function Login() {
 
   const form_ = (
     <div style={{ width: '100%', maxWidth: 380, margin: 'auto' }}>
-      <div className="rk-logo" style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 34 }}>
+      <div className="rk-logo" style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 46 }}>
         <span className="rk-logo-tile" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 76, height: 76, borderRadius: k.dark ? 20 : 0, background: k.dark ? '#fff' : 'transparent', boxShadow: k.dark ? P.logoShadow : 'none', flex: '0 0 auto' }}>
           <img className="rk-logo-img" src={RK_LOGO} alt="Runaki" style={{ height: k.dark ? 56 : 76, width: 'auto', display: 'block' }} />
         </span>
-        <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-          <span style={{ fontFamily: DISPLAY, fontSize: 28, fontWeight: 800, letterSpacing: '0.01em', color: P.text }}>Runaki</span>
-          <span style={{ fontFamily: DISPLAY, fontSize: 14.5, fontWeight: 500, color: P.muted, marginTop: 4 }}>Knowledge Base</span>
+        <span className="rk-logo-rule" style={{ width: 1.5, alignSelf: 'stretch', margin: '10px 0', background: P.border, flex: '0 0 auto' }} />
+        <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
+          <span style={{ fontFamily: DISPLAY, fontSize: 27, fontWeight: 800, letterSpacing: '0.01em', color: P.text }}>Runaki</span>
+          <span style={{ fontFamily: DISPLAY, fontSize: 14, fontWeight: 500, color: P.muted, marginTop: 5, letterSpacing: '0.02em' }}>Knowledge Base</span>
         </span>
       </div>
 
@@ -342,10 +343,10 @@ export default function Login() {
           .rk-intro { display: none !important; }
           .rk-pad { padding-top: 36px !important; padding-bottom: 20px !important; }
           .rk-h2 { font-size: min(76px, 9.5vh) !important; }
-          .rk-list { margin-top: 14px !important; }
+          .rk-list { margin-top: 26px !important; }
           .rk-li { margin-bottom: 8px !important; }
           .rk-desc { font-size: 13.5px !important; }
-          .rk-logo { margin-bottom: 20px !important; }
+          .rk-logo { margin-bottom: 30px !important; }
           .rk-logo-img { height: 54px !important; }
           .rk-logo-tile { width: 60px !important; height: 60px !important; }
           .rk-h1 { font-size: 32px !important; }
@@ -357,11 +358,11 @@ export default function Login() {
           .rk-pad { padding-top: 26px !important; padding-bottom: 12px !important; }
           .rk-h2 { font-size: min(76px, 8.2vh) !important; }
           .rk-greets { margin-top: 8px !important; font-size: 19px !important; }
-          .rk-list { margin-top: 10px !important; }
+          .rk-list { margin-top: 22px !important; }
           .rk-li { margin-bottom: 6px !important; }
           .rk-title { font-size: 14.5px !important; }
           .rk-desc { font-size: 12.5px !important; line-height: 1.3 !important; }
-          .rk-logo { margin-bottom: 14px !important; gap: 12px !important; }
+          .rk-logo { margin-bottom: 24px !important; gap: 14px !important; }
           .rk-logo-img { height: 44px !important; }
           .rk-logo-tile { width: 48px !important; height: 48px !important; }
           .rk-h1 { font-size: 27px !important; }
