@@ -17,7 +17,9 @@ const STOP = new Set((
   'i me my we our you your he she they them his her their what which who whom how why when where ' +
   'do does did can could should would will shall may might must have has had not no yes if then ' +
   'than so as by from about into out up down over under again also very just please tell say ' +
-  'ku ba ar'
+  'ku ba ar ' +
+  // "what is X?" in other words: Latin Kurdish, Sorani and Arabic question words
+  'whats meaning mean means chiya chiye chye cheya chiyah چییه چیه چی ما هو هی ماذا ایش شو یعنی معنی مانای'
 ).split(' '));
 
 // Groups of words that mean the same thing. First word of a group is the canonical one.
@@ -233,7 +235,8 @@ export function searchFaqs(index, query, { limit = 0, minScore = 0 } = {}) {
   const uniq = Array.from(new Set(qTokens));
   const rawQ = Array.from(new Set(tokenizeRaw(query)));
   // "what is maqtu3", "meaning of KYC": the agent wants the definition of one thing
-  const wantsDefinition = /^(what is|what s|whats|what are|what does|meaning of|define|explain)\b/.test(q);
+  const wantsDefinition = /^(what is|what s|whats|what are|what does|meaning of|define|explain)\b/.test(q)
+    || /\b(meaning|means?|chiya|chiye|chye|cheya)\b/.test(q) || /(چییه|چیه|یعنی|معنی)$/.test(q) || /^ما هو\b/.test(q);
   const rawIdf = t => Math.log(1 + (index.n + 1) / ((index.rawDf.get(t) || 0) + 0.5));
 
   const results = [];
@@ -264,6 +267,8 @@ export function searchFaqs(index, query, { limit = 0, minScore = 0 } = {}) {
     // multi-word questions: require at least half of the words to be found
     if (uniq.length >= 3 && coverage < 0.5) return;
     score *= 0.4 + 0.6 * coverage;
+    // Shortlisted FAQs are the most-asked questions QA has pinned, so they edge ahead of equal matches
+    if (d.faq.is_shortlisted) score *= 1.08;
 
     // every typed word is in the question title: the shorter and more focused the title, the better the match
     if (rawQ.length && literalInQuestion === rawQ.length) {

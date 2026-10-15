@@ -45,6 +45,7 @@ export default function KnowledgeAssistant({ darkMode, DM, faqs, synV = 0, onOpe
   const [recent, setRecent] = useState(readRecent);
   const index = useMemo(() => buildIndex(faqs), [faqs, synV]); // eslint-disable-line react-hooks/exhaustive-deps
   const [votes, setVotes] = useState({});
+  const shortlisted = useMemo(() => (faqs || []).filter(f => f.is_shortlisted).sort((a, b) => a.id - b.id), [faqs]);
   const [flows, setFlows] = useState([]);
   const [scripts, setScripts] = useState([]);
 
@@ -71,7 +72,7 @@ export default function KnowledgeAssistant({ darkMode, DM, faqs, synV = 0, onOpe
       const probe = `${faq.question_en || ''} ${faq.tags || ''}`;
       const sim = searchFaqs(index, probe, { limit: 6, minScore: 6 }).map(r => r.faq).filter(f => f.id !== faq.id);
       const same = (faqs || []).filter(f => f.id !== faq.id && f.subcategory && f.subcategory === faq.subcategory && f.category === faq.category);
-      const faqsRel = [...sim, ...same.filter(f => !sim.some(x => x.id === f.id))].slice(0, 3);
+      const faqsRel = [...sim, ...same.filter(f => !sim.some(x => x.id === f.id))].sort((a, b) => (b.is_shortlisted ? 1 : 0) - (a.is_shortlisted ? 1 : 0)).slice(0, 3);
       const fl = searchFaqs(flowIndex, probe, { limit: 1, minScore: 5 }).map(r => r.faq._flow);
       const sc = searchFaqs(scriptIndex, probe, { limit: 1, minScore: 5 }).map(r => r.faq._script);
       out[faq.id] = { faqs: faqsRel, flow: fl[0] || null, script: sc[0] || null };
@@ -135,6 +136,22 @@ export default function KnowledgeAssistant({ darkMode, DM, faqs, synV = 0, onOpe
 
       {!searched && (
         <>
+          {shortlisted.length > 0 && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', margin: '4px 0 10px' }}>
+                <div style={{ fontWeight: 900, color: DM.text, fontSize: 15 }}>📌 Most-asked questions (Shortlisted FAQs)</div>
+                {onOpen && <button onClick={() => onOpen('_shortlisted')} style={{ ...chip(false, '#f59e0b'), padding: '5px 12px', fontSize: 12.5 }}>See all {shortlisted.length}</button>}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 10, marginBottom: 18 }}>
+                {shortlisted.slice(0, 6).map(f => (
+                  <button key={f.id} onClick={() => { setQuestion(f.question_en); ask(f.question_en); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, textAlign: 'start', background: darkMode ? '#f59e0b1f' : '#fffbeb', border: '1px solid #f59e0b66', borderRadius: 16, padding: '12px 14px', cursor: 'pointer', fontFamily: 'inherit', color: DM.text, fontWeight: 800, fontSize: 13.5 }}>
+                    <span style={{ fontSize: 20 }}>📌</span><span>{f.question_en}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
           <div style={{ fontWeight: 900, color: DM.text, fontSize: 15, margin: '4px 0 10px' }}>⚡ Common problems</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))', gap: 10, marginBottom: 18 }}>
             {QUICK.map(([e, t, c]) => (
@@ -186,7 +203,10 @@ export default function KnowledgeAssistant({ darkMode, DM, faqs, synV = 0, onOpe
                     <div style={{ height: 5, background: `linear-gradient(90deg,${c},${c}55)` }} />
                     <div style={{ padding: '16px 20px 18px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
-                        <span style={{ color: '#10b981', fontWeight: 900, fontSize: 13 }}>{idx === 0 ? '🏆 Best match · approved by QA' : '✅ Approved by QA'}</span>
+                        <span style={{ color: '#10b981', fontWeight: 900, fontSize: 13, display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                          {idx === 0 ? '🏆 Best match · approved by QA' : '✅ Approved by QA'}
+                          {faq.is_shortlisted && <span title="One of the most-asked questions, pinned by QA" style={{ background: '#f59e0b22', color: '#b45309', border: '1px solid #f59e0b77', borderRadius: 999, padding: '2px 10px', fontSize: 12, fontWeight: 900 }}>📌 Shortlisted FAQ</span>}
+                        </span>
                         <button onClick={() => { copy(`${q}\n\n${a}`); sendFeedback(faq, idx + 1, 'copy'); }} style={{ ...chip(false, c), padding: '5px 12px', fontSize: 12.5 }}>📋 Copy answer</button>
                       </div>
                       <h3 dir={rtl ? 'rtl' : 'ltr'} style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 900, color: DM.text, textAlign: rtl ? 'right' : 'left', lineHeight: 1.5 }}>{q}</h3>
@@ -214,7 +234,7 @@ export default function KnowledgeAssistant({ darkMode, DM, faqs, synV = 0, onOpe
                               {rel.script && onOpen && <button onClick={() => onOpen('_scripts')} style={{ ...chip(false, '#ec4899'), borderColor: '#ec4899aa' }}>📝 Script: {rel.script.title}</button>}
                               {rel.faqs.map(f => (
                                 <button key={f.id} onClick={() => { const t = f.question_en; setQuestion(t); ask(t); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                  style={{ ...chip(false, '#8b5cf6'), borderColor: '#8b5cf6aa', textAlign: 'start' }}>🔗 {f.question_en}</button>
+                                  style={{ ...chip(false, '#8b5cf6'), borderColor: '#8b5cf6aa', textAlign: 'start' }}>{f.is_shortlisted ? '📌' : '🔗'} {f.question_en}</button>
                               ))}
                             </div>
                           </div>
