@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import api from '../utils/api';
 
 // Scripts & Processes, Hold & Unhold and KYC Platform Outputs pages,
 // each available in English, Sorani (ku), Badini (ba) and Arabic (ar).
@@ -13,6 +14,21 @@ const LANGS = [
   ['ba', '🏔️ بادینی'],
   ['ar', '🌙 العربية'],
 ];
+
+
+// Text shown on these pages can be edited by the team lead in Admin Panel → Page Content.
+// If nothing was saved there, the built-in default below is used.
+function usePageContent(key, fallback) {
+  const [data, setData] = useState(fallback);
+  useEffect(() => {
+    let alive = true;
+    api.get(`/page-content/${key}`)
+      .then(r => { if (alive && r.data && r.data.data) setData(r.data.data); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [key]);
+  return data;
+}
 
 const pick = (obj, lang) => (obj && (obj[lang] || obj.en)) || '';
 const dirOf = (lang) => (lang === 'en' ? 'ltr' : 'rtl');
@@ -128,6 +144,8 @@ const CLOSING = {
   ],
 };
 
+export const SCRIPTS_DEFAULT = { cards: SCRIPT_CARDS, closing: CLOSING };
+
 function ScriptCard({ title, text, lang, DM, accent = ORANGE, badge }) {
   return (
     <div style={{ background: DM.cardBg, borderRadius: '16px', padding: '20px 22px', border: `1px solid ${DM.border}`, overflow: 'hidden', position: 'relative' }}>
@@ -146,6 +164,9 @@ function ScriptCard({ title, text, lang, DM, accent = ORANGE, badge }) {
 }
 
 export function Scripts({ DM, lang, setLang }) {
+  const content = usePageContent('scripts', SCRIPTS_DEFAULT);
+  const SCRIPT_CARDS = content.cards || [];
+  const CLOSING = content.closing || { title: {}, steps: [] };
   return (
     <div dir={dirOf(lang)}>
       <LangBar lang={lang} setLang={setLang} DM={DM} />
@@ -262,7 +283,12 @@ const KYC_STATUSES = [
   },
 ];
 
+export const KYC_DEFAULT = { intro: KYC_INTRO, statuses: KYC_STATUSES };
+
 export function KYCPlatform({ darkMode, DM, lang, setLang }) {
+  const content = usePageContent('kyc', KYC_DEFAULT);
+  const KYC_INTRO = content.intro || { title: {}, text: {} };
+  const KYC_STATUSES = content.statuses || [];
   return (
     <div dir={dirOf(lang)}>
       <LangBar lang={lang} setLang={setLang} DM={DM} />
@@ -439,7 +465,12 @@ const HOLD_STEPS = [
   },
 ];
 
+export const HOLD_DEFAULT = { intro: HOLD_INTRO, steps: HOLD_STEPS };
+
 export function HoldUnhold({ darkMode, DM, lang, setLang }) {
+  const content = usePageContent('hold', HOLD_DEFAULT);
+  const HOLD_INTRO = content.intro || { title: {}, text: {} };
+  const HOLD_STEPS = content.steps || [];
   return (
     <div dir={dirOf(lang)}>
       <LangBar lang={lang} setLang={setLang} DM={DM} />

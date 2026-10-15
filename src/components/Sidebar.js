@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import api from '../utils/api';
 import React, { useState, useEffect, useMemo } from 'react';
 import LogoLight from '../assets/runaki-light.svg';
 import LogoDark from '../assets/runaki-dark.svg';
@@ -50,6 +51,10 @@ export default function Sidebar({
   const [personalOpen, setPersonalOpen] = useState(false);
   const [systemOpen, setSystemOpen] = useState(true);
   const [hasActiveScript, setHasActiveScript] = useState(false);
+  const [extTools, setExtTools] = useState([]);
+  useEffect(() => {
+    api.get('/external-tools').then(r => setExtTools(r.data || [])).catch(() => {});
+  }, []);
     useEffect(() => {
 
   if (
@@ -66,7 +71,7 @@ export default function Sidebar({
   }
 
   if (
-    ['_kyc'].includes(panel)
+    (['_kyc'].includes(panel) || String(panel).startsWith('_tool_'))
   ) {
     setToolsOpen(true);
   }
@@ -556,8 +561,7 @@ folder
   label="Tools"
   collapsed={collapsed}
   active={
-  ['_kyc']
-    .includes(panel)
+  (['_kyc'].includes(panel) || String(panel).startsWith('_tool_'))
 }
   onClick={() => setToolsOpen(!toolsOpen)}
   suffix={
@@ -610,6 +614,19 @@ folder
       active={panel === '_kyc'}
       onClick={() => go('_kyc')}
     />
+
+    {extTools.map(t => (
+      <NI
+        key={t.id}
+        sub
+        icon={t.icon || '🧩'}
+        darkMode={darkMode}
+        label={t.name}
+        collapsed={collapsed}
+        active={panel === `_tool_${t.id}`}
+        onClick={() => go(`_tool_${t.id}`)}
+      />
+    ))}
   </>
 )}
 

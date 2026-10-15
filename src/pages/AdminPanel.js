@@ -7,6 +7,7 @@ import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import toast from 'react-hot-toast';
 import EvaluationsUpload from '../components/EvaluationsUpload';
+import { PageContentEditor, ExternalToolsAdmin } from '../components/ContentEditor';
 
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -395,6 +396,8 @@ export default function AdminPanel({ darkMode }) {
     ['callflows','📞','Call Flows'],
     ['evaluations','📤','Evaluations'],
     ['scripts','📋','Update Scripts'],
+    ['content','📝','Page Content'],
+    ['exttools','🧰','External Tools'],
     ['maintenance','🔧','Maintenance'],
   ];
 
@@ -1174,6 +1177,9 @@ export default function AdminPanel({ darkMode }) {
               )}
             </div>
           )}
+
+          {tab === 'content' && <PageContentEditor darkMode={darkMode} />}
+          {tab === 'exttools' && <ExternalToolsAdmin darkMode={darkMode} />}
 
           {tab === 'evaluations' && (
             <EvaluationsUpload token={token} darkMode={darkMode} />

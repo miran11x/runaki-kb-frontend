@@ -14,6 +14,7 @@ import api from '../utils/api';
   import Topbar from '../components/Topbar';
   import toast from 'react-hot-toast';
   import { Scripts, KYCPlatform, HoldUnhold } from '../components/OpsPages';
+  import { ExternalToolView } from '../components/ContentEditor';
   import UpdateScripts from '../components/UpdateScripts';
   import AdminPanel from './AdminPanel';
   import EditorPanel from './EditorPanel';
@@ -269,7 +270,7 @@ const grouped = items => {
     const items = panelFaqs();
 const groups = grouped(items);
 
-const isSpecial = [
+const isSpecial = String(panel).startsWith('_tool_') || [
       '_feedback',
   '_scripts',
   '_priority',
@@ -313,7 +314,7 @@ const isSpecial = [
         <div style={S.body}>
          
 <Topbar
-  title={PANEL_LABELS[search ? '_search' : panel] || 'Knowledge Base'}
+  title={PANEL_LABELS[search ? '_search' : panel] || (String(panel).startsWith('_tool_') ? 'Tools' : 'Knowledge Base')}
   subtitle={
     search
       ? `${items.length} results for "${search}"`
@@ -385,6 +386,7 @@ const isSpecial = [
             )}
 
             {/* Special panels */}
+            {String(panel).startsWith('_tool_') && <ExternalToolView toolId={String(panel).slice(6)} DM={DM} />}
             {panel === '_scripts'  && <Scripts darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
             {panel === '_priority' && <Priority darkMode={darkMode} DM={DM} />}
             {panel === '_kyc'       && <KYCPlatform darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
