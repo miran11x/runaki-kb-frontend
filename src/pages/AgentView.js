@@ -26,7 +26,6 @@ import DailyQuiz from '../components/DailyQuiz';
 import KnowledgeAssistant from '../components/KnowledgeAssistant';
   import { MyStats, SendFeedback } from '../components/MyStatsFeedback';
   import { ExternalToolView } from '../components/ContentEditor';
-  import UpdateScripts from '../components/UpdateScripts';
   import AdminPanel from './AdminPanel';
   import EditorPanel from './EditorPanel';
 
@@ -462,7 +461,6 @@ const isSpecial = String(panel).startsWith('_tool_') || String(panel).startsWith
             {panel === '_holdunhold'&& <HoldUnhold darkMode={darkMode} DM={DM} lang={lang} setLang={setLang} />}
             {panel === '_traccess'  && <TRAccess darkMode={darkMode} DM={DM} />}
             {panel === '_callflows' && <CallFlows darkMode={darkMode} DM={DM} />}
-            {panel === '_updatescripts' && <UpdateScripts darkMode={darkMode} />}
             
 {panel === '_admin' && (
  <AdminPanel darkMode={darkMode} />
