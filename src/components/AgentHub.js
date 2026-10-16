@@ -14,19 +14,41 @@ const openNew = url => window.open(url, '_blank', 'noopener,noreferrer');
 const copy = async (text, msg = 'Copied') => { try { await navigator.clipboard.writeText(text); toast.success(msg); } catch { toast.error('Could not copy'); } };
 const sizeLabel = n => (n >= 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1000)) + ' KB');
 const fileIcon = n => (/\.(xlsx|xls|csv)$/i.test(n || '') ? '📊' : /\.pdf$/i.test(n || '') ? '📕' : /\.(docx|doc)$/i.test(n || '') ? '📝' : /\.pptx$/i.test(n || '') ? '📽️' : '📄');
+// Files travel in pieces of up to 3 MB (the hosting refuses bigger requests), so large Excel files work.
+const CHUNK = 3 * 1000 * 1000;
+const MAX_TOTAL_MB = 25;
 const downloadFile = async l => {
+  const tid = toast.loading('Downloading…');
   try {
-    const r = await api.get(`/folder-files/${l.id}/download`, { responseType: 'blob' });
-    const u = URL.createObjectURL(r.data); const a = document.createElement('a'); a.href = u; a.download = l.file_name || l.title;
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u);
-  } catch { toast.error('Could not download the file'); }
+    const info = (await api.get(`/folder-files/${l.id}/info`)).data;
+    const parts = [];
+    for (let i = 0; i < info.parts; i++) {
+      if (info.parts > 1) toast.loading(`Downloading… ${i + 1}/${info.parts}`, { id: tid });
+      parts.push((await api.get(`/folder-files/${l.id}/download`, { params: { part: i }, responseType: 'blob' })).data);
+    }
+    const u = URL.createObjectURL(new Blob(parts, { type: info.type }));
+    const a = document.createElement('a'); a.href = u; a.download = info.name || l.file_name || l.title;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+    toast.success('Downloaded', { id: tid });
+  } catch { toast.error('Could not download the file', { id: tid }); }
 };
-const uploadTo = async (path, file, params) => {
-  const r = await api.post(path, file, { params: { ...params, filename: file.name }, headers: { 'Content-Type': 'application/octet-stream' }, transformRequest: [d => d] });
-  return r.data;
+// uploads a file into a folder (folderId) or replaces the file of an existing card (linkId)
+const uploadFile = async (file, { folderId, linkId, title, description, sortOrder }) => {
+  if (file.size > MAX_TOTAL_MB * 1000 * 1000) throw new Error(`This file is ${(file.size / 1e6).toFixed(1)} MB. The limit is ${MAX_TOTAL_MB} MB. Put it on SharePoint and add the link instead.`);
+  const tid = toast.loading('Uploading…');
+  try {
+    const init = (await api.post('/admin/folder-files/init', { folder_id: folderId, link_id: linkId, title, description, sort_order: sortOrder, filename: file.name, size: file.size })).data;
+    const n = Math.ceil(file.size / CHUNK);
+    for (let i = 0; i < n; i++) {
+      if (n > 1) toast.loading(`Uploading… ${i + 1}/${n}`, { id: tid });
+      await api.post(`/admin/folder-files/${init.id}/chunk`, file.slice(i * CHUNK, (i + 1) * CHUNK), { params: { idx: i, version: init.version }, headers: { 'Content-Type': 'application/octet-stream' }, transformRequest: [d => d] });
+    }
+    await api.post(`/admin/folder-files/${init.id}/finish`, { version: init.version, size: file.size });
+    toast.dismiss(tid);
+  } catch (e) { toast.dismiss(tid); throw e; }
 };
 const FILE_ACCEPT = '.xlsx,.xls,.csv,.pdf,.docx,.doc,.pptx,.txt';
-const errMsg = (e, d) => e?.response?.data?.error || d;
+const errMsg = (e, d) => e?.response?.data?.error || (!e?.response && e?.message && e.message !== 'Network Error' ? e.message : d);
 
 /* ───────────────────────── Folders (agent) ───────────────────────── */
 export function FolderPage({ folderId, darkMode }) {
@@ -80,7 +102,7 @@ export function FoldersAdmin({ darkMode }) {
     <div style={{ maxWidth: 980 }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>🗂️ Folders</div>
       <div style={{ fontSize: 13, color: th.sub, marginBottom: 16, lineHeight: 1.7 }}>
-        Each folder appears under <b>Folders</b> in the agents’ sidebar. Add a link (SharePoint, Excel Online, anything) or <b>upload a file</b> (Excel, PDF, Word, PowerPoint, up to 4 MB) that agents download. Use <b>Hidden</b> to keep a folder or a file away from agents without deleting it.
+        Each folder appears under <b>Folders</b> in the agents’ sidebar. Add a link (SharePoint, Excel Online, anything) or <b>upload a file</b> (Excel, PDF, Word, PowerPoint, up to 25 MB) that agents download. Use <b>Hidden</b> to keep a folder or a file away from agents without deleting it.
       </div>
       <Panel th={th} title="＋ New folder">
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -108,7 +130,7 @@ export function FoldersAdmin({ darkMode }) {
                 <>
                   <div style={{ flex: '2 1 240px', fontSize: 12.5, color: th.sub, overflowWrap: 'anywhere' }}>{l.file_name} · {sizeLabel(l.file_size)} · uploaded {l.file_updated_at ? new Date(l.file_updated_at).toLocaleDateString() : ''}</div>
                   <label style={{ ...mini(th, ORANGE), display: 'inline-block' }}>Replace file
-                    <input type="file" accept={FILE_ACCEPT} style={{ display: 'none' }} onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) run(() => uploadTo(`/admin/folder-links/${l.id}/file`, f, {}), 'File replaced'); }} />
+                    <input type="file" accept={FILE_ACCEPT} style={{ display: 'none' }} onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) run(() => uploadFile(f, { linkId: l.id }), 'File replaced'); }} />
                   </label>
                   <button style={mini(th, '#38bdf8')} onClick={() => downloadFile(l)}>Download</button>
                 </>
@@ -127,8 +149,8 @@ export function FoldersAdmin({ darkMode }) {
             <input style={{ ...inp, flex: '2 1 240px', direction: 'ltr' }} placeholder="https://... (SharePoint, Excel, any link)" value={(nl[f.id] || {}).url || ''} onChange={e => setNl({ ...nl, [f.id]: { ...nl[f.id], url: e.target.value } })} />
             <input style={{ ...inp, flex: '1 1 160px' }} placeholder="Note (optional)" value={(nl[f.id] || {}).description || ''} onChange={e => setNl({ ...nl, [f.id]: { ...nl[f.id], description: e.target.value } })} />
             <button disabled={!(nl[f.id] || {}).title || !(nl[f.id] || {}).url} onClick={() => addLink(f)} style={btn(ORANGE, { opacity: (nl[f.id] || {}).title && (nl[f.id] || {}).url ? 1 : 0.5 })}>Add link</button>
-            <label style={btn('#10b981', { display: 'inline-block' })} title="Excel, PDF, Word or PowerPoint, up to 4 MB">⬆ Upload file
-              <input type="file" accept={FILE_ACCEPT} style={{ display: 'none' }} onChange={e => { const file = e.target.files[0]; e.target.value = ''; if (!file) return; run(() => uploadTo('/admin/folder-files', file, { folder_id: f.id, title: (nl[f.id] || {}).title || undefined, description: (nl[f.id] || {}).description || undefined, sort_order: f.links.length + 1 }), 'File uploaded'); }} />
+            <label style={btn('#10b981', { display: 'inline-block' })} title="Excel, PDF, Word or PowerPoint, up to 25 MB">⬆ Upload file
+              <input type="file" accept={FILE_ACCEPT} style={{ display: 'none' }} onChange={e => { const file = e.target.files[0]; e.target.value = ''; if (!file) return; run(() => uploadFile(file, { folderId: f.id, title: (nl[f.id] || {}).title || undefined, description: (nl[f.id] || {}).description || undefined, sortOrder: f.links.length + 1 }), 'File uploaded'); }} />
             </label>
           </div>
         </Panel>
