@@ -167,7 +167,7 @@ export function SmsTemplates({ darkMode }) {
   const [types, setTypes] = useState(null);
   const [tid, setTid] = useState(null);
   const [lang, setLang] = useState('en');
-  useEffect(() => { api.get('/sms').then(r => { setTypes(r.data || []); setTid((r.data || [])[0]?.id || null); }).catch(() => setTypes([])); }, []);
+  useEffect(() => { api.get('/sms').then(r => { const list = (r.data || []).filter(t => (t.templates || []).length); setTypes(list); setTid(list[0]?.id || null); }).catch(() => setTypes([])); }, []);
   if (!types) return <Empty th={th}>Loading…</Empty>;
   if (!types.length) return <Empty th={th}>No SMS templates yet.</Empty>;
   const cur = types.find(t => t.id === tid) || types[0];
