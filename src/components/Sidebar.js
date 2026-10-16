@@ -300,7 +300,7 @@ background:
   darkMode={darkMode}
 
   label="FAQs"
-  badge={faqs.length}
+  badge={faqs.filter(f => !f.is_shortlisted).length}
   collapsed={collapsed}
 active={
   faqOpen &&

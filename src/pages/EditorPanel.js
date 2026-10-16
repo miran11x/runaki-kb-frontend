@@ -1,4 +1,5 @@
 import { parseFaqWorkbook } from '../utils/faqImport';
+import * as XLSX from 'xlsx';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
@@ -152,6 +153,21 @@ const bulkDeleteFaqs = async () => {
  const shortlistedCount = faqs.filter(f => f.is_shortlisted).length;
  const generalFaqCount = faqs.length - shortlistedCount;
 
+ const exportFaqs = () => {
+  const shortlisted = tab === 'shortlisted';
+  const list = faqs.filter(f => !!f.is_shortlisted === shortlisted)
+    .sort(shortlisted ? (a, b) => ((a.shortlist_pos ?? 1e9) - (b.shortlist_pos ?? 1e9)) || (a.id - b.id) : (a, b) => (a.category || '').localeCompare(b.category || '') || a.id - b.id);
+  if (!list.length) { toast.error('Nothing to export'); return; }
+  const cols = ['category','subcategory','question_en','answer_en','question_ku','answer_ku','question_ba','answer_ba','question_ar','answer_ar'];
+  const rows = list.map(f => { const r = {}; cols.forEach(c => { r[c] = f[c] || ''; }); r.published = f.is_published ? 'yes' : 'no'; return r; });
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = cols.map(c => ({ wch: c.startsWith('answer') ? 60 : c.startsWith('question') ? 40 : 18 })).concat([{ wch: 10 }]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, shortlisted ? 'Shortlisted FAQs' : 'General FAQs');
+  XLSX.writeFile(wb, `${shortlisted ? 'Shortlisted' : 'General'}_FAQs_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  toast.success(`Exported ${list.length} FAQs`);
+ };
+
  const filtered = faqs.filter(f => {
   // The "FAQs" tab shows general FAQs only; shortlisted FAQs live in their own tab.
   const inThisList = tab === 'shortlisted' ? !!f.is_shortlisted : !f.is_shortlisted;
@@ -300,6 +316,10 @@ const bulkDeleteFaqs = async () => {
     }}
   >
     {tab === 'shortlisted' ? "+ New Shortlisted FAQ" : '+ New FAQ'}
+  </button>
+
+  <button style={{ ...S.addBtn, background: '#2563eb' }} onClick={exportFaqs}>
+    {tab === 'shortlisted' ? `📤 Export Shortlisted (${shortlistedCount})` : `📤 Export FAQs (${generalFaqCount})`}
   </button>
 
   <button
