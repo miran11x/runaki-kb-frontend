@@ -868,11 +868,11 @@ function TopCard({ icon, title, sub, badge, dot, hero, tint = '#FF6B35', grad, e
 .rk-topbtn:active{transform:translateY(3px)}`}</style>
       <button className="rk-topbtn" onClick={onClick} title={title} style={{
         position: 'relative', display: 'flex', alignItems: 'center', gap: collapsed ? 0 : 11, justifyContent: collapsed ? 'center' : 'flex-start',
-        width: 'calc(100% - 14px)', margin: '6px 7px 8px', padding: collapsed ? '8px 0' : '10px 12px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start',
+        width: collapsed ? 40 : 'calc(100% - 14px)', height: collapsed ? 40 : undefined, margin: collapsed ? '5px auto 7px' : '6px 7px 8px', padding: collapsed ? 0 : '10px 12px', borderRadius: collapsed ? 12 : 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start',
         background: g, border: 'none', color: '#fff',
-        boxShadow: `0 4px 0 ${e}, 0 10px 18px ${tint}55${active ? ', 0 0 0 3px #fff, 0 0 0 5px ' + tint : ''}`,
+        boxShadow: collapsed ? `0 3px 0 ${e}${active ? ', 0 0 0 2px #fff, 0 0 0 4px ' + tint : ''}` : `0 4px 0 ${e}, 0 10px 18px ${tint}55${active ? ', 0 0 0 3px #fff, 0 0 0 5px ' + tint : ''}`,
       }}>
-        <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, background: 'rgba(255,255,255,.25)' }}>{icon}</span>
+        <span style={{ width: collapsed ? 'auto' : 36, height: collapsed ? 'auto' : 36, borderRadius: 11, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: collapsed ? 20 : 18, background: collapsed ? 'transparent' : 'rgba(255,255,255,.25)' }}>{icon}</span>
         {!collapsed && (
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
