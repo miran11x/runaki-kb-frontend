@@ -266,19 +266,48 @@ export function SmsAdmin({ darkMode }) {
 }
 
 /* ───────────────────────── External links (agent) ───────────────────────── */
+// Links saved with the default puzzle icon get a fitting emoji from their name, and no two cards share one.
+const ICON_RULES = [
+  [/queue|metric|report|dashboard.*stat|stats/i, ['📊', '📈']],
+  [/freshdesk|ticket|helpdesk/i, ['🎫', '🧾']],
+  [/calculator|tariff|price|pricing/i, ['🧮', '💰']],
+  [/maintenance|support|outage/i, ['🛠️', '🔧', '📞']],
+  [/zone|map|location|coverage/i, ['🗺️', '📍']],
+  [/kyc|identity|verify|verification/i, ['🪪', '🔐', '🛡️']],
+  [/crm|customer|account/i, ['👥', '🗂️']],
+  [/bill|payment|invoice/i, ['💳', '🧾']],
+  [/website|web site|portal|site/i, ['🌐', '🧭']],
+  [/mail|email|outlook/i, ['📧']],
+  [/chat|whatsapp|message|sms/i, ['💬']],
+  [/train|learn|course|academy/i, ['🎓']],
+  [/schedule|roster|shift|calendar/i, ['🗓️']],
+];
+const FALLBACK_ICONS = ['🔗', '🧭', '📌', '⭐', '🚀', '📎', '🔔', '🧰', '🏷️', '🔎'];
+export function pickIcons(tools) {
+  const used = new Set(tools.filter(t => t.icon && t.icon !== '🧩').map(t => t.icon));
+  return tools.map(t => {
+    if (t.icon && t.icon !== '🧩') return t.icon;
+    const rule = ICON_RULES.find(([re]) => re.test(t.name));
+    const choice = (rule ? rule[1] : []).concat(FALLBACK_ICONS).find(e => !used.has(e)) || '🔗';
+    used.add(choice);
+    return choice;
+  });
+}
+
 export function ExternalLinks({ darkMode }) {
   const th = useTheme(darkMode);
   const [tools, setTools] = useState(null);
   useEffect(() => { api.get('/external-tools').then(r => setTools(r.data || [])).catch(() => setTools([])); }, []);
   if (!tools) return <Empty th={th}>Loading…</Empty>;
+  const icons = pickIcons(tools);
   return (
     <div style={{ maxWidth: 900 }}>
       <div style={{ color: th.sub, fontSize: 13, marginBottom: 14 }}>Each button opens the system in a new browser tab. This website stays open.</div>
       {!tools.length ? <Empty th={th}>No links yet.</Empty> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 12 }}>
-          {tools.map(t => (
+          {tools.map((t, i) => (
             <button key={t.id} onClick={() => openNew(t.url)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start' }}>
-              <span style={{ fontSize: 28 }}>{t.icon || '🧩'}</span>
+              <span style={{ fontSize: 28 }}>{icons[i]}</span>
               <span style={{ flex: 1, fontWeight: 800, color: th.text, fontSize: 15, overflowWrap: 'anywhere' }}>{t.name}</span>
               <span style={{ padding: '7px 16px', borderRadius: 10, background: ORANGE, color: '#fff', fontSize: 13, fontWeight: 800, boxShadow: `0 4px 12px ${ORANGE}44`, whiteSpace: 'nowrap' }}>Open ↗</span>
             </button>
