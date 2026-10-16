@@ -870,7 +870,10 @@ function TopCard({ icon, title, sub, badge, dot, hero, tint = '#FF6B35', grad, e
         position: 'relative', display: 'flex', alignItems: 'center', gap: collapsed ? 0 : 11, justifyContent: collapsed ? 'center' : 'flex-start',
         width: collapsed ? 40 : 'calc(100% - 14px)', height: collapsed ? 40 : undefined, margin: collapsed ? '5px auto 7px' : '6px 7px 8px', padding: collapsed ? 0 : '10px 12px', borderRadius: collapsed ? 12 : 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start',
         background: g, border: 'none', color: '#fff',
-        boxShadow: collapsed ? `0 3px 0 ${e}${active ? ', 0 0 0 2px #fff, 0 0 0 4px ' + tint : ''}` : `0 4px 0 ${e}, 0 10px 18px ${tint}55${active ? ', 0 0 0 3px #fff, 0 0 0 5px ' + tint : ''}`,
+        boxShadow: active
+          ? `0 1px 0 ${e}, inset 0 0 0 2px rgba(255,255,255,.85), inset 0 3px 8px rgba(0,0,0,.18)`
+          : collapsed ? `0 3px 0 ${e}` : `0 4px 0 ${e}, 0 10px 18px ${tint}55`,
+        transform: active ? 'translateY(2px)' : undefined,
       }}>
         <span style={{ width: collapsed ? 'auto' : 36, height: collapsed ? 'auto' : 36, borderRadius: 11, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: collapsed ? 20 : 18, background: collapsed ? 'transparent' : 'rgba(255,255,255,.25)' }}>{icon}</span>
         {!collapsed && (
