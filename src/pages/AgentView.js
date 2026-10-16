@@ -344,7 +344,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
     );
 
     return (
-      <div style={{ ...S.layout, background: DM.bg }}>
+      <div className="rk-layout" style={{ ...S.layout, background: DM.bg }}>
         <style>{`
           @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
           @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
@@ -358,7 +358,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
   darkMode={darkMode}
 />
 
-        <div style={S.body}>
+        <div className="rk-body" style={S.body}>
          
 <Topbar
   title={PANEL_LABELS[search ? '_search' : panel] || (String(panel).startsWith('_tool_') ? 'Tools' : 'Knowledge Base')}
@@ -371,7 +371,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
   onToggleDark={toggleDark}
 />
 
-          <div style={S.content}>
+          <div className="rk-content" style={S.content}>
 
             <IncidentBanner darkMode={darkMode} />
 

@@ -123,7 +123,8 @@ export default function Topbar({ title, subtitle, rkLogo, hpLogo, darkMode, onTo
   const dividerStyle = dm ? { width:'1px', height:'32px', background:'rgba(255,255,255,0.1)' } : S.logoDivider;
 
   return (
-    <div style={barStyle}>
+    <div className="rk-topbar" style={barStyle}>
+      <button className="rk-menu-btn" aria-label="Open menu" onClick={() => window.dispatchEvent(new Event('rk-toggle-nav'))} style={{ display:'none', background: dm ? 'rgba(255,255,255,0.08)' : '#f1f5f9', border:'1px solid ' + (dm ? 'rgba(255,255,255,0.12)' : '#e2e8f0'), borderRadius:'12px', width:'40px', height:'40px', fontSize:'20px', cursor:'pointer', flexShrink:0, marginRight:'10px', color: dm ? '#f1f5f9' : '#0B1120' }}>☰</button>
       <div style={S.left}>
         <div style={S.titleWrap}>
           <div style={S.titleRow}>
@@ -135,14 +136,14 @@ export default function Topbar({ title, subtitle, rkLogo, hpLogo, darkMode, onTo
       </div>
       <div style={S.right}>
         {/* Logos */}
-        <div style={S.logosWrap}>
+        <div className="rk-topbar-logos" style={S.logosWrap}>
           <img src={rk} alt="Runaki" style={S.logoRK} />
           <div style={S.logoDivider} />
           <img src={hp} alt="HP" style={S.logoHP} />
         </div>
 
         {activeCount !== null && (
-          <div style={S.onlinePill}>
+          <div className="rk-topbar-online" style={S.onlinePill}>
             <span style={S.onlineDot} />
             {activeCount} online
           </div>
@@ -163,7 +164,7 @@ export default function Topbar({ title, subtitle, rkLogo, hpLogo, darkMode, onTo
             )}
           </button>
           {showNotifs && (
-            <div style={dropStyle}>
+            <div className="rk-notif-drop" style={dropStyle}>
               <div style={dropHeadStyle}>
                 <span>Notifications</span>
                 <button style={S.dropClose} onClick={() => setShowNotifs(false)}>✕</button>

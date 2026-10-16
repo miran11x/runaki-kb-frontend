@@ -52,7 +52,7 @@ export default function FocusThisWeek({ th, rows, faqs, onOpen, onSearch }) {
   const btn = { border: `1px solid ${ORANGE}`, background: 'transparent', color: ORANGE, borderRadius: 10, padding: '6px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' };
   return (
     <Panel th={th} title="🎯 Your focus this week" hint={`The ${areas.length === 1 ? 'one thing' : areas.length + ' things'} that will lift your score fastest, from ${label.replace('in ', '')}.`} style={{ marginBottom: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 12 }}>
+      <div className="rk-one-col" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 12 }}>
         {areas.map((a, n) => {
           const g = GUIDE[a.i] || {};
           const c = n === 0 ? RED : AMBER;

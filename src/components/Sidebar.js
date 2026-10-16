@@ -40,7 +40,18 @@ export default function Sidebar({
   const { user, logout } = useAuth();
   
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsedHover, setCollapsed] = useState(true);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 769);
+  const [navOpen, setNavOpen] = useState(false);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 769);
+    const onToggle = () => setNavOpen(o => !o);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('rk-toggle-nav', onToggle);
+    return () => { window.removeEventListener('resize', onResize); window.removeEventListener('rk-toggle-nav', onToggle); };
+  }, []);
+  useEffect(() => { setNavOpen(false); }, [panel]);
+  const collapsed = isMobile ? false : collapsedHover;
 
   const location = useLocation();
   const [faqOpen, setFaqOpen] = useState(true);
@@ -120,9 +131,11 @@ const rm = ROLE_META[user?.role] || ROLE_META.agent;
   };
 
   return (
-    <aside  
-onMouseEnter={() => setCollapsed(false)}
-onMouseLeave={() => setCollapsed(true)}
+    <>
+    {isMobile && navOpen && <div className="rk-nav-backdrop" onClick={() => setNavOpen(false)} />}
+    <aside className={isMobile ? 'rk-aside-mobile' + (navOpen ? ' open' : '') : ''}
+onMouseEnter={() => { if (!isMobile) setCollapsed(false); }}
+onMouseLeave={() => { if (!isMobile) setCollapsed(true); }}
 
   style={{
     ...S.aside,
@@ -840,6 +853,7 @@ folder
         {!collapsed && <span>Sign Out</span>}
       </button>
     </aside>
+    </>
   );
 }
 

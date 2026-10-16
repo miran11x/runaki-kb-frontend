@@ -1,0 +1,42 @@
+/* Mobile / small-screen layer. Desktop (wider than 768px) is untouched. */
+@media (max-width: 768px) {
+  html, body { max-width: 100%; overflow-x: hidden; }
+  img, svg, video { max-width: 100%; }
+  .rk-layout { height: 100dvh !important; }
+  .rk-content { padding: 10px !important; padding-left: 10px !important; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+
+  /* left menu becomes a slide-in drawer */
+  .rk-aside-mobile {
+    position: fixed !important; top: 0; bottom: 0; left: 0; z-index: 1200;
+    width: min(300px, 86vw) !important; height: 100dvh !important;
+    transform: translateX(-102%); transition: transform .24s ease !important;
+    overflow-y: auto !important;
+  }
+  .rk-aside-mobile.open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,.45); }
+  .rk-nav-backdrop { position: fixed; inset: 0; background: rgba(5,10,20,.55); z-index: 1100; }
+
+  /* top bar */
+  .rk-topbar { padding: 10px 12px !important; gap: 8px; }
+  .rk-menu-btn { display: inline-flex !important; align-items: center; justify-content: center; }
+  .rk-topbar-logos, .rk-topbar-online { display: none !important; }
+  .rk-topbar > div { min-width: 0; }
+  .rk-notif-drop { position: fixed !important; left: 8px !important; right: 8px !important; top: 64px !important; min-width: 0 !important; width: auto !important; max-height: 70vh; overflow-y: auto; z-index: 1300; }
+
+  /* grids shrink to what fits */
+  [style*="grid-template-columns"] { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)) !important; }
+  .rk-content .rk-one-col { grid-template-columns: 1fr !important; }
+
+  .rk-content span[style*="inline-block"] { white-space: normal !important; max-width: 100%; }
+
+  /* wide tables scroll sideways instead of breaking the page */
+  table { display: block; max-width: 100%; overflow-x: auto; }
+
+  /* fixed-width boxes can't be wider than the screen */
+  .rk-content [style*="width: 4"], .rk-content [style*="width: 5"], .rk-content [style*="width: 6"],
+  .rk-content [style*="width: 7"], .rk-content [style*="width: 8"], .rk-content [style*="width: 9"],
+  .rk-content [style*="width:4"], .rk-content [style*="width:5"], .rk-content [style*="width:6"],
+  .rk-content [style*="width:7"], .rk-content [style*="width:8"], .rk-content [style*="width:9"] { max-width: 100% !important; }
+
+  /* 16px inputs stop iOS zooming in on tap */
+  input, select, textarea { font-size: 16px !important; }
+}
