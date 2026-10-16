@@ -17,10 +17,12 @@ const errMsg = (e, d) => e?.response?.data?.error || d;
 /* ───────────────────────── Folders (agent) ───────────────────────── */
 export function FolderPage({ folderId, darkMode }) {
   const th = useTheme(darkMode);
+  const { user } = useAuth();
+  const staff = ['team_lead', 'qa_officer'].includes(String(user?.role || '').trim().toLowerCase());
   const [folder, setFolder] = useState(undefined);
   useEffect(() => {
-    api.get('/folders').then(r => setFolder((r.data || []).find(f => String(f.id) === String(folderId)) || null)).catch(() => setFolder(null));
-  }, [folderId]);
+    api.get(staff ? '/folders?all=1' : '/folders').then(r => setFolder((r.data || []).find(f => String(f.id) === String(folderId)) || null)).catch(() => setFolder(null));
+  }, [folderId, staff]);
   if (folder === undefined) return <Empty th={th}>Loading…</Empty>;
   if (!folder) return <Empty th={th}>This folder is not available.</Empty>;
   return (

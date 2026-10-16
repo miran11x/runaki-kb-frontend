@@ -62,11 +62,12 @@ export default function Sidebar({
   const [personalOpen, setPersonalOpen] = useState(false);
   const [systemOpen, setSystemOpen] = useState(true);
   const [hasActiveScript, setHasActiveScript] = useState(false);
+  const isStaffUser = ['team_lead', 'qa_officer'].includes(String(user?.role || '').trim().toLowerCase());
   const [folders, setFolders] = useState([]);
   const [foldersOpen, setFoldersOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   useEffect(() => {
-    api.get('/folders').then(r => setFolders(r.data || [])).catch(() => {});
+    api.get(isStaffUser ? '/folders?all=1' : '/folders').then(r => setFolders(r.data || [])).catch(() => {});
   }, []);
   useEffect(() => {
     const check = () => {
@@ -497,7 +498,7 @@ folder
 )}
 
 {/* FOLDERS */}
-{folders.length > 0 && (
+{(folders.length > 0 || isStaffUser) && (
   <>
     <NI
       folder
@@ -514,8 +515,13 @@ folder
         </div>
       )}
     />
+    {foldersOpen && isStaffUser && folders.length === 0 && !collapsed && (
+      <div style={{ padding: '6px 14px 8px 34px', fontSize: 11.5, lineHeight: 1.5, color: darkMode ? 'rgba(255,255,255,.55)' : '#64748b' }}>
+        No folders yet. Add the first one in Admin Panel → Folders.
+      </div>
+    )}
     {foldersOpen && folders.map(f => (
-      <NI key={f.id} sub icon={f.icon || '📁'} darkMode={darkMode} label={f.name} collapsed={collapsed}
+      <NI key={f.id} sub icon={f.is_visible === false ? '🔒' : (f.icon || '📁')} darkMode={darkMode} label={f.is_visible === false ? `${f.name} (hidden)` : f.name} collapsed={collapsed}
         active={panel === `_folder_${f.id}`} onClick={() => go(`_folder_${f.id}`)} />
     ))}
   </>

@@ -424,7 +424,8 @@ export default function AdminPanel({ darkMode }) {
   const GROUPS = [
     ['Overview', '📊', [['dashboard','📊','Dashboard'], ['incident','📣','Incident Banner']]],
     ['People', '👥', [['users','👥','Users'], ['active','🟢','Live now'], ['activity','📋','Activity log'], ['leaderboard','🏆','Leaderboard']]],
-    ['Content', '📚', [['callflows','📞','Call Flows'], ['scripts','📋','Update Scripts'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons'], ['folders','🗂️','Folders']]],
+    ['Content', '📚', [['callflows','📞','Call Flows'], ['scripts','📋','Update Scripts'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons']]],
+    ['Folders', '🗂️', [['folders','🗂️','Folders']]],
     ['Tools', '🛠️', [['tickets','🎫','Ticket Descriptions'], ['zones','📍','Zones'], ['sms','💬','SMS Templates'], ['exttools','🔗','External Links'], ['toolreports','📈','Tool Reports']]],
     ['Quality', '✅', [['evaluations','📈','QA Evaluations'], ['searchinsights','🔎','Search Insights'], ['transreview','🌍','Kurdish Review'], ['agentfeedback','💬','Agent Feedback']]],
     ['System', '🔧', [['maintenance','🔧','Maintenance']]],
