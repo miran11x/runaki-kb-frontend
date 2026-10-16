@@ -337,10 +337,12 @@ export function UpdatesChannel({ darkMode }) {
   const react = async (id, emoji) => { try { await api.post(`/channel/${id}/react`, { emoji }); load(); } catch { toast.error('Could not react'); } };
   const send = async () => { if (!text.trim() || busy) return; setBusy(true); try { await api.post('/channel', { body: text }); setText(''); await load(); } catch (e) { toast.error(errMsg(e, 'Could not send')); } setBusy(false); };
   const del = async m => { if (!window.confirm('Delete this message for everyone?')) return; try { await api.delete(`/channel/${m.id}`); load(); } catch { toast.error('Could not delete'); } };
+  const delAll = async () => { if (!window.confirm('Delete ALL your messages in this chat for everyone? This cannot be undone.')) return; try { const r = await api.delete('/channel'); toast.success(`${r.data.deleted} message${r.data.deleted === 1 ? '' : 's'} deleted`); load(); } catch { toast.error('Could not delete'); } };
   if (!d) return <Empty th={th}>Loading…</Empty>;
   let lastDay = '';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 130px)', minHeight: 420, maxWidth: 860, margin: '0 auto' }}>
+      {d.canPost && d.messages.length > 0 && <div style={{ textAlign: 'end', paddingBottom: 6 }}><button onClick={delAll} style={{ background: 'none', border: `1px solid ${th.border}`, borderRadius: 100, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: th.sub, cursor: 'pointer', fontFamily: 'inherit' }}>🗑 Delete all my messages</button></div>}
       <div style={{ flex: 1, overflowY: 'auto', padding: '4px 2px 12px' }}>
         {!d.messages.length && (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 8, padding: 24 }}>
