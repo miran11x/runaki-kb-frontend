@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import { track } from '../utils/track';
 import { useTheme, Panel, Empty, ORANGE, GREEN, RED } from './qaUi';
 
 // Folders (links to shared files), SMS templates, External links and the Updates channel.
@@ -71,7 +72,7 @@ export function FolderPage({ folderId, darkMode }) {
       {!folder.links.length ? <Empty th={th}>No files in this folder yet.</Empty> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 12 }}>
           {folder.links.map(l => (
-            <button key={l.id} onClick={() => (l.has_file ? downloadFile(l) : openNew(l.url))} style={{ textAlign: 'start', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, padding: '14px 16px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <button key={l.id} onClick={() => { track('file', l.title); return l.has_file ? downloadFile(l) : openNew(l.url); }} style={{ textAlign: 'start', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, padding: '14px 16px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <span style={{ fontSize: 24 }}>{l.has_file ? fileIcon(l.file_name) : '📄'}</span>
               <span style={{ minWidth: 0 }}>
                 <span style={{ display: 'block', fontWeight: 800, color: th.text, fontSize: 14.5, overflowWrap: 'anywhere' }}>{l.title}</span>
@@ -306,7 +307,7 @@ export function ExternalLinks({ darkMode }) {
       {!tools.length ? <Empty th={th}>No links yet.</Empty> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 12 }}>
           {tools.map((t, i) => (
-            <button key={t.id} onClick={() => openNew(t.url)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start' }}>
+            <button key={t.id} onClick={() => { track('link', t.name); openNew(t.url); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start' }}>
               <span style={{ fontSize: 28 }}>{icons[i]}</span>
               <span style={{ flex: 1, fontWeight: 800, color: th.text, fontSize: 15, overflowWrap: 'anywhere' }}>{t.name}</span>
               <span style={{ padding: '7px 16px', borderRadius: 10, background: ORANGE, color: '#fff', fontSize: 13, fontWeight: 800, boxShadow: `0 4px 12px ${ORANGE}44`, whiteSpace: 'nowrap' }}>Open ↗</span>
@@ -331,18 +332,36 @@ export function UpdatesChannel({ darkMode }) {
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
   const first = useRef(true);
-  const load = useCallback(() => api.get('/channel').then(r => { setD(r.data); const ms = r.data.messages; if (ms.length) { try { localStorage.setItem('rk_chan_seen', String(ms[ms.length - 1].id)); window.dispatchEvent(new Event('rk-channel-seen')); } catch {} } }).catch(() => setD(x => x || { messages: [], emoji: [], canPost: false })), []);
+  const posted = useRef(0);
+  const [editId, setEditId] = useState(null);
+  const [editText, setEditText] = useState('');
+  const [seenFor, setSeenFor] = useState(null);
+  const [seenData, setSeenData] = useState(null);
+  const load = useCallback(() => api.get('/channel').then(r => { setD(r.data); const ms = r.data.messages; if (ms.length && ms[ms.length - 1].id > posted.current) { posted.current = ms[ms.length - 1].id; api.post('/channel/seen', { last_id: posted.current }).catch(() => {}); } if (ms.length) { try { localStorage.setItem('rk_chan_seen', String(ms[ms.length - 1].id)); window.dispatchEvent(new Event('rk-channel-seen')); } catch {} } }).catch(() => setD(x => x || { messages: [], emoji: [], canPost: false })), []);
   useEffect(() => { load(); const t = setInterval(load, 20000); return () => clearInterval(t); }, [load]);
   useEffect(() => { if (d && endRef.current) endRef.current.scrollIntoView({ behavior: first.current ? 'auto' : 'smooth', block: 'end' }); if (d) first.current = false; }, [d && d.messages.length]); // eslint-disable-line
   const react = async (id, emoji) => { try { await api.post(`/channel/${id}/react`, { emoji }); load(); } catch { toast.error('Could not react'); } };
   const send = async () => { if (!text.trim() || busy) return; setBusy(true); try { await api.post('/channel', { body: text }); setText(''); await load(); } catch (e) { toast.error(errMsg(e, 'Could not send')); } setBusy(false); };
   const del = async m => { if (!window.confirm('Delete this message for everyone?')) return; try { await api.delete(`/channel/${m.id}`); load(); } catch { toast.error('Could not delete'); } };
+  const saveEdit = async () => { if (!editText.trim()) return; try { await api.put(`/channel/${editId}`, { body: editText }); setEditId(null); load(); } catch (e) { toast.error(errMsg(e, 'Could not save')); } };
+  const pin = async m => { try { const r = await api.post(`/channel/${m.id}/pin`); toast.success(r.data.pinned ? 'Pinned to the top' : 'Unpinned'); load(); } catch { toast.error('Could not pin'); } };
+  const showSeen = async m => { if (seenFor === m.id) { setSeenFor(null); return; } setSeenFor(m.id); setSeenData(null); try { setSeenData((await api.get(`/channel/${m.id}/seen`)).data); } catch { setSeenData({ seen: [], unseen: [] }); } };
   const delAll = async () => { if (!window.confirm('Delete ALL your messages in this chat for everyone? This cannot be undone.')) return; try { const r = await api.delete('/channel'); toast.success(`${r.data.deleted} message${r.data.deleted === 1 ? '' : 's'} deleted`); load(); } catch { toast.error('Could not delete'); } };
   if (!d) return <Empty th={th}>Loading…</Empty>;
   let lastDay = '';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 130px)', minHeight: 420, maxWidth: 860, margin: '0 auto' }}>
       {d.canPost && d.messages.length > 0 && <div style={{ textAlign: 'end', paddingBottom: 6 }}><button onClick={delAll} style={{ background: 'none', border: `1px solid ${th.border}`, borderRadius: 100, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: th.sub, cursor: 'pointer', fontFamily: 'inherit' }}>🗑 Delete all my messages</button></div>}
+      {d.pinned && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#fff7ed', border: `1px solid ${ORANGE}66`, borderInlineStart: `5px solid ${ORANGE}`, borderRadius: 14, padding: '10px 12px', marginBottom: 10, color: '#0B1120' }}>
+          <span style={{ fontSize: 18 }}>📌</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 800, color: ORANGE, marginBottom: 2 }}>Pinned by {d.pinned.author_name}</div>
+            <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.65, overflowWrap: 'anywhere', maxHeight: 110, overflowY: 'auto' }}>{linkify(d.pinned.body)}</div>
+          </div>
+          {d.canPost && <button onClick={() => pin(d.pinned)} style={{ background: 'none', border: `1px solid ${ORANGE}`, color: ORANGE, borderRadius: 100, padding: '3px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>Unpin</button>}
+        </div>
+      )}
       <div style={{ flex: 1, overflowY: 'auto', padding: '4px 2px 12px' }}>
         {!d.messages.length && (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 8, padding: 24 }}>
@@ -362,15 +381,42 @@ export function UpdatesChannel({ darkMode }) {
                   <span style={{ fontWeight: 800, color: th.text, fontSize: 13.5 }}>{m.author_name}</span>
                   {m.author_title && <span style={{ fontSize: 11.5, color: th.sub }}>{m.author_title}</span>}
                   <span style={{ marginInlineStart: 'auto', fontSize: 11.5, color: th.sub }}>{when(m.created_at)}</span>
+                  {d.canPost && <button onClick={() => pin(m)} title={m.pinned ? 'Unpin' : 'Pin to the top'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: m.pinned ? ORANGE : th.sub, fontSize: 14, opacity: m.pinned ? 1 : 0.7 }}>📌</button>}
+                  {d.canPost && (m.mine || d.isLead) && <button onClick={() => { setEditId(m.id); setEditText(m.body); }} title="Edit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: th.sub, fontSize: 14 }}>✏️</button>}
                   {d.canPost && <button onClick={() => del(m)} title="Delete" style={{ background: 'none', border: 'none', cursor: 'pointer', color: th.sub, fontSize: 14 }}>🗑</button>}
                 </div>
-                <div style={{ whiteSpace: 'pre-wrap', color: th.text, fontSize: 14.5, lineHeight: 1.75, overflowWrap: 'anywhere' }}>{linkify(m.body)}</div>
+                {editId === m.id ? (
+                  <div>
+                    <textarea rows={4} value={editText} onChange={e => setEditText(e.target.value)} style={{ ...inputStyle(th), width: '100%', boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.6 }} />
+                    <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                      <button onClick={saveEdit} disabled={!editText.trim()} style={btn(ORANGE, { padding: '6px 14px', fontSize: 12.5 })}>Save</button>
+                      <button onClick={() => setEditId(null)} style={btn('#64748b', { padding: '6px 14px', fontSize: 12.5 })}>Cancel</button>
+                    </div>
+                  </div>
+                ) : <div style={{ whiteSpace: 'pre-wrap', color: th.text, fontSize: 14.5, lineHeight: 1.75, overflowWrap: 'anywhere' }}>{linkify(m.body)}{m.edited_at && <span style={{ fontSize: 11.5, color: th.sub, marginInlineStart: 6 }}>(edited)</span>}</div>}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
                   {d.emoji.map(e => { const r = m.reactions.find(x => x.emoji === e); return (
                     <button key={e} onClick={() => react(m.id, e)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 100, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, border: `1px solid ${r && r.mine ? ORANGE : th.border}`, background: r && r.mine ? `${ORANGE}1f` : 'transparent', color: th.text, opacity: r ? 1 : 0.55 }}>
                       <span>{e}</span>{r && <b style={{ fontSize: 12 }}>{r.count}</b>}
                     </button>); })}
                 </div>
+                {d.canPost && typeof m.seen === 'number' && (
+                  <div style={{ marginTop: 8 }}>
+                    <button onClick={() => showSeen(m)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: m.seen >= d.agents && d.agents ? GREEN : th.sub }}>
+                      👁 Seen by {m.seen} of {d.agents} agents {seenFor === m.id ? '▴' : '▾'}
+                    </button>
+                    {seenFor === m.id && (
+                      <div style={{ marginTop: 6, background: th.soft, border: `1px solid ${th.border}`, borderRadius: 10, padding: '8px 10px', fontSize: 12.5, color: th.text, maxHeight: 180, overflowY: 'auto' }}>
+                        {!seenData ? 'Loading…' : (
+                          <>
+                            <div style={{ fontWeight: 800, color: RED, marginBottom: 3 }}>Not seen yet ({seenData.unseen.length})</div>
+                            <div style={{ lineHeight: 1.7 }}>{seenData.unseen.length ? seenData.unseen.map(a => a.name).join(', ') : 'Everyone has seen it 🎉'}</div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </React.Fragment>
           );

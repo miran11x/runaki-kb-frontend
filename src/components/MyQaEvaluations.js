@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../utils/api';
 import { useTheme, Panel, Empty, GREEN, RED, AMBER, BLUE, ORANGE } from './qaUi';
@@ -47,10 +47,14 @@ export default function MyQaEvaluations({ darkMode, faqs, onOpen, onSearch }) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState('');
   const [month, setMonth] = useState('');
+  const [ackData, setAckData] = useState({ acks: [], disputeDays: 7 });
+  const loadAcks = useCallback(() => api.get('/qa/acks').then(r => { setAckData(r.data); try { window.dispatchEvent(new Event('rk-eval-ack')); } catch {} }).catch(() => {}), []);
 
   useEffect(() => {
     api.get('/qa/mine').then(r => setData(r.data)).catch(e => setErr(e.response?.data?.error || 'Could not load your evaluations.'));
-  }, []);
+    loadAcks();
+  }, [loadAcks]);
+  const acks = useMemo(() => ({ map: Object.fromEntries(ackData.acks.map(a => [a.eval_id, a])), days: ackData.disputeDays, reload: loadAcks }), [ackData, loadAcks]);
 
   const months = useMemo(() => (data ? [...new Set(data.rows.map(r => r.mo || r.d.slice(0, 7)))].sort().reverse() : []), [data]);
   const rows = useMemo(() => (data ? data.rows.filter(r => !month || (r.mo || r.d.slice(0, 7)) === month) : []), [data, month]);
@@ -151,8 +155,12 @@ export default function MyQaEvaluations({ darkMode, faqs, onOpen, onSearch }) {
         </div>
       </Panel>
 
+      {(() => { const unread = rows.filter(r => !acks.map[r.id]?.acked_at).length; return unread > 0 ? (
+        <div style={{ background: `${ORANGE}18`, border: `1px solid ${ORANGE}66`, borderRadius: 14, padding: '10px 14px', marginBottom: 12, fontSize: 13.5, fontWeight: 700, color: th.text }}>
+          🆕 {unread} evaluation{unread === 1 ? '' : 's'} waiting for you. Open {unread === 1 ? 'it' : 'each one'}, read the feedback, then tap “I've read this”.
+        </div>) : null; })()}
       <h3 style={{ margin: '0 0 8px', fontSize: 15, color: th.text }}>⭐ Your evaluations</h3>
-      <EvalList th={th} rows={rows} rubric={data.rubric} fun />
+      <EvalList th={th} rows={rows} rubric={data.rubric} fun acks={acks} />
     </div>
   );
 }

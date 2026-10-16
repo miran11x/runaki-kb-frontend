@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
+import api from '../utils/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Kpi, Pill, Bar, Empty, gridStyle, resultColor, scoreColor, bandColor, trendColor, ORANGE, GREEN, RED } from './qaUi';
 import { ATTR_LABELS, MAX, pct, resultOf, fmtPct, mean, fmtDay, SETTINGS } from '../utils/qaStats';
@@ -18,7 +20,60 @@ export function defOf(rubric, attrIndex, reason) {
 
 export const ATTR_EMOJI = ['👋', '🪪', '👂', '📚', '💬', '🧩', '🏷️', '🎙️', '🎬', '🙂', '📞'];
 
-export function EvalCard({ th, r, rubric, showAgent, fun }) {
+
+// The agent confirms they read an evaluation and may dispute a score within a few days.
+function AckBox({ th, r, ack, disputeDays, onChange }) {
+  const [comment, setComment] = useState('');
+  const [dispute, setDispute] = useState(false);
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const left = r.ca ? Math.ceil(disputeDays - (Date.now() - Date.parse(r.ca)) / 86400000) : disputeDays;
+  const canDispute = !(ack && ack.dispute_status) && left > 0;
+  const say = e => toast.error(e?.response?.data?.error || 'Something went wrong');
+  const confirm = async () => { setBusy(true); try { await api.post(`/qa/acks/${r.id}`, { comment }); onChange(); } catch (e) { say(e); } setBusy(false); };
+  const send = async () => { setBusy(true); try { await api.post(`/qa/acks/${r.id}/dispute`, { text }); setDispute(false); toast.success('Dispute sent to the QA team'); onChange(); } catch (e) { say(e); } setBusy(false); };
+  const inp = { width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 9, border: `1px solid ${th.border}`, background: th.input || th.soft, color: th.text, fontSize: 13, fontFamily: 'inherit', resize: 'vertical' };
+  const b = (c, solid) => ({ border: `1px solid ${c}`, background: solid ? c : 'transparent', color: solid ? '#fff' : c, borderRadius: 10, padding: '7px 14px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' });
+  const st = ack && ack.dispute_status;
+  return (
+    <div style={{ marginTop: 12, padding: '12px 14px', borderRadius: 12, border: `1px solid ${ack && ack.acked_at ? th.border : ORANGE}`, background: ack && ack.acked_at ? th.soft : `${ORANGE}12` }}>
+      {!(ack && ack.acked_at) ? (
+        <>
+          <div style={{ fontSize: 13, fontWeight: 800, color: th.text, marginBottom: 6 }}>🆕 Please confirm you read this evaluation</div>
+          <input style={{ ...inp, marginBottom: 8 }} placeholder="Optional: a short comment for the QA team" maxLength={600} value={comment} onChange={e => setComment(e.target.value)} />
+          <button disabled={busy} onClick={confirm} style={b(GREEN, true)}>✅ I've read this</button>
+        </>
+      ) : (
+        <div style={{ fontSize: 12.5, color: th.text }}>
+          <strong style={{ color: GREEN }}>✔ You confirmed this evaluation</strong>
+          <span style={{ color: th.sub }}> on {new Date(ack.acked_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+          {ack.comment && <div style={{ color: th.sub, marginTop: 3 }}>Your comment: {ack.comment}</div>}
+        </div>
+      )}
+      {st && (
+        <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, background: st === 'open' ? '#f59e0b1c' : `${GREEN}18`, fontSize: 12.5, color: th.text }}>
+          <strong>{st === 'open' ? '⏳ Your dispute is with the QA team' : st === 'score changed' ? '✅ Dispute reviewed: the score was changed' : '💬 Dispute reviewed: the score stays'}</strong>
+          <div style={{ color: th.sub, marginTop: 3, whiteSpace: 'pre-wrap' }}>You wrote: {ack.dispute_text}</div>
+          {ack.staff_reply && <div style={{ marginTop: 4 }}><strong>QA reply:</strong> {ack.staff_reply}</div>}
+        </div>
+      )}
+      {canDispute && !dispute && <button onClick={() => setDispute(true)} style={{ ...b('#64748b'), marginTop: 10 }}>Disagree with a score? Send a dispute ({left} day{left === 1 ? '' : 's'} left)</button>}
+      {canDispute && dispute && (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ fontSize: 12.5, color: th.sub, marginBottom: 4 }}>Say which part you disagree with and why. Be specific and polite. You can send one dispute per evaluation.</div>
+          <textarea rows={3} style={inp} maxLength={1200} value={text} onChange={e => setText(e.target.value)} />
+          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+            <button disabled={busy || text.trim().length < 10} onClick={send} style={{ ...b(ORANGE, true), opacity: text.trim().length < 10 ? 0.5 : 1 }}>Send dispute</button>
+            <button onClick={() => setDispute(false)} style={b('#64748b')}>Cancel</button>
+          </div>
+        </div>
+      )}
+      {!st && !canDispute && ack && ack.acked_at && <div style={{ fontSize: 11.5, color: th.sub, marginTop: 8 }}>The {disputeDays}-day dispute period has ended. Talk to your coordinator if you have a question.</div>}
+    </div>
+  );
+}
+
+export function EvalCard({ th, r, rubric, showAgent, fun, acks }) {
   const [open, setOpen] = useState(false);
   const res = resultOf(r);
   const fails = (r.fl || []).map((f, i) => (f ? { i, f } : null)).filter(Boolean);
@@ -32,6 +87,7 @@ export function EvalCard({ th, r, rubric, showAgent, fun }) {
         </div>
         <div style={{ flex: 1, minWidth: 180 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            {acks && !acks.map[r.id]?.acked_at && <Pill color={ORANGE}>🆕 New</Pill>}
             <Pill color={resultColor(res)}>{res}</Pill>
             {r.cr && <Pill color={RED}>Critical: {r.cr}</Pill>}
             {showAgent && <strong style={{ fontSize: 13, color: th.text }}>{r.n}</strong>}
@@ -78,16 +134,17 @@ export function EvalCard({ th, r, rubric, showAgent, fun }) {
             {r.cdt ? ` · ${r.cdt}` : ''}
             {r.cn && <div style={{ color: th.sub, marginTop: 4, whiteSpace: 'pre-wrap' }}>{r.cn}</div>}
           </div>
+          {acks && <AckBox th={th} r={r} ack={acks.map[r.id]} disputeDays={acks.days} onChange={acks.reload} />}
         </div>
       )}
     </div>
   );
 }
 
-export function EvalList({ th, rows, rubric, showAgent, fun }) {
+export function EvalList({ th, rows, rubric, showAgent, fun, acks }) {
   const sorted = useMemo(() => [...rows].sort((a, b) => (a.d < b.d ? 1 : -1)), [rows]);
   if (!sorted.length) return <Empty th={th}>No evaluations to show.</Empty>;
-  return <div style={{ display: 'grid', gap: 10 }}>{sorted.map(r => <EvalCard key={r.id} th={th} r={r} rubric={rubric} showAgent={showAgent} fun={fun} />)}</div>;
+  return <div style={{ display: 'grid', gap: 10 }}>{sorted.map(r => <EvalCard key={r.id} th={th} r={r} rubric={rubric} showAgent={showAgent} fun={fun} acks={acks} />)}</div>;
 }
 
 export function AttributeBars({ th, rows }) {

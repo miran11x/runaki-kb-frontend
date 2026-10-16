@@ -19,6 +19,7 @@
   .rk-topbar { padding: 10px 12px !important; gap: 8px; }
   .rk-menu-btn { display: inline-flex !important; align-items: center; justify-content: center; }
   .rk-topbar-logos, .rk-topbar-online { display: none !important; }
+  .rk-topbar-nav { flex: 0 0 auto !important; padding: 0 6px !important; }
   .rk-topbar > div { min-width: 0; }
   .rk-notif-drop { position: fixed !important; left: 8px !important; right: 8px !important; top: 64px !important; min-width: 0 !important; width: auto !important; max-height: 70vh; overflow-y: auto; z-index: 1300; }
 

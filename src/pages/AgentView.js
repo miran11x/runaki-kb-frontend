@@ -14,6 +14,8 @@ import { logSearch } from '../utils/searchLog';
   import Sidebar from '../components/Sidebar';
 import { FolderPage, SmsTemplates, ExternalLinks, UpdatesChannel, UpdatesBubble } from '../components/AgentHub';
   import Topbar from '../components/Topbar';
+  import { DailyCheckIn, NavSearch } from '../components/Engagement';
+  import { track } from '../utils/track';
   import toast from 'react-hot-toast';
   import { Scripts, KYCPlatform, HoldUnhold } from '../components/OpsPages';
   import { TicketDescriptions } from '../components/TicketDescriptions';
@@ -118,6 +120,7 @@ export default function AgentView() {
   const [tip, setTip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [panel, setPanel] = useState('inquiries');
+  useEffect(() => { if (String(user?.role || '').toLowerCase() !== 'agent' || panel === '_search') return; track('page', PANEL_LABELS[panel] || (String(panel).startsWith('_folder_') ? 'Folder' : String(panel))); }, [panel]); // eslint-disable-line
   const [lang, setLang] = useState('en');
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState({});
@@ -376,9 +379,12 @@ const isSpecial = String(panel).startsWith('_tool_') || String(panel).startsWith
   }
   darkMode={darkMode}
   onToggleDark={toggleDark}
+  navSearch={<NavSearch darkMode={darkMode} onGo={p => { setSearch(''); setPanel(p); }} />}
 />
 
           <div className="rk-content" style={S.content}>
+
+            {String(user?.role || '').toLowerCase() === 'agent' && <DailyCheckIn onOpenChat={() => { setSearch(''); setPanel('_channel'); }} />}
 
             <IncidentBanner darkMode={darkMode} />
 

@@ -66,6 +66,14 @@ export default function Sidebar({
   const [folders, setFolders] = useState([]);
   const [foldersOpen, setFoldersOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [evalUnread, setEvalUnread] = useState(0);
+  useEffect(() => {
+    const load = () => api.get('/qa/unread-count').then(r => setEvalUnread(r.data.n || 0)).catch(() => {});
+    load();
+    const t = setInterval(load, 120000);
+    window.addEventListener('rk-eval-ack', load);
+    return () => { clearInterval(t); window.removeEventListener('rk-eval-ack', load); };
+  }, []);
   useEffect(() => {
     api.get(isStaffUser ? '/folders?all=1' : '/folders').then(r => setFolders(r.data || [])).catch(() => {});
   }, []);
@@ -681,6 +689,9 @@ folder
         gap:'6px',
       }}
     >
+      {evalUnread > 0 && !personalOpen && (
+        <span title="New evaluations" style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10, background: '#ef4444', color: '#fff', fontSize: 11, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', animation: 'rkPulse 1.8s infinite' }}>{evalUnread}</span>
+      )}
       <span
         style={{
           fontSize:'10px',
@@ -712,6 +723,7 @@ folder
 {personalOpen && (
   <>
     <NI sub icon="⭐" label="My Evaluations" collapsed={collapsed}
+      badge={evalUnread > 0 ? evalUnread : undefined}
       darkMode={darkMode}
       active={panel === '_evaluations'}
       onClick={() => go('_evaluations')}
