@@ -94,7 +94,7 @@ import KnowledgeAssistant from '../components/KnowledgeAssistant';
   '_evaluations':'My Evaluations',
   '_leaderboard':'Leaderboard',
   '_quiz':'Daily Quiz',
-  '_channel':'Updates',
+  '_channel':'Updates Chat',
   '_sms':'SMS Templates',
   '_extlinks':'External Links',
   '_sendfeedback':'Send Feedback',

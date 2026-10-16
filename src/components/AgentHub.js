@@ -342,7 +342,7 @@ export function UpdatesChannel({ darkMode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 130px)', minHeight: 420, maxWidth: 860, margin: '0 auto' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: '4px 2px 12px' }}>
-        {!d.messages.length && <Empty th={th}>No updates yet. Messages from the QA team will appear here.</Empty>}
+        {!d.messages.length && <Empty th={th}>No messages yet. Updates from the QA team will appear here.</Empty>}
         {d.messages.map(m => {
           const dl = dayLabel(m.created_at); const showDay = dl !== lastDay; lastDay = dl;
           return (
@@ -416,13 +416,13 @@ export function UpdatesBubble({ onOpen, hidden }) {
       {preview && n > 0 && (
         <div onClick={onOpen} style={{ pointerEvents: 'auto', cursor: 'pointer', width: 300, maxWidth: '100%', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '12px 14px', boxShadow: '0 14px 40px rgba(15,23,42,.22)', animation: 'rkBubbleIn .28s ease', position: 'relative' }}>
           <button onClick={e => { e.stopPropagation(); setPreview(null); }} aria-label="Close" style={{ position: 'absolute', top: 6, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 15 }}>✕</button>
-          <div style={{ fontSize: 11.5, fontWeight: 800, color: ORANGE, marginBottom: 3 }}>📢 New update from {preview.name}</div>
+          <div style={{ fontSize: 11.5, fontWeight: 800, color: ORANGE, marginBottom: 3 }}>💬 New message from {preview.name}</div>
           <div style={{ fontSize: 13.5, color: '#0B1120', lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>{preview.text}</div>
           <div style={{ fontSize: 12, fontWeight: 800, color: ORANGE, marginTop: 6 }}>Tap to read</div>
         </div>
       )}
       <button onClick={onOpen} aria-label="Open updates" style={{ pointerEvents: 'auto', position: 'relative', width: 58, height: 58, borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: 26, color: '#fff', background: 'linear-gradient(135deg,#FF6B35,#ff9a6c)', boxShadow: '0 10px 28px rgba(255,107,53,.5)', animation: n ? 'rkRing 2s infinite' : 'none' }}>
-        📢
+        💬
         {n > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 24, height: 24, padding: '0 6px', borderRadius: 12, background: '#ef4444', color: '#fff', fontSize: 13, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>{n > 99 ? '99+' : n}</span>}
       </button>
     </div>

@@ -281,7 +281,7 @@ background:
       <nav style={S.nav}>
 
         {/* Top: Updates (team chat) and Shortlisted FAQ's */}
-        <TopCard hero icon="📢" title="Updates" sub={unread ? `${unread} new message${unread > 1 ? 's' : ''}` : 'Team announcements'}
+        <TopCard hero icon="💬" title="Updates Chat" sub={unread ? `${unread} new message${unread > 1 ? 's' : ''}` : 'Tap to open the chat'}
           badge={unread || undefined} collapsed={collapsed} darkMode={darkMode} active={panel === '_channel'} onClick={() => go('_channel')} />
         <TopCard icon="📌" title="Shortlisted FAQ's" sub="Most used answers"
           tint="#a78bfa" collapsed={collapsed} darkMode={darkMode} active={panel === '_shortlisted'} onClick={() => go('_shortlisted')} />
@@ -885,6 +885,8 @@ function TopCard({ icon, title, sub, badge, dot, hero, tint = '#FF6B35', active,
         )}
         {badge ? (
           <span style={{ position: collapsed ? 'absolute' : 'static', top: collapsed ? 2 : undefined, right: collapsed ? 4 : undefined, minWidth: 22, height: 22, padding: '0 6px', borderRadius: 11, background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', animation: 'rkPulse 1.8s infinite', flexShrink: 0 }}>{badge > 99 ? '99+' : badge}</span>
+        ) : hero && !collapsed ? (
+          <span style={{ padding: '5px 11px', borderRadius: 100, background: '#fff', color: '#FF6B35', fontSize: 11.5, fontWeight: 900, flexShrink: 0 }}>Open</span>
         ) : dot ? (
           <span style={{ position: collapsed ? 'absolute' : 'static', top: collapsed ? 6 : undefined, right: collapsed ? 8 : undefined, width: 10, height: 10, borderRadius: '50%', background: '#ef4444', animation: 'rkPulse 1.8s infinite', flexShrink: 0 }} />
         ) : null}
