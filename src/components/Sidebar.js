@@ -283,7 +283,7 @@ background:
         {/* Top: Updates (team chat) and Shortlisted FAQ's */}
         <TopCard hero icon="💬" title="Updates Chat" sub={unread ? `${unread} new message${unread > 1 ? 's' : ''}` : 'Tap to open the chat'}
           badge={unread || undefined} collapsed={collapsed} darkMode={darkMode} active={panel === '_channel'} onClick={() => go('_channel')} />
-        <TopCard icon="📌" title="Shortlisted FAQ's" sub="Most used answers"
+        <TopCard icon="📌" title="Shortlisted FAQ's" sub="Most asked questions"
           tint="#a78bfa" collapsed={collapsed} darkMode={darkMode} active={panel === '_shortlisted'} onClick={() => go('_shortlisted')} />
 <NI
   folder
