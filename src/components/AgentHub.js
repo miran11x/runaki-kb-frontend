@@ -40,7 +40,7 @@ export function FolderPage({ folderId, darkMode }) {
               <span style={{ minWidth: 0 }}>
                 <span style={{ display: 'block', fontWeight: 800, color: th.text, fontSize: 14.5, overflowWrap: 'anywhere' }}>{l.title}</span>
                 {l.description && <span style={{ display: 'block', color: th.sub, fontSize: 12.5, marginTop: 3, lineHeight: 1.5 }}>{l.description}</span>}
-                <span style={{ display: 'block', color: ORANGE, fontSize: 12, fontWeight: 800, marginTop: 6 }}>Open ↗</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '7px 16px', borderRadius: 10, background: ORANGE, color: '#fff', fontSize: 13, fontWeight: 800, boxShadow: `0 4px 12px ${ORANGE}44` }}>Open ↗</span>
               </span>
             </button>
           ))}
