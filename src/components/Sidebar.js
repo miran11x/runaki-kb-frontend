@@ -284,7 +284,7 @@ background:
         <TopCard hero icon="💬" title="Updates Chat" sub={unread ? `${unread} new message${unread > 1 ? 's' : ''}` : 'Tap to open the chat'}
           badge={unread || undefined} collapsed={collapsed} darkMode={darkMode} active={panel === '_channel'} onClick={() => go('_channel')} />
         <TopCard icon="📌" title="Shortlisted FAQ's" sub="Most asked questions"
-          tint="#a78bfa" collapsed={collapsed} darkMode={darkMode} active={panel === '_shortlisted'} onClick={() => go('_shortlisted')} />
+          tint="#7c3aed" grad="linear-gradient(135deg,#7c3aed 0%,#a78bfa 100%)" edge="#5b21b6" collapsed={collapsed} darkMode={darkMode} active={panel === '_shortlisted'} onClick={() => go('_shortlisted')} />
 <NI
   folder
   icon="📚"
@@ -857,39 +857,34 @@ folder
   );
 }
 
-function TopCard({ icon, title, sub, badge, dot, hero, tint = '#FF6B35', active, collapsed, darkMode, onClick }) {
-  const dm = darkMode;
-  const bg = hero
-    ? 'linear-gradient(135deg,#FF6B35 0%,#ff9a6c 100%)'
-    : active ? (dm ? 'rgba(255,255,255,0.09)' : '#fff') : (dm ? 'rgba(255,255,255,0.04)' : '#ffffff');
-  const border = hero ? 'transparent' : active ? tint : (dm ? 'rgba(255,255,255,0.08)' : '#e8edf5');
-  const titleColor = hero ? '#fff' : (dm ? '#f1f5f9' : '#0B1120');
-  const subColor = hero ? 'rgba(255,255,255,.88)' : (dm ? 'rgba(255,255,255,.5)' : '#64748b');
+function TopCard({ icon, title, sub, badge, dot, hero, tint = '#FF6B35', grad, edge, active, collapsed, onClick }) {
+  const g = grad || 'linear-gradient(135deg,#FF6B35 0%,#ff9a6c 100%)';
+  const e = edge || '#d9531f';
   return (
     <>
-      <style>{`@keyframes rkPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55)}70%{box-shadow:0 0 0 9px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}`}</style>
-      <button onClick={onClick} title={title} style={{
+      <style>{`@keyframes rkPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55)}70%{box-shadow:0 0 0 9px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.rk-topbtn{transition:transform .12s ease, box-shadow .12s ease, filter .12s ease}
+.rk-topbtn:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.rk-topbtn:active{transform:translateY(3px)}`}</style>
+      <button className="rk-topbtn" onClick={onClick} title={title} style={{
         position: 'relative', display: 'flex', alignItems: 'center', gap: collapsed ? 0 : 11, justifyContent: collapsed ? 'center' : 'flex-start',
-        width: 'calc(100% - 14px)', margin: '4px 7px', padding: collapsed ? '8px 0' : '10px 12px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start',
-        background: bg, border: `1.5px solid ${border}`, boxShadow: hero ? '0 6px 18px rgba(255,107,53,.35)' : active ? `0 4px 14px ${tint}33` : 'none', transition: 'all .18s ease',
+        width: 'calc(100% - 14px)', margin: '6px 7px 8px', padding: collapsed ? '8px 0' : '10px 12px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start',
+        background: g, border: 'none', color: '#fff',
+        boxShadow: `0 4px 0 ${e}, 0 10px 18px ${tint}55${active ? ', 0 0 0 3px #fff, 0 0 0 5px ' + tint : ''}`,
       }}>
-        <span style={{
-          width: 36, height: 36, borderRadius: 11, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-          background: hero ? 'rgba(255,255,255,.22)' : `${tint}22`,
-        }}>{icon}</span>
+        <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, background: 'rgba(255,255,255,.25)' }}>{icon}</span>
         {!collapsed && (
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: titleColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
-            <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: subColor, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
+            <span style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
+            <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,.9)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
           </span>
         )}
         {badge ? (
-          <span style={{ position: collapsed ? 'absolute' : 'static', top: collapsed ? 2 : undefined, right: collapsed ? 4 : undefined, minWidth: 22, height: 22, padding: '0 6px', borderRadius: 11, background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', animation: 'rkPulse 1.8s infinite', flexShrink: 0 }}>{badge > 99 ? '99+' : badge}</span>
-        ) : hero && !collapsed ? (
-          <span style={{ padding: '5px 11px', borderRadius: 100, background: '#fff', color: '#FF6B35', fontSize: 11.5, fontWeight: 900, flexShrink: 0 }}>Open</span>
-        ) : dot ? (
-          <span style={{ position: collapsed ? 'absolute' : 'static', top: collapsed ? 6 : undefined, right: collapsed ? 8 : undefined, width: 10, height: 10, borderRadius: '50%', background: '#ef4444', animation: 'rkPulse 1.8s infinite', flexShrink: 0 }} />
+          <span style={{ position: collapsed ? 'absolute' : 'static', top: collapsed ? 2 : undefined, right: collapsed ? 4 : undefined, minWidth: 22, height: 22, padding: '0 6px', borderRadius: 11, background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', animation: 'rkPulse 1.8s infinite', flexShrink: 0, border: '2px solid #fff' }}>{badge > 99 ? '99+' : badge}</span>
         ) : null}
+        {!collapsed && (
+          <span style={{ padding: '5px 10px', borderRadius: 100, background: '#fff', color: tint, fontSize: 11.5, fontWeight: 900, flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,.15)' }}>Open ›</span>
+        )}
       </button>
     </>
   );
