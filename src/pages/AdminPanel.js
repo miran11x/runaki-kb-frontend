@@ -21,6 +21,7 @@ import EngagementAdmin from '../components/Engagement';
 import IncidentAdmin from '../components/IncidentAdmin';
 import { FoldersAdmin, SmsAdmin } from '../components/AgentHub';
 import TranslationReview from '../components/TranslationReview';
+import TranslationQuest from '../components/TranslationQuest';
 
 const NAVY  = '#0B1120';
 const ORANGE = '#FF6B35';
@@ -425,7 +426,7 @@ export default function AdminPanel({ darkMode }) {
   const GROUPS = [
     ['Overview', '📊', [['dashboard','📊','Dashboard'], ['incident','📣','Incident Banner']]],
     ['People', '👥', [['users','👥','Users'], ['active','🟢','Live now'], ['activity','📋','Activity log'], ['leaderboard','🏆','Leaderboard']]],
-    ['Content', '📚', [['callflows','📞','Call Flows'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons']]],
+    ['Content', '📚', [['callflows','📞','Call Flows'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons'], ['transquest','🎮','Translation quest']]],
     ['Folders', '🗂️', [['folders','🗂️','Folders']]],
     ['Tools', '🛠️', [['tickets','🎫','Ticket Descriptions'], ['zones','📍','Zones'], ['sms','💬','SMS Templates'], ['exttools','🔗','External Links'], ['toolreports','📈','Tool Reports']]],
     ['Quality', '✅', [['evaluations','📈','QA Evaluations'], ['engagement','👁','Engagement'], ['searchinsights','🔎','Search Insights'], ['transreview','🌍','Kurdish Review'], ['agentfeedback','💬','Agent Feedback']]],
@@ -1104,6 +1105,7 @@ export default function AdminPanel({ darkMode }) {
           {tab === 'searchinsights' && <SearchInsights darkMode={darkMode} />}
           {tab === 'engagement' && <EngagementAdmin darkMode={darkMode} />}
           {tab === 'incident' && <IncidentAdmin darkMode={darkMode} />}
+          {tab === 'transquest' && <TranslationQuest darkMode={darkMode} />}
           {tab === 'transreview' && <TranslationReview darkMode={darkMode} />}
           {tab === 'toolreports' && <ToolReports darkMode={darkMode} />}
 
