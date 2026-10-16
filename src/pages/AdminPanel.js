@@ -244,6 +244,18 @@ export default function AdminPanel({ darkMode }) {
   const toggleActive = async u => { await api.patch(`/users/${u.id}`, { is_active: !u.is_active }); toast.success(u.is_active?'Deactivated':'Activated'); load(); };
   const deleteUser = async id => { if (!window.confirm('Delete this user?')) return; await api.delete(`/users/${id}`); toast.success('Deleted'); load(); };
 
+  const [exporting, setExporting] = useState(false);
+  const exportAccounts = async () => {
+    setExporting(true);
+    try {
+      const r = await api.get('/users/export', { responseType: 'blob' });
+      const url = URL.createObjectURL(r.data);
+      const a = document.createElement('a'); a.href = url; a.download = `Runaki_Accounts_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      toast.success('Accounts exported');
+    } catch { toast.error('Could not export the accounts'); }
+    setExporting(false);
+  };
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [rosterFile, setRosterFile] = useState(null);
   const qaTheme = useQaTheme(darkMode);
@@ -492,6 +504,7 @@ export default function AdminPanel({ darkMode }) {
                 <button style={{ background:`linear-gradient(135deg,${ORANGE},#ff9a6c)`, color:'#fff', border:'none', borderRadius:'12px', padding:'11px 22px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', boxShadow:`0 4px 12px ${ORANGE}40` }} onClick={() => setShowAdd(true)}>+ Add User</button>
                 <button style={{ background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setBulkText(''); setBulkResult(null); setRosterFile(null); setShowBulkImport(true); }}>📋 Bulk Import Agents</button>
                 <button style={{ background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setBulkStaffText(''); setBulkStaffResult(null); setShowBulkStaff(true); }}>👔 Bulk Import Staff</button>
+                <button onClick={exportAccounts} disabled={exporting} style={{ background: darkMode?'rgba(255,255,255,0.06)':'#f8fafc', color: darkMode?'#f1f5f9':NAVY, border: darkMode?'1px solid rgba(255,255,255,0.1)':'1px solid #e2e8f0', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', opacity: exporting?0.6:1 }}>{exporting ? 'Exporting…' : '⬇ Export accounts'}</button>
                 <button style={{ background: darkMode?'rgba(239,68,68,0.12)':'#fef2f2', color:'#ef4444', border: darkMode?'1px solid rgba(239,68,68,0.25)':'1px solid #fecaca', borderRadius:'12px', padding:'11px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }} onClick={() => { setDeleteAllConfirmText(''); setShowDeleteAllAgents(true); }}>🗑️ Delete All Agents</button>
               </div>
               <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.35)':'#94a3b8', marginBottom:'12px', fontWeight:'600' }}>Showing {filtered.length} of {users.length} users</div>
