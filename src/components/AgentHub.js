@@ -1,0 +1,299 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
+import api from '../utils/api';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme, Panel, Empty, ORANGE, GREEN, RED } from './qaUi';
+
+// Folders (links to shared files), SMS templates, External links and the Updates channel.
+// The agent pages and the admin editors live together because they share the same data.
+
+const inputStyle = th => ({ padding: '9px 12px', borderRadius: 10, border: `1px solid ${th.border}`, background: th.input, color: th.text, fontSize: 13, fontFamily: 'inherit', outline: 'none', minWidth: 0 });
+const btn = (bg, extra) => ({ padding: '9px 16px', borderRadius: 10, border: 'none', background: bg, color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', ...extra });
+const mini = (th, c) => ({ padding: '6px 11px', borderRadius: 8, border: `1px solid ${c}55`, background: `${c}14`, color: c, fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' });
+const openNew = url => window.open(url, '_blank', 'noopener,noreferrer');
+const copy = async (text, msg = 'Copied') => { try { await navigator.clipboard.writeText(text); toast.success(msg); } catch { toast.error('Could not copy'); } };
+const errMsg = (e, d) => e?.response?.data?.error || d;
+
+/* ───────────────────────── Folders (agent) ───────────────────────── */
+export function FolderPage({ folderId, darkMode }) {
+  const th = useTheme(darkMode);
+  const [folder, setFolder] = useState(undefined);
+  useEffect(() => {
+    api.get('/folders').then(r => setFolder((r.data || []).find(f => String(f.id) === String(folderId)) || null)).catch(() => setFolder(null));
+  }, [folderId]);
+  if (folder === undefined) return <Empty th={th}>Loading…</Empty>;
+  if (!folder) return <Empty th={th}>This folder is not available.</Empty>;
+  return (
+    <div style={{ maxWidth: 900 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+        <span style={{ fontSize: 34 }}>{folder.icon}</span>
+        <div><h2 style={{ margin: 0, color: th.text, fontSize: 22 }}>{folder.name}</h2>{folder.description && <div style={{ color: th.sub, fontSize: 13.5, marginTop: 2 }}>{folder.description}</div>}</div>
+      </div>
+      <div style={{ color: th.sub, fontSize: 12.5, margin: '10px 0 16px' }}>Files open in a new tab. You may need to be signed in to your work account.</div>
+      {!folder.links.length ? <Empty th={th}>No files in this folder yet.</Empty> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 12 }}>
+          {folder.links.map(l => (
+            <button key={l.id} onClick={() => openNew(l.url)} style={{ textAlign: 'start', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, padding: '14px 16px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 24 }}>📄</span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: 'block', fontWeight: 800, color: th.text, fontSize: 14.5, overflowWrap: 'anywhere' }}>{l.title}</span>
+                {l.description && <span style={{ display: 'block', color: th.sub, fontSize: 12.5, marginTop: 3, lineHeight: 1.5 }}>{l.description}</span>}
+                <span style={{ display: 'block', color: ORANGE, fontSize: 12, fontWeight: 800, marginTop: 6 }}>Open ↗</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ───────────────────────── Folders (admin) ───────────────────────── */
+export function FoldersAdmin({ darkMode }) {
+  const th = useTheme(darkMode); const inp = inputStyle(th);
+  const [folders, setFolders] = useState([]);
+  const [nf, setNf] = useState({ name: '', icon: '📁', description: '' });
+  const [nl, setNl] = useState({});
+  const load = useCallback(() => api.get('/folders?all=1').then(r => setFolders(r.data || [])).catch(() => toast.error('Could not load folders')), []);
+  useEffect(() => { load(); }, [load]);
+  const run = async (fn, ok) => { try { await fn(); if (ok) toast.success(ok); load(); } catch (e) { toast.error(errMsg(e, 'Something went wrong')); } };
+  const addFolder = () => run(async () => { await api.post('/admin/folders', { ...nf, sort_order: folders.length + 1 }); setNf({ name: '', icon: '📁', description: '' }); }, 'Folder added');
+  const addLink = f => { const d = nl[f.id] || {}; return run(async () => { await api.post('/admin/folder-links', { folder_id: f.id, title: d.title, url: d.url, description: d.description, sort_order: f.links.length + 1 }); setNl({ ...nl, [f.id]: {} }); }, 'File added'); };
+  return (
+    <div style={{ maxWidth: 980 }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>🗂️ Folders</div>
+      <div style={{ fontSize: 13, color: th.sub, marginBottom: 16, lineHeight: 1.7 }}>
+        Each folder appears under <b>Folders</b> in the agents’ sidebar. Add links to SharePoint, Excel or any shared file. Use <b>Hidden</b> to keep a folder or a file away from agents without deleting it.
+      </div>
+      <Panel th={th} title="＋ New folder">
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <input style={{ ...inp, width: 64, textAlign: 'center' }} value={nf.icon} onChange={e => setNf({ ...nf, icon: e.target.value })} title="Emoji" />
+          <input style={{ ...inp, flex: '1 1 200px' }} placeholder="Folder name (e.g. Training files)" value={nf.name} onChange={e => setNf({ ...nf, name: e.target.value })} />
+          <input style={{ ...inp, flex: '2 1 260px' }} placeholder="Short description (optional)" value={nf.description} onChange={e => setNf({ ...nf, description: e.target.value })} />
+          <button disabled={!nf.name.trim()} onClick={addFolder} style={btn(ORANGE, { opacity: nf.name.trim() ? 1 : 0.5 })}>Add folder</button>
+        </div>
+      </Panel>
+      {folders.map(f => (
+        <Panel key={f.id} th={th} style={{ marginTop: 14, opacity: f.is_visible ? 1 : 0.75 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+            <input style={{ ...inp, width: 56, textAlign: 'center' }} defaultValue={f.icon} onBlur={e => e.target.value !== f.icon && run(() => api.put(`/admin/folders/${f.id}`, { ...f, icon: e.target.value }))} />
+            <input style={{ ...inp, flex: '1 1 180px', fontWeight: 800 }} defaultValue={f.name} onBlur={e => e.target.value.trim() && e.target.value !== f.name && run(() => api.put(`/admin/folders/${f.id}`, { ...f, name: e.target.value }))} />
+            <input style={{ ...inp, flex: '2 1 220px' }} placeholder="Description" defaultValue={f.description || ''} onBlur={e => e.target.value !== (f.description || '') && run(() => api.put(`/admin/folders/${f.id}`, { ...f, description: e.target.value }))} />
+            <input style={{ ...inp, width: 64 }} type="number" title="Order" defaultValue={f.sort_order} onBlur={e => +e.target.value !== f.sort_order && run(() => api.put(`/admin/folders/${f.id}`, { ...f, sort_order: e.target.value }))} />
+            <button style={mini(th, f.is_visible ? GREEN : '#64748b')} onClick={() => run(() => api.put(`/admin/folders/${f.id}`, { ...f, is_visible: !f.is_visible }))}>{f.is_visible ? 'Visible to agents' : 'Hidden'}</button>
+            <button style={mini(th, RED)} onClick={() => window.confirm(`Delete the folder “${f.name}” and all its links?`) && run(() => api.delete(`/admin/folders/${f.id}`), 'Folder deleted')}>✕ Delete</button>
+          </div>
+          {f.links.map(l => (
+            <div key={l.id} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', padding: '8px 0', borderTop: `1px solid ${th.border}`, opacity: l.is_visible ? 1 : 0.65 }}>
+              <span>📄</span>
+              <input style={{ ...inp, flex: '1 1 160px' }} defaultValue={l.title} onBlur={e => e.target.value.trim() && e.target.value !== l.title && run(() => api.put(`/admin/folder-links/${l.id}`, { ...l, title: e.target.value }))} />
+              <input style={{ ...inp, flex: '2 1 240px', direction: 'ltr' }} defaultValue={l.url} onBlur={e => e.target.value !== l.url && run(() => api.put(`/admin/folder-links/${l.id}`, { ...l, url: e.target.value }), 'Saved')} />
+              <button style={mini(th, '#38bdf8')} onClick={() => openNew(l.url)}>Test ↗</button>
+              <button style={mini(th, l.is_visible ? GREEN : '#64748b')} onClick={() => run(() => api.put(`/admin/folder-links/${l.id}`, { ...l, is_visible: !l.is_visible }))}>{l.is_visible ? 'Visible' : 'Hidden'}</button>
+              <button style={mini(th, RED)} onClick={() => window.confirm(`Remove “${l.title}”?`) && run(() => api.delete(`/admin/folder-links/${l.id}`), 'File removed')}>✕</button>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8, paddingTop: 10, borderTop: `1px dashed ${th.border}` }}>
+            <input style={{ ...inp, flex: '1 1 160px' }} placeholder="File name" value={(nl[f.id] || {}).title || ''} onChange={e => setNl({ ...nl, [f.id]: { ...nl[f.id], title: e.target.value } })} />
+            <input style={{ ...inp, flex: '2 1 240px', direction: 'ltr' }} placeholder="https://... (SharePoint, Excel, any link)" value={(nl[f.id] || {}).url || ''} onChange={e => setNl({ ...nl, [f.id]: { ...nl[f.id], url: e.target.value } })} />
+            <input style={{ ...inp, flex: '1 1 160px' }} placeholder="Note (optional)" value={(nl[f.id] || {}).description || ''} onChange={e => setNl({ ...nl, [f.id]: { ...nl[f.id], description: e.target.value } })} />
+            <button disabled={!(nl[f.id] || {}).title || !(nl[f.id] || {}).url} onClick={() => addLink(f)} style={btn(ORANGE, { opacity: (nl[f.id] || {}).title && (nl[f.id] || {}).url ? 1 : 0.5 })}>Add file</button>
+          </div>
+        </Panel>
+      ))}
+      {!folders.length && <Empty th={th}>No folders yet. Add the first one above.</Empty>}
+    </div>
+  );
+}
+
+/* ───────────────────────── SMS templates (agent) ───────────────────────── */
+const LANGS = [['en', 'English'], ['ku', 'Sorani'], ['ba', 'Badini'], ['ar', 'Arabic']];
+export function SmsTemplates({ darkMode }) {
+  const th = useTheme(darkMode);
+  const [types, setTypes] = useState(null);
+  const [tid, setTid] = useState(null);
+  const [lang, setLang] = useState('en');
+  useEffect(() => { api.get('/sms').then(r => { setTypes(r.data || []); setTid((r.data || [])[0]?.id || null); }).catch(() => setTypes([])); }, []);
+  if (!types) return <Empty th={th}>Loading…</Empty>;
+  if (!types.length) return <Empty th={th}>No SMS templates yet.</Empty>;
+  const cur = types.find(t => t.id === tid) || types[0];
+  const body = t => t[`body_${lang}`] || t.body_en || t.body_ku || t.body_ba || t.body_ar || '';
+  return (
+    <div style={{ maxWidth: 940 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+        {types.map(t => <button key={t.id} onClick={() => setTid(t.id)} style={{ padding: '8px 16px', borderRadius: 100, border: `1px solid ${cur.id === t.id ? ORANGE : th.border}`, background: cur.id === t.id ? ORANGE : th.card, color: cur.id === t.id ? '#fff' : th.text, fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>{t.icon} {t.name}</button>)}
+      </div>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+        <span style={{ fontSize: 12.5, color: th.sub, fontWeight: 700 }}>🌐 Language</span>
+        {LANGS.map(([k, n]) => <button key={k} onClick={() => setLang(k)} style={{ padding: '5px 12px', borderRadius: 100, border: `1px solid ${lang === k ? th.text : th.border}`, background: lang === k ? th.text : 'transparent', color: lang === k ? th.card : th.text, fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>{n}</button>)}
+      </div>
+      {!cur.templates.length ? <Empty th={th}>No templates in this type yet.</Empty> : cur.templates.map(t => (
+        <div key={t.id} style={{ background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, padding: '14px 16px', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+            <div style={{ fontWeight: 800, color: th.text, fontSize: 14.5 }}>{t.title}</div>
+            <button onClick={() => copy(body(t), 'SMS copied')} style={btn(ORANGE, { padding: '7px 14px', fontSize: 12.5 })}>📋 Copy SMS</button>
+          </div>
+          <div dir={lang === 'en' ? 'ltr' : 'rtl'} style={{ whiteSpace: 'pre-wrap', color: th.text, background: th.soft, border: `1px solid ${th.border}`, borderRadius: 10, padding: '12px 14px', fontSize: 14, lineHeight: 1.85, overflowWrap: 'anywhere' }}>{body(t)}</div>
+          {!t[`body_${lang}`] && <div style={{ fontSize: 11.5, color: th.sub, marginTop: 6 }}>No {LANGS.find(l => l[0] === lang)[1]} text yet, showing another language.</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ───────────────────────── SMS templates (admin) ───────────────────────── */
+export function SmsAdmin({ darkMode }) {
+  const th = useTheme(darkMode); const inp = inputStyle(th);
+  const [types, setTypes] = useState([]);
+  const [nt, setNt] = useState({ name: '', icon: '💬' });
+  const [edit, setEdit] = useState(null); // {id?, type_id, title, body_*}
+  const load = useCallback(() => api.get('/sms?all=1').then(r => setTypes(r.data || [])).catch(() => toast.error('Could not load SMS templates')), []);
+  useEffect(() => { load(); }, [load]);
+  const run = async (fn, ok) => { try { await fn(); if (ok) toast.success(ok); load(); return true; } catch (e) { toast.error(errMsg(e, 'Something went wrong')); return false; } };
+  const save = async () => { const ok = await run(() => (edit.id ? api.put(`/admin/sms-templates/${edit.id}`, edit) : api.post('/admin/sms-templates', edit)), 'Template saved'); if (ok) setEdit(null); };
+  const area = (k, label, rtl) => (
+    <div style={{ flex: '1 1 300px' }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: th.sub, marginBottom: 4 }}>{label}</div>
+      <textarea rows={4} dir={rtl ? 'rtl' : 'ltr'} style={{ ...inp, width: '100%', boxSizing: 'border-box', lineHeight: 1.8, resize: 'vertical' }} value={edit[k] || ''} onChange={e => setEdit({ ...edit, [k]: e.target.value })} />
+      <div style={{ fontSize: 11, color: th.sub, textAlign: 'end' }}>{(edit[k] || '').length} characters</div>
+    </div>
+  );
+  return (
+    <div style={{ maxWidth: 980 }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>💬 SMS Templates</div>
+      <div style={{ fontSize: 13, color: th.sub, marginBottom: 16, lineHeight: 1.7 }}>
+        The SMS messages agents send to customers, grouped by type. Agents see the types as tabs under <b>Tools → SMS Templates</b> and copy the text in one click. Write each message in as many languages as you need.
+      </div>
+      {edit && (
+        <Panel th={th} title={edit.id ? 'Edit template' : 'New template'} style={{ marginBottom: 14, borderColor: ORANGE }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+            <select style={inp} value={edit.type_id} onChange={e => setEdit({ ...edit, type_id: +e.target.value })}>{types.map(t => <option key={t.id} value={t.id}>{t.icon} {t.name}</option>)}</select>
+            <input style={{ ...inp, flex: '1 1 240px' }} placeholder="Title (e.g. Bill sent by SMS)" value={edit.title || ''} onChange={e => setEdit({ ...edit, title: e.target.value })} />
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>{area('body_en', 'English', false)}{area('body_ku', 'Sorani · سۆرانی', true)}{area('body_ba', 'Badini · بادینی', true)}{area('body_ar', 'Arabic · العربية', true)}</div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <button style={btn(ORANGE)} onClick={save}>Save template</button>
+            <button style={btn('#64748b')} onClick={() => setEdit(null)}>Cancel</button>
+          </div>
+        </Panel>
+      )}
+      {types.map(t => (
+        <Panel key={t.id} th={th} style={{ marginBottom: 14, opacity: t.is_active ? 1 : 0.75 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
+            <input style={{ ...inp, width: 56, textAlign: 'center' }} defaultValue={t.icon} onBlur={e => e.target.value !== t.icon && run(() => api.put(`/admin/sms-types/${t.id}`, { ...t, icon: e.target.value }))} />
+            <input style={{ ...inp, flex: '1 1 200px', fontWeight: 800 }} defaultValue={t.name} onBlur={e => e.target.value.trim() && e.target.value !== t.name && run(() => api.put(`/admin/sms-types/${t.id}`, { ...t, name: e.target.value }))} />
+            <button style={mini(th, t.is_active ? GREEN : '#64748b')} onClick={() => run(() => api.put(`/admin/sms-types/${t.id}`, { ...t, is_active: !t.is_active }))}>{t.is_active ? 'Visible' : 'Hidden'}</button>
+            <button style={mini(th, ORANGE)} onClick={() => setEdit({ type_id: t.id, title: '', body_en: '', body_ku: '', body_ba: '', body_ar: '', sort_order: t.templates.length + 1 })}>＋ Add template</button>
+            <button style={mini(th, RED)} onClick={() => window.confirm(`Delete the type “${t.name}” and all its templates?`) && run(() => api.delete(`/admin/sms-types/${t.id}`), 'Type deleted')}>✕</button>
+          </div>
+          {t.templates.map(m => (
+            <div key={m.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: `1px solid ${th.border}`, opacity: m.is_active ? 1 : 0.65 }}>
+              <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                <div style={{ fontWeight: 700, color: th.text, fontSize: 13.5 }}>{m.title}</div>
+                <div style={{ color: th.sub, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.body_en || m.body_ku || m.body_ba || m.body_ar}</div>
+              </div>
+              <button style={mini(th, '#38bdf8')} onClick={() => setEdit({ ...m })}>Edit</button>
+              <button style={mini(th, m.is_active ? GREEN : '#64748b')} onClick={() => run(() => api.put(`/admin/sms-templates/${m.id}`, { ...m, is_active: !m.is_active }))}>{m.is_active ? 'Visible' : 'Hidden'}</button>
+              <button style={mini(th, RED)} onClick={() => window.confirm(`Delete “${m.title}”?`) && run(() => api.delete(`/admin/sms-templates/${m.id}`), 'Template deleted')}>✕</button>
+            </div>
+          ))}
+          {!t.templates.length && <div style={{ fontSize: 12.5, color: th.sub }}>No templates yet.</div>}
+        </Panel>
+      ))}
+      <Panel th={th} title="＋ New SMS type" hint="For example: Billing, Service request, Complaint follow-up, General information.">
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <input style={{ ...inp, width: 64, textAlign: 'center' }} value={nt.icon} onChange={e => setNt({ ...nt, icon: e.target.value })} />
+          <input style={{ ...inp, flex: '1 1 240px' }} placeholder="Type name" value={nt.name} onChange={e => setNt({ ...nt, name: e.target.value })} />
+          <button disabled={!nt.name.trim()} style={btn(ORANGE, { opacity: nt.name.trim() ? 1 : 0.5 })} onClick={async () => { if (await run(() => api.post('/admin/sms-types', { ...nt, sort_order: types.length + 1 }), 'Type added')) setNt({ name: '', icon: '💬' }); }}>Add type</button>
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
+/* ───────────────────────── External links (agent) ───────────────────────── */
+export function ExternalLinks({ darkMode }) {
+  const th = useTheme(darkMode);
+  const [tools, setTools] = useState(null);
+  useEffect(() => { api.get('/external-tools').then(r => setTools(r.data || [])).catch(() => setTools([])); }, []);
+  if (!tools) return <Empty th={th}>Loading…</Empty>;
+  return (
+    <div style={{ maxWidth: 900 }}>
+      <div style={{ color: th.sub, fontSize: 13, marginBottom: 14 }}>Each button opens the system in a new browser tab. This website stays open.</div>
+      {!tools.length ? <Empty th={th}>No links yet.</Empty> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 12 }}>
+          {tools.map(t => (
+            <button key={t.id} onClick={() => openNew(t.url)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start' }}>
+              <span style={{ fontSize: 28 }}>{t.icon || '🧩'}</span>
+              <span style={{ flex: 1, fontWeight: 800, color: th.text, fontSize: 15, overflowWrap: 'anywhere' }}>{t.name}</span>
+              <span style={{ color: ORANGE, fontWeight: 900 }}>↗</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ───────────────────────── Updates channel ───────────────────────── */
+const linkify = text => String(text).split(/(https?:\/\/[^\s]+)/g).map((p, i) => (/^https?:\/\//.test(p) ? <a key={i} href={p} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline', overflowWrap: 'anywhere' }}>{p}</a> : <React.Fragment key={i}>{p}</React.Fragment>));
+const when = d => { const t = new Date(d); const same = t.toDateString() === new Date().toDateString(); return (same ? '' : t.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' · ') + t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+const dayLabel = d => { const t = new Date(d), n = new Date(); const y = new Date(n); y.setDate(n.getDate() - 1); return t.toDateString() === n.toDateString() ? 'Today' : t.toDateString() === y.toDateString() ? 'Yesterday' : t.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }); };
+
+export function UpdatesChannel({ darkMode }) {
+  const th = useTheme(darkMode);
+  const { user } = useAuth();
+  const [d, setD] = useState(null);
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const endRef = useRef(null);
+  const first = useRef(true);
+  const load = useCallback(() => api.get('/channel').then(r => { setD(r.data); const ms = r.data.messages; if (ms.length) { try { localStorage.setItem('rk_chan_seen', String(ms[ms.length - 1].id)); window.dispatchEvent(new Event('rk-channel-seen')); } catch {} } }).catch(() => setD(x => x || { messages: [], emoji: [], canPost: false })), []);
+  useEffect(() => { load(); const t = setInterval(load, 20000); return () => clearInterval(t); }, [load]);
+  useEffect(() => { if (d && endRef.current) endRef.current.scrollIntoView({ behavior: first.current ? 'auto' : 'smooth', block: 'end' }); if (d) first.current = false; }, [d && d.messages.length]); // eslint-disable-line
+  const react = async (id, emoji) => { try { await api.post(`/channel/${id}/react`, { emoji }); load(); } catch { toast.error('Could not react'); } };
+  const send = async () => { if (!text.trim() || busy) return; setBusy(true); try { await api.post('/channel', { body: text }); setText(''); await load(); } catch (e) { toast.error(errMsg(e, 'Could not send')); } setBusy(false); };
+  const del = async m => { if (!window.confirm('Delete this message for everyone?')) return; try { await api.delete(`/channel/${m.id}`); load(); } catch { toast.error('Could not delete'); } };
+  if (!d) return <Empty th={th}>Loading…</Empty>;
+  let lastDay = '';
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 130px)', minHeight: 420, maxWidth: 860, margin: '0 auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 2px 12px' }}>
+        {!d.messages.length && <Empty th={th}>No updates yet. Messages from the QA team will appear here.</Empty>}
+        {d.messages.map(m => {
+          const dl = dayLabel(m.created_at); const showDay = dl !== lastDay; lastDay = dl;
+          return (
+            <React.Fragment key={m.id}>
+              {showDay && <div style={{ textAlign: 'center', margin: '14px 0 8px' }}><span style={{ fontSize: 11.5, fontWeight: 800, color: th.sub, background: th.soft, border: `1px solid ${th.border}`, borderRadius: 100, padding: '3px 12px' }}>{dl}</span></div>}
+              <div style={{ background: th.card, border: `1px solid ${th.border}`, borderRadius: 16, padding: '12px 14px', margin: '0 0 10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ width: 28, height: 28, borderRadius: 9, background: `linear-gradient(135deg,${ORANGE},#ff9a6c)`, color: '#fff', fontWeight: 900, fontSize: 13, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{(m.author_name || '?')[0].toUpperCase()}</span>
+                  <span style={{ fontWeight: 800, color: th.text, fontSize: 13.5 }}>{m.author_name}</span>
+                  {m.author_title && <span style={{ fontSize: 11.5, color: th.sub }}>{m.author_title}</span>}
+                  <span style={{ marginInlineStart: 'auto', fontSize: 11.5, color: th.sub }}>{when(m.created_at)}</span>
+                  {d.canPost && <button onClick={() => del(m)} title="Delete" style={{ background: 'none', border: 'none', cursor: 'pointer', color: th.sub, fontSize: 14 }}>🗑</button>}
+                </div>
+                <div style={{ whiteSpace: 'pre-wrap', color: th.text, fontSize: 14.5, lineHeight: 1.75, overflowWrap: 'anywhere' }}>{linkify(m.body)}</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
+                  {d.emoji.map(e => { const r = m.reactions.find(x => x.emoji === e); return (
+                    <button key={e} onClick={() => react(m.id, e)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 100, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, border: `1px solid ${r && r.mine ? ORANGE : th.border}`, background: r && r.mine ? `${ORANGE}1f` : 'transparent', color: th.text, opacity: r ? 1 : 0.55 }}>
+                      <span>{e}</span>{r && <b style={{ fontSize: 12 }}>{r.count}</b>}
+                    </button>); })}
+                </div>
+              </div>
+            </React.Fragment>
+          );
+        })}
+        <div ref={endRef} />
+      </div>
+      {d.canPost ? (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', paddingTop: 8, borderTop: `1px solid ${th.border}` }}>
+          <textarea rows={2} placeholder={`Write an update for all agents, ${user?.name?.split(' ')[0] || ''}…`} value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send(); }} style={{ ...inputStyle(th), flex: 1, resize: 'vertical', lineHeight: 1.6 }} />
+          <button onClick={send} disabled={!text.trim() || busy} style={btn(ORANGE, { opacity: text.trim() && !busy ? 1 : 0.5, padding: '12px 20px' })}>Send</button>
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', fontSize: 12.5, color: th.sub, paddingTop: 10, borderTop: `1px solid ${th.border}` }}>Only the QA team can post here. Tap an emoji to react, so we know you have seen the update.</div>
+      )}
+    </div>
+  );
+}

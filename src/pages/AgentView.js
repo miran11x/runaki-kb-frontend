@@ -12,6 +12,7 @@ import api from '../utils/api';
 import { logSearch } from '../utils/searchLog';
   import { useAuth } from '../contexts/AuthContext';
   import Sidebar from '../components/Sidebar';
+import { FolderPage, SmsTemplates, ExternalLinks, UpdatesChannel } from '../components/AgentHub';
   import Topbar from '../components/Topbar';
   import toast from 'react-hot-toast';
   import { Scripts, KYCPlatform, HoldUnhold } from '../components/OpsPages';
@@ -94,6 +95,9 @@ import KnowledgeAssistant from '../components/KnowledgeAssistant';
   '_evaluations':'My Evaluations',
   '_leaderboard':'Leaderboard',
   '_quiz':'Daily Quiz',
+  '_channel':'Updates',
+  '_sms':'SMS Templates',
+  '_extlinks':'External Links',
   '_sendfeedback':'Send Feedback',
   '_priority':'Case Priorities',
   '_search':'Search Results',
@@ -309,7 +313,10 @@ const grouped = items => {
     const items = panelFaqs();
 const groups = grouped(items);
 
-const isSpecial = String(panel).startsWith('_tool_') || [
+const isSpecial = String(panel).startsWith('_tool_') || String(panel).startsWith('_folder_') || [
+      '_channel',
+      '_sms',
+      '_extlinks',
       '_tickets',
       '_zones',
       '_mystats',
@@ -361,7 +368,7 @@ const isSpecial = String(panel).startsWith('_tool_') || [
         <div className="rk-body" style={S.body}>
          
 <Topbar
-  title={PANEL_LABELS[search ? '_search' : panel] || (String(panel).startsWith('_tool_') ? 'Tools' : 'Knowledge Base')}
+  title={PANEL_LABELS[search ? '_search' : panel] || (String(panel).startsWith('_folder_') ? 'Folders' : String(panel).startsWith('_tool_') ? 'Tools' : 'Knowledge Base')}
   subtitle={
     search
       ? `${items.length} results for "${search}"`
@@ -437,6 +444,10 @@ const isSpecial = String(panel).startsWith('_tool_') || [
             {/* Special panels */}
             {String(panel).startsWith('_tool_') && <ExternalToolView toolId={String(panel).slice(6)} DM={DM} />}
             {panel === '_evaluations' && <MyQaEvaluations darkMode={darkMode} faqs={faqs} onOpen={p => { setSearch(''); setPanel(p); }} onSearch={q => setSearch(q)} />}
+            {panel === '_channel' && <UpdatesChannel darkMode={darkMode} />}
+            {panel === '_sms' && <SmsTemplates darkMode={darkMode} />}
+            {panel === '_extlinks' && <ExternalLinks darkMode={darkMode} />}
+            {String(panel).startsWith('_folder_') && <FolderPage folderId={String(panel).slice(8)} darkMode={darkMode} />}
             {panel === '_leaderboard' && <Leaderboard darkMode={darkMode} />}
             {panel === '_quiz' && <DailyQuiz darkMode={darkMode} onOpenFaq={q => setSearch(q)} />}
             {panel === '_mystats'  && <MyStats DM={DM} />}

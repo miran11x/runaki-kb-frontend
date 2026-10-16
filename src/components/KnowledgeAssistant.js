@@ -12,7 +12,7 @@ const CAT = {
   'Inquiries': '#6366f1', 'Billing Complaints': '#ef4444', 'General Complaints': '#8b5cf6',
   'Service Requests': '#10b981', 'Feedback & Others': '#f59e0b', 'New Updates': '#f97316',
 };
-const LANGS = [['auto', 'Auto'], ['en', 'English'], ['ku', 'کوردی'], ['ba', 'Badini'], ['ar', 'عربي']];
+const LANGS = [['auto', 'Auto'], ['en', 'English'], ['ku', 'Sorani · سۆرانی'], ['ba', 'Badini · بادینی'], ['ar', 'Arabic · عربي']];
 const RTL = l => l === 'ku' || l === 'ba' || l === 'ar';
 const QUICK = [
   ['💳', 'Customer paid but still disconnected', '#10b981'],

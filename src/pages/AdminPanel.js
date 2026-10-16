@@ -18,6 +18,7 @@ import { FeedbackAdmin } from '../components/MyStatsFeedback';
 import { ToolReports } from '../components/ToolReports';
 import SearchInsights from '../components/SearchInsights';
 import IncidentAdmin from '../components/IncidentAdmin';
+import { FoldersAdmin, SmsAdmin } from '../components/AgentHub';
 import TranslationReview from '../components/TranslationReview';
 
 const NAVY  = '#0B1120';
@@ -423,8 +424,8 @@ export default function AdminPanel({ darkMode }) {
   const GROUPS = [
     ['Overview', '📊', [['dashboard','📊','Dashboard'], ['incident','📣','Incident Banner']]],
     ['People', '👥', [['users','👥','Users'], ['active','🟢','Live now'], ['activity','📋','Activity log'], ['leaderboard','🏆','Leaderboard']]],
-    ['Content', '📚', [['callflows','📞','Call Flows'], ['scripts','📋','Update Scripts'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons']]],
-    ['Tools', '🛠️', [['tickets','🎫','Ticket Descriptions'], ['zones','📍','Zones'], ['exttools','🧰','External Tools'], ['toolreports','📈','Tool Reports']]],
+    ['Content', '📚', [['callflows','📞','Call Flows'], ['scripts','📋','Update Scripts'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons'], ['folders','🗂️','Folders']]],
+    ['Tools', '🛠️', [['tickets','🎫','Ticket Descriptions'], ['zones','📍','Zones'], ['sms','💬','SMS Templates'], ['exttools','🔗','External Links'], ['toolreports','📈','Tool Reports']]],
     ['Quality', '✅', [['evaluations','📈','QA Evaluations'], ['searchinsights','🔎','Search Insights'], ['transreview','🌍','Kurdish Review'], ['agentfeedback','💬','Agent Feedback']]],
     ['System', '🔧', [['maintenance','🔧','Maintenance']]],
   ];
@@ -1091,6 +1092,8 @@ export default function AdminPanel({ darkMode }) {
           )}
 
           {tab === 'content' && <PageContentEditor darkMode={darkMode} />}
+          {tab === 'folders' && <FoldersAdmin darkMode={darkMode} />}
+          {tab === 'sms' && <SmsAdmin darkMode={darkMode} />}
           {tab === 'exttools' && <ExternalToolsAdmin darkMode={darkMode} />}
           {tab === 'tickets' && <TicketDescriptionsAdmin darkMode={darkMode} />}
           {tab === 'contactreasons' && <ContactReasonsAdmin darkMode={darkMode} />}

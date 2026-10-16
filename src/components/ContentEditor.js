@@ -327,10 +327,10 @@ export function ExternalToolsAdmin({ darkMode }) {
 
   return (
     <div style={{ maxWidth: 900 }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>🧰 External Tools</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>🔗 External Links</div>
       <div style={{ fontSize: 13, color: th.sub, marginBottom: 18, lineHeight: 1.7 }}>
-        Add another website here and it appears as a tab under <b>Tools</b> in the sidebar, opened inside this site.
-        Some websites refuse to be shown inside another site; for those the tab shows an “Open in new tab” button.
+        Add a website here (CRM, billing system, portals) and it appears as a button under <b>Tools → External Links</b>.
+        Agents click it and it opens in a new browser tab. Use <b>Visible / Hidden</b> to switch a link on or off, and <b>Remove</b> to delete it.
       </div>
 
       <div style={{ background: th.card, border: `1px solid ${th.border}`, borderRadius: 16, padding: 18, marginBottom: 18 }}>

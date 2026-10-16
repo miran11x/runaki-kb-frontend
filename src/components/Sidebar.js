@@ -62,9 +62,22 @@ export default function Sidebar({
   const [personalOpen, setPersonalOpen] = useState(false);
   const [systemOpen, setSystemOpen] = useState(true);
   const [hasActiveScript, setHasActiveScript] = useState(false);
-  const [extTools, setExtTools] = useState([]);
+  const [folders, setFolders] = useState([]);
+  const [foldersOpen, setFoldersOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
   useEffect(() => {
-    api.get('/external-tools').then(r => setExtTools(r.data || [])).catch(() => {});
+    api.get('/folders').then(r => setFolders(r.data || [])).catch(() => {});
+  }, []);
+  useEffect(() => {
+    const check = () => {
+      let seen = '0'; try { seen = localStorage.getItem('rk_chan_seen') || '0'; } catch {}
+      api.get(`/channel/unread?after=${seen}`).then(r => setUnread(r.data.n || 0)).catch(() => {});
+    };
+    check();
+    const t = setInterval(check, 60000);
+    const onSeen = () => setUnread(0);
+    window.addEventListener('rk-channel-seen', onSeen);
+    return () => { clearInterval(t); window.removeEventListener('rk-channel-seen', onSeen); };
   }, []);
     useEffect(() => {
 
@@ -82,10 +95,11 @@ export default function Sidebar({
   }
 
   if (
-    (['_kyc', '_tickets', '_zones', '_contactreasons'].includes(panel) || String(panel).startsWith('_tool_'))
+    (['_kyc', '_tickets', '_zones', '_contactreasons', '_sms', '_extlinks'].includes(panel) || String(panel).startsWith('_tool_'))
   ) {
     setToolsOpen(true);
   }
+  if (String(panel).startsWith('_folder_')) setFoldersOpen(true);
 
 if (
   ['_bookmarks', '_mystats', '_evaluations', '_leaderboard', '_quiz', '_sendfeedback'].includes(panel)
@@ -308,6 +322,15 @@ background:
   )}
 </div>
 <NI
+  icon="📢"
+  label="Updates"
+  badge={unread || undefined}
+  collapsed={collapsed}
+  darkMode={darkMode}
+  active={panel === '_channel'}
+  onClick={() => go('_channel')}
+/>
+<NI
   folder
   icon="📚"
   
@@ -473,6 +496,31 @@ folder
   </>
 )}
 
+{/* FOLDERS */}
+{folders.length > 0 && (
+  <>
+    <NI
+      folder
+      icon="🗂️"
+      darkMode={darkMode}
+      label="Folders"
+      collapsed={collapsed}
+      active={String(panel).startsWith('_folder_')}
+      onClick={() => setFoldersOpen(!foldersOpen)}
+      suffix={!collapsed && (
+        <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+          <span style={{ fontSize:'10px', fontWeight:'700', color: darkMode ? 'rgba(255,255,255,.75)' : '#64748b', textTransform:'uppercase', letterSpacing:'0.08em' }}>{foldersOpen ? 'Hide' : 'Open'}</span>
+          <span style={{ transform: foldersOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition:'all .2s ease', fontSize:'18px', fontWeight:'900', color:'#FF6B35' }}>▶</span>
+        </div>
+      )}
+    />
+    {foldersOpen && folders.map(f => (
+      <NI key={f.id} sub icon={f.icon || '📁'} darkMode={darkMode} label={f.name} collapsed={collapsed}
+        active={panel === `_folder_${f.id}`} onClick={() => go(`_folder_${f.id}`)} />
+    ))}
+  </>
+)}
+
 {/* TOOLS */}
 <NI
 folder
@@ -483,7 +531,7 @@ folder
   label="Tools"
   collapsed={collapsed}
   active={
-  (['_kyc', '_tickets', '_zones', '_contactreasons'].includes(panel) || String(panel).startsWith('_tool_'))
+  (['_kyc', '_tickets', '_zones', '_contactreasons', '_sms', '_extlinks'].includes(panel) || String(panel).startsWith('_tool_'))
 }
   onClick={() => setToolsOpen(!toolsOpen)}
   suffix={
@@ -555,18 +603,10 @@ folder
       onClick={() => go('_kyc')}
     />
 
-    {extTools.map(t => (
-      <NI
-        key={t.id}
-        sub
-        icon={t.icon || '🧩'}
-        darkMode={darkMode}
-        label={t.name}
-        collapsed={collapsed}
-        active={panel === `_tool_${t.id}`}
-        onClick={() => go(`_tool_${t.id}`)}
-      />
-    ))}
+    <NI sub icon="💬" darkMode={darkMode} label="SMS Templates" collapsed={collapsed}
+      active={panel === '_sms'} onClick={() => go('_sms')} />
+    <NI sub icon="🔗" darkMode={darkMode} label="External Links" collapsed={collapsed}
+      active={panel === '_extlinks'} onClick={() => go('_extlinks')} />
   </>
 )}
 
