@@ -280,11 +280,9 @@ background:
       {/* ── NAV ── */}
       <nav style={S.nav}>
 
-        {/* Top three: Updates (team chat), Update Scripts, Shortlisted FAQ's */}
+        {/* Top: Updates (team chat) and Shortlisted FAQ's */}
         <TopCard hero icon="📢" title="Updates" sub={unread ? `${unread} new message${unread > 1 ? 's' : ''}` : 'Team announcements'}
           badge={unread || undefined} collapsed={collapsed} darkMode={darkMode} active={panel === '_channel'} onClick={() => go('_channel')} />
-        <TopCard icon="📋" title="Update Scripts" sub={hasActiveScript && panel !== '_updatescripts' ? 'New changes to read' : 'Latest script changes'}
-          tint="#38bdf8" dot={hasActiveScript && panel !== '_updatescripts'} collapsed={collapsed} darkMode={darkMode} active={panel === '_updatescripts'} onClick={() => go('_updatescripts')} />
         <TopCard icon="📌" title="Shortlisted FAQ's" sub="Most used answers"
           tint="#a78bfa" collapsed={collapsed} darkMode={darkMode} active={panel === '_shortlisted'} onClick={() => go('_shortlisted')} />
 <NI
