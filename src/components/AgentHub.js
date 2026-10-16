@@ -280,7 +280,7 @@ export function ExternalLinks({ darkMode }) {
             <button key={t.id} onClick={() => openNew(t.url)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start' }}>
               <span style={{ fontSize: 28 }}>{t.icon || '🧩'}</span>
               <span style={{ flex: 1, fontWeight: 800, color: th.text, fontSize: 15, overflowWrap: 'anywhere' }}>{t.name}</span>
-              <span style={{ color: ORANGE, fontWeight: 900 }}>↗</span>
+              <span style={{ padding: '7px 16px', borderRadius: 10, background: ORANGE, color: '#fff', fontSize: 13, fontWeight: 800, boxShadow: `0 4px 12px ${ORANGE}44`, whiteSpace: 'nowrap' }}>Open ↗</span>
             </button>
           ))}
         </div>
