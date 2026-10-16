@@ -380,3 +380,51 @@ export function UpdatesChannel({ darkMode }) {
     </div>
   );
 }
+
+/* ───────────────────────── Floating "new update" bubble ───────────────────────── */
+// Like a chat app: a round button in the corner with the number of unread updates.
+// When a new message arrives a small preview pops up. Tapping either opens the Updates channel.
+export function UpdatesBubble({ onOpen, hidden }) {
+  const [n, setN] = useState(0);
+  const [preview, setPreview] = useState(null);
+  const lastPreviewed = useRef(null);
+  const timer = useRef(null);
+  const check = useCallback(async () => {
+    let seen = '0'; try { seen = localStorage.getItem('rk_chan_seen') || '0'; } catch {}
+    try {
+      const u = (await api.get(`/channel/unread?after=${seen}`)).data;
+      setN(u.n || 0);
+      if (u.n > 0 && String(u.last) !== lastPreviewed.current) {
+        lastPreviewed.current = String(u.last);
+        const m = (await api.get('/channel')).data.messages;
+        const latest = m[m.length - 1];
+        if (latest) { setPreview({ id: latest.id, name: latest.author_name, text: latest.body }); clearTimeout(timer.current); timer.current = setTimeout(() => setPreview(null), 14000); }
+      }
+    } catch {}
+  }, []);
+  useEffect(() => {
+    check();
+    const t = setInterval(check, 30000);
+    const onSeen = () => { setN(0); setPreview(null); };
+    window.addEventListener('rk-channel-seen', onSeen);
+    return () => { clearInterval(t); clearTimeout(timer.current); window.removeEventListener('rk-channel-seen', onSeen); };
+  }, [check]);
+  if (hidden) return null;
+  return (
+    <div style={{ position: 'fixed', right: 18, bottom: 18, zIndex: 900, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10, pointerEvents: 'none', maxWidth: 'calc(100vw - 36px)' }}>
+      <style>{`@keyframes rkBubbleIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}@keyframes rkRing{0%{box-shadow:0 0 0 0 rgba(255,107,53,.55)}70%{box-shadow:0 0 0 16px rgba(255,107,53,0)}100%{box-shadow:0 0 0 0 rgba(255,107,53,0)}}`}</style>
+      {preview && n > 0 && (
+        <div onClick={onOpen} style={{ pointerEvents: 'auto', cursor: 'pointer', width: 300, maxWidth: '100%', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '12px 14px', boxShadow: '0 14px 40px rgba(15,23,42,.22)', animation: 'rkBubbleIn .28s ease', position: 'relative' }}>
+          <button onClick={e => { e.stopPropagation(); setPreview(null); }} aria-label="Close" style={{ position: 'absolute', top: 6, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 15 }}>✕</button>
+          <div style={{ fontSize: 11.5, fontWeight: 800, color: ORANGE, marginBottom: 3 }}>📢 New update from {preview.name}</div>
+          <div style={{ fontSize: 13.5, color: '#0B1120', lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>{preview.text}</div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: ORANGE, marginTop: 6 }}>Tap to read</div>
+        </div>
+      )}
+      <button onClick={onOpen} aria-label="Open updates" style={{ pointerEvents: 'auto', position: 'relative', width: 58, height: 58, borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: 26, color: '#fff', background: 'linear-gradient(135deg,#FF6B35,#ff9a6c)', boxShadow: '0 10px 28px rgba(255,107,53,.5)', animation: n ? 'rkRing 2s infinite' : 'none' }}>
+        📢
+        {n > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 24, height: 24, padding: '0 6px', borderRadius: 12, background: '#ef4444', color: '#fff', fontSize: 13, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>{n > 99 ? '99+' : n}</span>}
+      </button>
+    </div>
+  );
+}

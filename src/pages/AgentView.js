@@ -12,7 +12,7 @@ import api from '../utils/api';
 import { logSearch } from '../utils/searchLog';
   import { useAuth } from '../contexts/AuthContext';
   import Sidebar from '../components/Sidebar';
-import { FolderPage, SmsTemplates, ExternalLinks, UpdatesChannel } from '../components/AgentHub';
+import { FolderPage, SmsTemplates, ExternalLinks, UpdatesChannel, UpdatesBubble } from '../components/AgentHub';
   import Topbar from '../components/Topbar';
   import toast from 'react-hot-toast';
   import { Scripts, KYCPlatform, HoldUnhold } from '../components/OpsPages';
@@ -356,6 +356,7 @@ const isSpecial = String(panel).startsWith('_tool_') || String(panel).startsWith
           @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
           @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
         `}</style>
+        <UpdatesBubble hidden={panel === '_channel'} onOpen={() => { setSearch(''); setPanel('_channel'); }} />
         <Sidebar
   panel={panel}
   setPanel={setPanel}

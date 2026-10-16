@@ -280,57 +280,13 @@ background:
       {/* ── NAV ── */}
       <nav style={S.nav}>
 
-        {/* Shortlisted FAQ's — top-received FAQs, curated by QA/team lead, visible to all agents */}
-        <NI
-          icon="📌"
-          darkMode={darkMode}
-          label="Shortlisted FAQ's"
-          collapsed={collapsed}
-          active={panel === '_shortlisted'}
-          onClick={() => go('_shortlisted')}
-        />
-
-        {/* Update Scripts — top of sidebar with red badge when active */}
-       <div
-  style={{
-    position: 'relative',
-    display: 'inline-block',
-    width: '100%'
-  }}
->
-  <NI
-    icon="📋"
-    label="Update Scripts"
-    collapsed={collapsed}
-    darkMode={darkMode}
-    active={panel === '_updatescripts'}
-    onClick={() => go('_updatescripts')}
-  />
-
-  {hasActiveScript && panel !== '_updatescripts' && (
-    <div
-      style={{
-        position: 'absolute',
-        top: 8,
-        right: collapsed ? 6 : 12,
-        width: 8,
-        height: 8,
-        borderRadius: '50%',
-        background: '#ef4444',
-        boxShadow: '0 0 6px #ef4444'
-      }}
-    />
-  )}
-</div>
-<NI
-  icon="📢"
-  label="Updates"
-  badge={unread || undefined}
-  collapsed={collapsed}
-  darkMode={darkMode}
-  active={panel === '_channel'}
-  onClick={() => go('_channel')}
-/>
+        {/* Top three: Updates (team chat), Update Scripts, Shortlisted FAQ's */}
+        <TopCard hero icon="📢" title="Updates" sub={unread ? `${unread} new message${unread > 1 ? 's' : ''}` : 'Team announcements'}
+          badge={unread || undefined} collapsed={collapsed} darkMode={darkMode} active={panel === '_channel'} onClick={() => go('_channel')} />
+        <TopCard icon="📋" title="Update Scripts" sub={hasActiveScript && panel !== '_updatescripts' ? 'New changes to read' : 'Latest script changes'}
+          tint="#38bdf8" dot={hasActiveScript && panel !== '_updatescripts'} collapsed={collapsed} darkMode={darkMode} active={panel === '_updatescripts'} onClick={() => go('_updatescripts')} />
+        <TopCard icon="📌" title="Shortlisted FAQ's" sub="Most used answers"
+          tint="#a78bfa" collapsed={collapsed} darkMode={darkMode} active={panel === '_shortlisted'} onClick={() => go('_shortlisted')} />
 <NI
   folder
   icon="📚"
@@ -899,6 +855,42 @@ folder
         {!collapsed && <span>Sign Out</span>}
       </button>
     </aside>
+    </>
+  );
+}
+
+function TopCard({ icon, title, sub, badge, dot, hero, tint = '#FF6B35', active, collapsed, darkMode, onClick }) {
+  const dm = darkMode;
+  const bg = hero
+    ? 'linear-gradient(135deg,#FF6B35 0%,#ff9a6c 100%)'
+    : active ? (dm ? 'rgba(255,255,255,0.09)' : '#fff') : (dm ? 'rgba(255,255,255,0.04)' : '#ffffff');
+  const border = hero ? 'transparent' : active ? tint : (dm ? 'rgba(255,255,255,0.08)' : '#e8edf5');
+  const titleColor = hero ? '#fff' : (dm ? '#f1f5f9' : '#0B1120');
+  const subColor = hero ? 'rgba(255,255,255,.88)' : (dm ? 'rgba(255,255,255,.5)' : '#64748b');
+  return (
+    <>
+      <style>{`@keyframes rkPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55)}70%{box-shadow:0 0 0 9px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}`}</style>
+      <button onClick={onClick} title={title} style={{
+        position: 'relative', display: 'flex', alignItems: 'center', gap: collapsed ? 0 : 11, justifyContent: collapsed ? 'center' : 'flex-start',
+        width: 'calc(100% - 14px)', margin: '4px 7px', padding: collapsed ? '8px 0' : '10px 12px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start',
+        background: bg, border: `1.5px solid ${border}`, boxShadow: hero ? '0 6px 18px rgba(255,107,53,.35)' : active ? `0 4px 14px ${tint}33` : 'none', transition: 'all .18s ease',
+      }}>
+        <span style={{
+          width: 36, height: 36, borderRadius: 11, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+          background: hero ? 'rgba(255,255,255,.22)' : `${tint}22`,
+        }}>{icon}</span>
+        {!collapsed && (
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: titleColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
+            <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: subColor, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
+          </span>
+        )}
+        {badge ? (
+          <span style={{ position: collapsed ? 'absolute' : 'static', top: collapsed ? 2 : undefined, right: collapsed ? 4 : undefined, minWidth: 22, height: 22, padding: '0 6px', borderRadius: 11, background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', animation: 'rkPulse 1.8s infinite', flexShrink: 0 }}>{badge > 99 ? '99+' : badge}</span>
+        ) : dot ? (
+          <span style={{ position: collapsed ? 'absolute' : 'static', top: collapsed ? 6 : undefined, right: collapsed ? 8 : undefined, width: 10, height: 10, borderRadius: '50%', background: '#ef4444', animation: 'rkPulse 1.8s infinite', flexShrink: 0 }} />
+        ) : null}
+      </button>
     </>
   );
 }
