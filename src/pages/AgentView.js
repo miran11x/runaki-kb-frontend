@@ -247,8 +247,15 @@ setFaqs(fr.data);
     };
 
     const toggleShortlist = async (faqId) => {
+      const f = faqs.find(x => x.id === faqId);
+      const adding = !(f && f.is_shortlisted);
+      const q = f ? String(f.question_en || '').slice(0, 140) : '';
+      const ok = window.confirm(adding
+        ? `Add this FAQ to the Shortlisted FAQ's?\n\n“${q}”\n\nAgents will see it in the Shortlisted FAQ's tab and it will leave the general list.`
+        : `Remove this FAQ from the Shortlisted FAQ's?\n\n“${q}”\n\nIt will go back to the general FAQs.`);
+      if (!ok) return;
       try {
-        const r = await api.patch(`/faqs/${faqId}/shortlist`);
+        const r = await api.patch(`/faqs/${faqId}/shortlist`, { value: adding });
         setFaqs(prev => prev.map(f => f.id === faqId ? { ...f, is_shortlisted: r.data.is_shortlisted } : f));
         toast.success(r.data.is_shortlisted ? 'Added to Shortlisted FAQ\'s 📌' : 'Removed from Shortlisted FAQ\'s');
       } catch { toast.error('Failed'); }
