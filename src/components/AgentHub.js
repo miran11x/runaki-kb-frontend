@@ -12,6 +12,20 @@ const btn = (bg, extra) => ({ padding: '9px 16px', borderRadius: 10, border: 'no
 const mini = (th, c) => ({ padding: '6px 11px', borderRadius: 8, border: `1px solid ${c}55`, background: `${c}14`, color: c, fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' });
 const openNew = url => window.open(url, '_blank', 'noopener,noreferrer');
 const copy = async (text, msg = 'Copied') => { try { await navigator.clipboard.writeText(text); toast.success(msg); } catch { toast.error('Could not copy'); } };
+const sizeLabel = n => (n >= 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1000)) + ' KB');
+const fileIcon = n => (/\.(xlsx|xls|csv)$/i.test(n || '') ? '📊' : /\.pdf$/i.test(n || '') ? '📕' : /\.(docx|doc)$/i.test(n || '') ? '📝' : /\.pptx$/i.test(n || '') ? '📽️' : '📄');
+const downloadFile = async l => {
+  try {
+    const r = await api.get(`/folder-files/${l.id}/download`, { responseType: 'blob' });
+    const u = URL.createObjectURL(r.data); const a = document.createElement('a'); a.href = u; a.download = l.file_name || l.title;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u);
+  } catch { toast.error('Could not download the file'); }
+};
+const uploadTo = async (path, file, params) => {
+  const r = await api.post(path, file, { params: { ...params, filename: file.name }, headers: { 'Content-Type': 'application/octet-stream' }, transformRequest: [d => d] });
+  return r.data;
+};
+const FILE_ACCEPT = '.xlsx,.xls,.csv,.pdf,.docx,.doc,.pptx,.txt';
 const errMsg = (e, d) => e?.response?.data?.error || d;
 
 /* ───────────────────────── Folders (agent) ───────────────────────── */
@@ -31,16 +45,17 @@ export function FolderPage({ folderId, darkMode }) {
         <span style={{ fontSize: 34 }}>{folder.icon}</span>
         <div><h2 style={{ margin: 0, color: th.text, fontSize: 22 }}>{folder.name}</h2>{folder.description && <div style={{ color: th.sub, fontSize: 13.5, marginTop: 2 }}>{folder.description}</div>}</div>
       </div>
-      <div style={{ color: th.sub, fontSize: 12.5, margin: '10px 0 16px' }}>Files open in a new tab. You may need to be signed in to your work account.</div>
+      <div style={{ color: th.sub, fontSize: 12.5, margin: '10px 0 16px' }}>Links open in a new tab (you may need to be signed in to your work account). Excel and other files download to your computer.</div>
       {!folder.links.length ? <Empty th={th}>No files in this folder yet.</Empty> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 12 }}>
           {folder.links.map(l => (
-            <button key={l.id} onClick={() => openNew(l.url)} style={{ textAlign: 'start', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, padding: '14px 16px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <span style={{ fontSize: 24 }}>📄</span>
+            <button key={l.id} onClick={() => (l.has_file ? downloadFile(l) : openNew(l.url))} style={{ textAlign: 'start', background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, padding: '14px 16px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 24 }}>{l.has_file ? fileIcon(l.file_name) : '📄'}</span>
               <span style={{ minWidth: 0 }}>
                 <span style={{ display: 'block', fontWeight: 800, color: th.text, fontSize: 14.5, overflowWrap: 'anywhere' }}>{l.title}</span>
                 {l.description && <span style={{ display: 'block', color: th.sub, fontSize: 12.5, marginTop: 3, lineHeight: 1.5 }}>{l.description}</span>}
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '7px 16px', borderRadius: 10, background: ORANGE, color: '#fff', fontSize: 13, fontWeight: 800, boxShadow: `0 4px 12px ${ORANGE}44` }}>Open ↗</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '7px 16px', borderRadius: 10, background: ORANGE, color: '#fff', fontSize: 13, fontWeight: 800, boxShadow: `0 4px 12px ${ORANGE}44` }}>{l.has_file ? '⬇ Download' : 'Open ↗'}</span>
+                {l.has_file && <span style={{ display: 'block', color: th.sub, fontSize: 11.5, marginTop: 6 }}>{l.file_name} · {sizeLabel(l.file_size)}</span>}
               </span>
             </button>
           ))}
@@ -65,7 +80,7 @@ export function FoldersAdmin({ darkMode }) {
     <div style={{ maxWidth: 980 }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>🗂️ Folders</div>
       <div style={{ fontSize: 13, color: th.sub, marginBottom: 16, lineHeight: 1.7 }}>
-        Each folder appears under <b>Folders</b> in the agents’ sidebar. Add links to SharePoint, Excel or any shared file. Use <b>Hidden</b> to keep a folder or a file away from agents without deleting it.
+        Each folder appears under <b>Folders</b> in the agents’ sidebar. Add a link (SharePoint, Excel Online, anything) or <b>upload a file</b> (Excel, PDF, Word, PowerPoint, up to 4 MB) that agents download. Use <b>Hidden</b> to keep a folder or a file away from agents without deleting it.
       </div>
       <Panel th={th} title="＋ New folder">
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -87,19 +102,34 @@ export function FoldersAdmin({ darkMode }) {
           </div>
           {f.links.map(l => (
             <div key={l.id} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', padding: '8px 0', borderTop: `1px solid ${th.border}`, opacity: l.is_visible ? 1 : 0.65 }}>
-              <span>📄</span>
+              <span>{l.has_file ? fileIcon(l.file_name) : '📄'}</span>
               <input style={{ ...inp, flex: '1 1 160px' }} defaultValue={l.title} onBlur={e => e.target.value.trim() && e.target.value !== l.title && run(() => api.put(`/admin/folder-links/${l.id}`, { ...l, title: e.target.value }))} />
-              <input style={{ ...inp, flex: '2 1 240px', direction: 'ltr' }} defaultValue={l.url} onBlur={e => e.target.value !== l.url && run(() => api.put(`/admin/folder-links/${l.id}`, { ...l, url: e.target.value }), 'Saved')} />
-              <button style={mini(th, '#38bdf8')} onClick={() => openNew(l.url)}>Test ↗</button>
+              {l.has_file ? (
+                <>
+                  <div style={{ flex: '2 1 240px', fontSize: 12.5, color: th.sub, overflowWrap: 'anywhere' }}>{l.file_name} · {sizeLabel(l.file_size)} · uploaded {l.file_updated_at ? new Date(l.file_updated_at).toLocaleDateString() : ''}</div>
+                  <label style={{ ...mini(th, ORANGE), display: 'inline-block' }}>Replace file
+                    <input type="file" accept={FILE_ACCEPT} style={{ display: 'none' }} onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) run(() => uploadTo(`/admin/folder-links/${l.id}/file`, f, {}), 'File replaced'); }} />
+                  </label>
+                  <button style={mini(th, '#38bdf8')} onClick={() => downloadFile(l)}>Download</button>
+                </>
+              ) : (
+                <>
+                  <input style={{ ...inp, flex: '2 1 240px', direction: 'ltr' }} defaultValue={l.url} onBlur={e => e.target.value !== l.url && run(() => api.put(`/admin/folder-links/${l.id}`, { ...l, url: e.target.value }), 'Saved')} />
+                  <button style={mini(th, '#38bdf8')} onClick={() => openNew(l.url)}>Test ↗</button>
+                </>
+              )}
               <button style={mini(th, l.is_visible ? GREEN : '#64748b')} onClick={() => run(() => api.put(`/admin/folder-links/${l.id}`, { ...l, is_visible: !l.is_visible }))}>{l.is_visible ? 'Visible' : 'Hidden'}</button>
               <button style={mini(th, RED)} onClick={() => window.confirm(`Remove “${l.title}”?`) && run(() => api.delete(`/admin/folder-links/${l.id}`), 'File removed')}>✕</button>
             </div>
           ))}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8, paddingTop: 10, borderTop: `1px dashed ${th.border}` }}>
-            <input style={{ ...inp, flex: '1 1 160px' }} placeholder="File name" value={(nl[f.id] || {}).title || ''} onChange={e => setNl({ ...nl, [f.id]: { ...nl[f.id], title: e.target.value } })} />
+            <input style={{ ...inp, flex: '1 1 160px' }} placeholder="Name shown to agents" value={(nl[f.id] || {}).title || ''} onChange={e => setNl({ ...nl, [f.id]: { ...nl[f.id], title: e.target.value } })} />
             <input style={{ ...inp, flex: '2 1 240px', direction: 'ltr' }} placeholder="https://... (SharePoint, Excel, any link)" value={(nl[f.id] || {}).url || ''} onChange={e => setNl({ ...nl, [f.id]: { ...nl[f.id], url: e.target.value } })} />
             <input style={{ ...inp, flex: '1 1 160px' }} placeholder="Note (optional)" value={(nl[f.id] || {}).description || ''} onChange={e => setNl({ ...nl, [f.id]: { ...nl[f.id], description: e.target.value } })} />
-            <button disabled={!(nl[f.id] || {}).title || !(nl[f.id] || {}).url} onClick={() => addLink(f)} style={btn(ORANGE, { opacity: (nl[f.id] || {}).title && (nl[f.id] || {}).url ? 1 : 0.5 })}>Add file</button>
+            <button disabled={!(nl[f.id] || {}).title || !(nl[f.id] || {}).url} onClick={() => addLink(f)} style={btn(ORANGE, { opacity: (nl[f.id] || {}).title && (nl[f.id] || {}).url ? 1 : 0.5 })}>Add link</button>
+            <label style={btn('#10b981', { display: 'inline-block' })} title="Excel, PDF, Word or PowerPoint, up to 4 MB">⬆ Upload file
+              <input type="file" accept={FILE_ACCEPT} style={{ display: 'none' }} onChange={e => { const file = e.target.files[0]; e.target.value = ''; if (!file) return; run(() => uploadTo('/admin/folder-files', file, { folder_id: f.id, title: (nl[f.id] || {}).title || undefined, description: (nl[f.id] || {}).description || undefined, sort_order: f.links.length + 1 }), 'File uploaded'); }} />
+            </label>
           </div>
         </Panel>
       ))}
