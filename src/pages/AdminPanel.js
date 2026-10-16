@@ -18,7 +18,6 @@ import { FeedbackAdmin } from '../components/MyStatsFeedback';
 import { ToolReports } from '../components/ToolReports';
 import SearchInsights from '../components/SearchInsights';
 import EngagementAdmin from '../components/Engagement';
-import ShortlistCheck from '../components/ShortlistCheck';
 import IncidentAdmin from '../components/IncidentAdmin';
 import { FoldersAdmin, SmsAdmin } from '../components/AgentHub';
 import TranslationReview from '../components/TranslationReview';
@@ -426,7 +425,7 @@ export default function AdminPanel({ darkMode }) {
   const GROUPS = [
     ['Overview', '📊', [['dashboard','📊','Dashboard'], ['incident','📣','Incident Banner']]],
     ['People', '👥', [['users','👥','Users'], ['active','🟢','Live now'], ['activity','📋','Activity log'], ['leaderboard','🏆','Leaderboard']]],
-    ['Content', '📚', [['callflows','📞','Call Flows'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons'], ['shortlistcheck','📌','Shortlist check']]],
+    ['Content', '📚', [['callflows','📞','Call Flows'], ['content','📝','Page Content'], ['contactreasons','🌳','Contact Reasons']]],
     ['Folders', '🗂️', [['folders','🗂️','Folders']]],
     ['Tools', '🛠️', [['tickets','🎫','Ticket Descriptions'], ['zones','📍','Zones'], ['sms','💬','SMS Templates'], ['exttools','🔗','External Links'], ['toolreports','📈','Tool Reports']]],
     ['Quality', '✅', [['evaluations','📈','QA Evaluations'], ['engagement','👁','Engagement'], ['searchinsights','🔎','Search Insights'], ['transreview','🌍','Kurdish Review'], ['agentfeedback','💬','Agent Feedback']]],
@@ -1104,7 +1103,6 @@ export default function AdminPanel({ darkMode }) {
           {tab === 'agentfeedback' && <FeedbackAdmin darkMode={darkMode} />}
           {tab === 'searchinsights' && <SearchInsights darkMode={darkMode} />}
           {tab === 'engagement' && <EngagementAdmin darkMode={darkMode} />}
-          {tab === 'shortlistcheck' && <ShortlistCheck darkMode={darkMode} />}
           {tab === 'incident' && <IncidentAdmin darkMode={darkMode} />}
           {tab === 'transreview' && <TranslationReview darkMode={darkMode} />}
           {tab === 'toolreports' && <ToolReports darkMode={darkMode} />}

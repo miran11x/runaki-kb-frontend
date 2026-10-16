@@ -294,7 +294,7 @@ setFaqs(fr.data);
 
       if (panel === '_bookmarks') return faqs.filter(f => bookmarks.includes(f.id));
       // keep the order the FAQs were imported in (the order of the source document)
-      if (panel === '_shortlisted') return faqs.filter(f => f.is_shortlisted).sort((a, b) => a.id - b.id);
+      if (panel === '_shortlisted') return faqs.filter(f => f.is_shortlisted).sort((a, b) => ((a.shortlist_pos ?? 1e9) - (b.shortlist_pos ?? 1e9)) || (a.id - b.id));
       if (search) return searchFaqs(searchIndex, search).map(r => r.faq);
       const fn = PANEL_FILTER[panel];
       return fn ? faqs.filter(fn) : [];
