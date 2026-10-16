@@ -342,7 +342,13 @@ export function UpdatesChannel({ darkMode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 130px)', minHeight: 420, maxWidth: 860, margin: '0 auto' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: '4px 2px 12px' }}>
-        {!d.messages.length && <Empty th={th}>No messages yet. Updates from the QA team will appear here.</Empty>}
+        {!d.messages.length && (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 8, padding: 24 }}>
+            <div style={{ width: 72, height: 72, borderRadius: 22, background: 'linear-gradient(135deg,#FF6B35,#ff9a6c)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 34, boxShadow: '0 6px 0 #d9531f' }}>💬</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: th.text, marginTop: 10 }}>No updates yet</div>
+            <div style={{ fontSize: 13.5, color: th.sub || '#64748b', maxWidth: 320 }}>New messages from the QA team will show up here, and you'll see a red badge when one arrives.</div>
+          </div>
+        )}
         {d.messages.map(m => {
           const dl = dayLabel(m.created_at); const showDay = dl !== lastDay; lastDay = dl;
           return (
