@@ -296,11 +296,116 @@ function Maintenance({ th }) {
   );
 }
 
+/* ---------------- Full report (one Excel file with everything) ---------------- */
+const pathStr = c => [c.level1, c.level2, c.level3].filter(Boolean).join(' › ');
+const pct = (a, b) => (b ? Math.round((a / b) * 1000) / 10 : 0);
+function FullReport({ th }) {
+  const [range, setRange] = useState({ from: '', to: '' });
+  const [busy, setBusy] = useState(false);
+  const [info, setInfo] = useState(null);
+
+  const build = async () => {
+    setBusy(true);
+    try {
+      const qs = new URLSearchParams();
+      if (range.from) qs.set('from', range.from);
+      if (range.to) qs.set('to', range.to);
+      const d = (await api.get(`/td/reports/full?${qs}`)).data;
+      const day = x => (x.at || '').slice(0, 10);
+      const hour = x => (x.at || '').slice(11, 13);
+      const dow = x => DAYS[new Date((x.at || '').slice(0, 10) + 'T12:00:00').getDay()];
+
+      // by day
+      const days = {};
+      const bump = (x, k) => { const r = (days[day(x)] = days[day(x)] || { Date: day(x), Weekday: dow(x), 'Description copies': 0, 'Zone lookups': 0, _a: new Set() }); r[k]++; if (x.user_id) r._a.add(x.user_id); };
+      d.copies.forEach(x => bump(x, 'Description copies')); d.lookups.forEach(x => bump(x, 'Zone lookups'));
+      const byDay = Object.values(days).sort((a, b) => a.Date.localeCompare(b.Date)).map(r => ({ Date: r.Date, Weekday: r.Weekday, 'Description copies': r['Description copies'], 'Zone lookups': r['Zone lookups'], Total: r['Description copies'] + r['Zone lookups'], 'Agents active': r._a.size }));
+
+      // by agent (every active agent, including those with no use)
+      const ag = new Map(d.agents.map(a => [a.id, { Agent: a.name, 'Wave ID': a.wave_id, Title: a.title || '', 'Last seen on the site': a.last_seen || '', 'Description copies': 0, 'Zone lookups': 0, _d: new Set(), _first: '', _last: '' }]));
+      const touch = (x, k) => {
+        let r = ag.get(x.user_id);
+        if (!r) { r = { Agent: x.agent || '(unknown)', 'Wave ID': x.wave_id || '', Title: x.title || '', 'Last seen on the site': '', 'Description copies': 0, 'Zone lookups': 0, _d: new Set(), _first: '', _last: '' }; ag.set(x.user_id ?? 'u' + x.agent, r); }
+        r[k]++; r._d.add(day(x)); if (!r._first || x.at < r._first) r._first = x.at; if (!r._last || x.at > r._last) r._last = x.at;
+      };
+      d.copies.forEach(x => touch(x, 'Description copies')); d.lookups.forEach(x => touch(x, 'Zone lookups'));
+      const byAgent = [...ag.values()].map(r => ({ Agent: r.Agent, 'Wave ID': r['Wave ID'], Title: r.Title, 'Description copies': r['Description copies'], 'Zone lookups': r['Zone lookups'], Total: r['Description copies'] + r['Zone lookups'], 'Days used': r._d.size, 'First use': r._first, 'Last use': r._last, 'Last seen on the site': r['Last seen on the site'] }))
+        .sort((a, b) => b.Total - a.Total || a.Agent.localeCompare(b.Agent));
+      const users = byAgent.filter(r => r.Total > 0), never = byAgent.filter(r => r.Total === 0);
+
+      // by title, category, hour, zone
+      const team = {};
+      byAgent.forEach(r => { const t = team[r.Title || '(none)'] = team[r.Title || '(none)'] || { Title: r.Title || '(none)', Agents: 0, 'Agents who used the tools': 0, 'Description copies': 0, 'Zone lookups': 0 }; t.Agents++; if (r.Total) t['Agents who used the tools']++; t['Description copies'] += r['Description copies']; t['Zone lookups'] += r['Zone lookups']; });
+      const cnt = (arr, key) => { const m = new Map(); arr.forEach(x => { const k = key(x); m.set(k, (m.get(k) || 0) + 1); }); return [...m.entries()].sort((a, b) => b[1] - a[1]); };
+      const byCat = cnt(d.copies, x => x.level1 || '(deleted)').map(([k, n]) => ({ Category: k, Copies: n, 'Share %': pct(n, d.copies.length) }));
+      const bySub = cnt(d.copies, x => pathStr(x) || '(deleted)').map(([k, n]) => ({ Description: k, Copies: n, 'Share %': pct(n, d.copies.length) }));
+      const byHour = Array.from({ length: 24 }, (_, h) => { const k = String(h).padStart(2, '0'); return { Hour: k + ':00', 'Description copies': d.copies.filter(x => hour(x) === k).length, 'Zone lookups': d.lookups.filter(x => hour(x) === k).length }; });
+      const byCity = cnt(d.lookups, x => x.city || '(unknown)').map(([k, n]) => ({ City: k, Lookups: n, 'Share %': pct(n, d.lookups.length) }));
+      const byHood = cnt(d.lookups, x => `${x.neighborhood} (${x.city}) → ${x.zone}`).map(([k, n]) => ({ 'Neighborhood (city) → zone': k, Lookups: n }));
+
+      const summary = [
+        ['Report generated', new Date().toLocaleString()],
+        ['Period', `${d.from || 'start'} to ${d.to || 'today'} (Iraq time)`],
+        ['Active agents on the site', d.agents.length],
+        ['Agents who used at least one tool', users.length],
+        ['Agents who used neither', never.length],
+        ['Adoption %', pct(users.length, d.agents.length)],
+        ['Description copies', d.copies.length],
+        ['Zone lookups', d.lookups.length],
+        ['Days with activity', byDay.length],
+        ['Active ticket descriptions', d.categories.filter(c => c.is_active).length],
+        ['Zone rows', d.zones.reduce((n, z) => n + z.rows, 0)],
+        ['Cities with zones', d.zones.length],
+      ].map(([Item, Value]) => ({ Item, Value }));
+
+      const wb = XLSX.utils.book_new();
+      const add = (name, rows, widths) => { const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ Note: 'No data' }]); if (widths) ws['!cols'] = widths.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); };
+      add('Summary', summary, [36, 40]);
+      add('By day', byDay, [12, 10, 18, 14, 10, 14]);
+      add('By agent', byAgent, [28, 12, 12, 18, 14, 10, 10, 20, 20, 22]);
+      add('By title', Object.values(team), [14, 10, 24, 18, 14]);
+      add('Agents never used', never.map(r => ({ Agent: r.Agent, 'Wave ID': r['Wave ID'], Title: r.Title, 'Last seen on the site': r['Last seen on the site'] })), [28, 12, 12, 22]);
+      add('By category', byCat, [34, 10, 10]);
+      add('By description', bySub, [60, 10, 10]);
+      add('By hour', byHour, [10, 18, 14]);
+      add('Zone lookups by city', byCity, [18, 10, 10]);
+      add('Zone lookups by area', byHood, [60, 10]);
+      add('Copy log', d.copies.map(x => ({ When: x.at, Date: day(x), Weekday: dow(x), Agent: x.agent, 'Wave ID': x.wave_id || '', Title: x.title || '', Category: x.level1, 'Sub-category': x.level2 || '', 'Third level': x.level3 || '' })), [20, 12, 9, 26, 10, 12, 26, 34, 20]);
+      add('Zone lookup log', d.lookups.map(x => ({ When: x.at, Date: day(x), Weekday: dow(x), Agent: x.agent, 'Wave ID': x.wave_id || '', Title: x.title || '', City: x.city, Neighborhood: x.neighborhood, Zone: x.zone })), [20, 12, 9, 26, 10, 12, 16, 28, 18]);
+      add('Ticket descriptions', d.categories.map(c => ({ Category: c.level1, 'Sub-category': c.level2 || '', 'Third level': c.level3 || '', Active: c.is_active ? 'yes' : 'no', 'English text': c.has_en ? 'yes' : 'no', 'Kurdish text': c.has_ku ? 'yes' : 'no', 'Last updated': c.updated })), [26, 34, 14, 8, 12, 12, 14]);
+      add('Zones by city', d.zones.map(z => ({ City: z.city, 'Zone rows': z.rows, Neighborhoods: z.neighborhoods, 'Different zones': z.zones, Active: z.active })), [18, 11, 14, 15, 9]);
+
+      XLSX.writeFile(wb, `tools-full-report-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      setInfo({ copies: d.copies.length, lookups: d.lookups.length, agents: d.agents.length, used: users.length, days: byDay.length });
+      toast.success('Report downloaded');
+    } catch (err) { toast.error(err.response?.data?.error || 'Could not build the report'); }
+    setBusy(false);
+  };
+
+  return (
+    <div style={{ maxWidth: 760 }}>
+      <div style={{ background: th.card, border: `1px solid ${th.border}`, borderRadius: 16, padding: 18 }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: th.text, marginBottom: 6 }}>📥 Full report of both tools</div>
+        <div style={{ fontSize: 13, color: th.sub, lineHeight: 1.7, marginBottom: 12 }}>
+          One Excel file for Ticket Descriptions and Zone Lookup: a summary, usage by day, by agent, by title, by category, by hour, by city and area,
+          the agents who never used the tools, the full copy log and zone lookup log (every action, with agent, Wave ID, date and time), plus the list of descriptions and zones.
+          Times are Iraq time. Pick a period, or leave it on All time.
+        </div>
+        <RangeBar th={th} range={range} setRange={setRange} />
+        <button onClick={build} disabled={busy} style={{ padding: '11px 22px', borderRadius: 10, border: 'none', background: ORANGE, color: '#fff', fontWeight: 800, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', opacity: busy ? 0.6 : 1 }}>
+          {busy ? 'Building the report…' : '⬇ Download the full report'}
+        </button>
+        {info && <div style={{ fontSize: 13, color: th.text, marginTop: 12 }}>Downloaded: {info.copies} copies and {info.lookups} zone lookups over {info.days} days; {info.used} of {info.agents} agents used the tools.</div>}
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Wrapper ---------------- */
 export function ToolReports({ darkMode }) {
   const th = useTheme(darkMode);
   const [view, setView] = useState('dashboard');
-  const tabs = [['dashboard', '📊 Dashboard'], ['digest', '🗓️ Weekly digest'], ['activity', '📜 Activity log'], ['maintenance', '🛠️ Maintenance']];
+  const tabs = [['dashboard', '📊 Dashboard'], ['digest', '🗓️ Weekly digest'], ['activity', '📜 Activity log'], ['maintenance', '🛠️ Maintenance'], ['full', '📥 Full report']];
   return (
     <div style={{ maxWidth: 1100 }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>📈 Tool Reports</div>
@@ -314,6 +419,7 @@ export function ToolReports({ darkMode }) {
       {view === 'digest' && <Digest th={th} />}
       {view === 'activity' && <ActivityLog th={th} />}
       {view === 'maintenance' && <Maintenance th={th} />}
+      {view === 'full' && <FullReport th={th} />}
     </div>
   );
 }
