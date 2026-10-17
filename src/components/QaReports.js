@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { DateRange, rangeParams, ymd } from './ReportKit';
 import api from '../utils/api';
 import QaUpload from './QaUpload';
 import AgentScorecard, { EvalCard } from './QaScorecard';
@@ -16,7 +17,7 @@ import {
 
 // Admin Panel → Quality → Evaluation Reports (team lead only). Built from the monthly QA workbook (Raw Data tab).
 
-const monthName = m => { try { return new Date(`${m}-01T00:00:00`).toLocaleString('en-GB', { month: 'long', year: 'numeric' }); } catch { return m; } };
+const monthName = m => { if (!/^\d{4}-\d{2}$/.test(String(m))) return String(m).replace('_to_', ' to '); try { return new Date(`${m}-01T00:00:00`).toLocaleString('en-GB', { month: 'long', year: 'numeric' }); } catch { return m; } };
 const prevMonth = m => { const [y, mo] = m.split('-').map(Number); const d = new Date(y, mo - 2, 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
 const SECTIONS = [['performance', '📈 Performance'], ['agents', '👥 Agents'], ['coaching', '🎯 Coaching'], ['team', '🧑‍💼 QA team'], ['all', '🗂️ All evaluations'], ['upload', '📤 Upload']];
 
@@ -44,6 +45,21 @@ export function QaHub({ darkMode }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [openAgent, setOpenAgent] = useState(null);
+  // any custom dates (instead of one calendar month)
+  const [custom, setCustom] = useState(false);
+  const [range, setRange] = useState({ kind: 'days', days: 30 });
+  const win = useMemo(() => {
+    if (!custom) return null;
+    const p = rangeParams(range); const today = ymd(new Date()); const add = (d, n) => { const x = new Date(`${d}T00:00:00`); x.setDate(x.getDate() + n); return ymd(x); };
+    const first = months && months.length ? `${months[months.length - 1].month}-01` : '2000-01-01';
+    let from, to;
+    if (p.days === 'all') { from = first; to = today; } else if (p.days) { to = today; from = add(today, -(p.days - 1)); } else { from = p.from || first; to = p.to || today; }
+    if (from > to) to = from;
+    const span = Math.round((Date.parse(to) - Date.parse(from)) / 864e5) + 1;
+    const pto = add(from, -1);
+    return { from, to, pfrom: add(pto, -(span - 1)), pto };
+  }, [custom, range, months]);
+  const periodKey = win ? `${win.from}_to_${win.to}` : month;
 
   const loadMonths = useCallback(async () => {
     try {
@@ -55,19 +71,26 @@ export function QaHub({ darkMode }) {
   useEffect(() => { loadMonths(); }, [loadMonths]);
 
   const loadData = useCallback(async () => {
-    if (!month) { setData(null); return; }
+    if (!month && !win) { setData(null); return; }
     setLoading(true);
     try {
-      const r = await api.get(`/qa/data?months=${month},${prevMonth(month)}`);
+      let list = [month, prevMonth(month)];
+      if (win) {
+        const span = (a, b) => { const out = []; const d = new Date(`${a.slice(0, 7)}-01T00:00:00`); while (ymd(d).slice(0, 7) <= b.slice(0, 7)) { out.push(ymd(d).slice(0, 7)); d.setMonth(d.getMonth() + 1); } return out; };
+        const have = new Set((months || []).map(m => m.month));
+        list = [...new Set([...span(win.pfrom, win.pto), ...span(win.from, win.to)])].filter(m => have.has(m));
+        if (!list.length) list = [month];
+      }
+      const r = await api.get(`/qa/data?months=${list.join(',')}`);
       setData(r.data);
     } catch { toast.error('Could not load the evaluations'); }
     setLoading(false);
-  }, [month]);
+  }, [month, win, months]);
   useEffect(() => { loadData(); }, [loadData]);
 
   const all = useMemo(() => (data ? data.rows.filter(r => !queue || r.u === queue) : []), [data, queue]);
-  const rows = useMemo(() => all.filter(r => (r.mo || r.d.slice(0, 7)) === month), [all, month]);
-  const prev = useMemo(() => all.filter(r => (r.mo || r.d.slice(0, 7)) === prevMonth(month)), [all, month]);
+  const rows = useMemo(() => all.filter(r => (win ? r.d.slice(0, 10) >= win.from && r.d.slice(0, 10) <= win.to : (r.mo || r.d.slice(0, 7)) === month)), [all, month, win]);
+  const prev = useMemo(() => all.filter(r => (win ? r.d.slice(0, 10) >= win.pfrom && r.d.slice(0, 10) <= win.pto : (r.mo || r.d.slice(0, 7)) === prevMonth(month))), [all, month, win]);
   const agents = useMemo(() => agentTable(rows), [rows]);
   const queues = useMemo(() => [...new Set((data ? data.rows : []).map(r => r.u).filter(Boolean))].sort(), [data]);
 
@@ -85,9 +108,12 @@ export function QaHub({ darkMode }) {
         </div>
         {!empty && section !== 'upload' && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <select style={sel} value={month} onChange={e => setMonth(e.target.value)} aria-label="Month">
-              {months.map(m => <option key={m.month} value={m.month}>{monthName(m.month)} ({m.evals})</option>)}
-            </select>
+            {!custom && (
+              <select style={sel} value={month} onChange={e => setMonth(e.target.value)} aria-label="Month">
+                {months.map(m => <option key={m.month} value={m.month}>{monthName(m.month)} ({m.evals})</option>)}
+              </select>
+            )}
+            <button style={pillStyle(custom)} onClick={() => setCustom(c => !c)} title="Pick any dates instead of one month">📅 Custom dates</button>
             <select style={sel} value={queue} onChange={e => setQueue(e.target.value)} aria-label="Queue">
               <option value="">All queues</option>
               {queues.map(q => <option key={q} value={q}>{q}</option>)}
@@ -95,6 +121,8 @@ export function QaHub({ darkMode }) {
           </div>
         )}
       </div>
+
+      {custom && section !== 'upload' && !empty && <DateRange value={range} onChange={setRange} darkMode={darkMode} style={{ marginBottom: 14 }} />}
 
       {section === 'upload' && <QaUpload darkMode={darkMode} onDone={() => { loadMonths(); loadData(); }} />}
 
@@ -106,11 +134,11 @@ export function QaHub({ darkMode }) {
 
       {section !== 'upload' && !empty && (loading && !data ? <div style={{ color: th.sub }}>Loading…</div> : data && (
         <>
-          {section === 'performance' && <Performance th={th} rows={rows} prev={prev} agents={agents} month={month} />}
-          {section === 'agents' && <AgentsSection th={th} agents={agents} rows={rows} onOpen={setOpenAgent} month={month} />}
-          {section === 'coaching' && <CoachingSection th={th} rows={rows} onOpen={a => setOpenAgent(a)} agents={agents} month={month} />}
-          {section === 'all' && <AllEvaluations th={th} rows={rows} rubric={data.rubric} month={month} />}
-          {section === 'team' && <TeamSection th={th} rows={rows} agents={agents} roster={data.roster} month={month} onOpen={setOpenAgent} />}
+          {section === 'performance' && <Performance th={th} rows={rows} prev={prev} agents={agents} month={periodKey} />}
+          {section === 'agents' && <AgentsSection th={th} agents={agents} rows={rows} onOpen={setOpenAgent} month={periodKey} />}
+          {section === 'coaching' && <CoachingSection th={th} rows={rows} onOpen={a => setOpenAgent(a)} agents={agents} month={periodKey} />}
+          {section === 'all' && <AllEvaluations th={th} rows={rows} rubric={data.rubric} month={periodKey} />}
+          {section === 'team' && <TeamSection th={th} rows={rows} agents={agents} roster={data.roster} month={periodKey} onOpen={setOpenAgent} />}
         </>
       ))}
 

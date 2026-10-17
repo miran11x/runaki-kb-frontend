@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { track } from '../utils/track';
 import { useTheme, Panel, Empty, ORANGE, GREEN, RED } from './qaUi';
 import { NAV_ITEMS, searchNav } from '../utils/navItems';
+import { ExportButton, exportSheets } from './ReportKit';
 
 // Folders (links to shared files), SMS templates, External links and the Updates channel.
 // The agent pages and the admin editors live together because they share the same data.
@@ -102,7 +103,10 @@ export function FoldersAdmin({ darkMode }) {
   const addLink = f => { const d = nl[f.id] || {}; return run(async () => { await api.post('/admin/folder-links', { folder_id: f.id, title: d.title, url: d.url, description: d.description, sort_order: f.links.length + 1 }); setNl({ ...nl, [f.id]: {} }); }, 'File added'); };
   return (
     <div style={{ maxWidth: 980 }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>🗂️ Folders</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>🗂️ Folders</div>
+        <ExportButton onClick={() => exportSheets('folders', [{ name: 'Folders and files', rows: folders.flatMap(f => (f.links || []).map(l => ({ Folder: f.name, Title: l.title, Link: l.url || '', Description: l.description || '' }))) }])} />
+      </div>
       <div style={{ fontSize: 13, color: th.sub, marginBottom: 16, lineHeight: 1.7 }}>
         Each folder appears under <b>Folders</b> in the agents’ sidebar. Add a link (SharePoint, Excel Online, anything) or <b>upload a file</b> (Excel, PDF, Word, PowerPoint, up to 25 MB) that agents download. Use <b>Hidden</b> to keep a folder or a file away from agents without deleting it.
       </div>
@@ -332,7 +336,10 @@ export function SmsAdmin({ darkMode }) {
   };
   return (
     <div style={{ maxWidth: 980 }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>💬 SMS Templates</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>💬 SMS Templates</div>
+        <ExportButton onClick={() => exportSheets('sms-templates', [{ name: 'SMS templates', rows: types.flatMap(t => (t.templates || []).map(m => ({ Number: m.code != null ? String(m.code).padStart(3, '0') : '', Type: t.name, Title: m.title, 'Freshdesk level': smsLevel(m, tree).join(' > ') || m.reason_path || '', Visible: m.is_active ? 'Yes' : 'No', Archived: m.is_archived ? 'Yes' : 'No', English: m.body_en || '', Sorani: m.body_ku || '', Badini: m.body_ba || '', Arabic: m.body_ar || '' }))) }])} />
+      </div>
       <div style={{ fontSize: 13, color: th.sub, marginBottom: 16, lineHeight: 1.7 }}>
         The SMS messages agents send to customers, grouped by type. Agents see the types as tabs under <b>Tools → SMS Templates</b> and copy the text in one click. Write each message in as many languages as you need.
       </div>

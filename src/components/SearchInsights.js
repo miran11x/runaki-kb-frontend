@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
+import { DateRange, ExportButton, defaultRange, rangeParams, rangeFile, exportSheets, fmtDT } from './ReportKit';
 import { buildIndex, searchFaqs, SYNONYM_GROUPS } from '../utils/faqSearch';
 import { useTheme, Panel, Kpi, Empty, Pill, GREEN, RED, AMBER, BLUE, ORANGE } from './qaUi';
 
@@ -71,10 +72,10 @@ function NewFaq({ th, phrase, onSave, onClose }) {
   );
 }
 
-function Misses({ th, days, faqs, index }) {
+function Misses({ th, range, faqs, index }) {
   const [rows, setRows] = useState(null);
   const [open, setOpen] = useState(null); // {norm, mode:'pick'|'new'}
-  const load = useCallback(() => api.get('/admin/search/misses', { params: { days } }).then(r => setRows(r.data.rows)).catch(e => { setRows([]); toast.error(errMsg(e)); }), [days]);
+  const load = useCallback(() => api.get('/admin/search/misses', { params: rangeParams(range) }).then(r => setRows(r.data.rows)).catch(e => { setRows([]); toast.error(errMsg(e)); }), [range]);
   useEffect(() => { setRows(null); load(); }, [load]);
 
   const addTerm = async (row, faq, term) => {
@@ -90,9 +91,15 @@ function Misses({ th, days, faqs, index }) {
   };
   const ignore = async row => { try { await api.post('/admin/search/misses/ignore', { query: row.example }); load(); } catch (e) { toast.error(errMsg(e)); } };
 
+  const exportMisses = async () => {
+    try {
+      const r = (await api.get('/admin/search/misses', { params: { ...rangeParams(range), all: 1 } })).data.rows;
+      exportSheets(`searches-not-found-${rangeFile(range)}`, [{ name: 'Not found', rows: r.map(x => ({ Search: x.example, 'Times searched': x.n, Agents: x.agents, 'Last searched': fmtDT(x.last_seen) })) }]);
+    } catch (e) { toast.error(errMsg(e)); }
+  };
   if (!rows) return <Empty th={th}>Loading…</Empty>;
   return (
-    <Panel th={th} title="What agents searched and didn't find" hint="Most often first. Add the phrase as a key term to the FAQ that should answer it, or create a new draft FAQ.">
+    <Panel th={th} title="What agents searched and didn't find" hint="Most often first. Add the phrase as a key term to the FAQ that should answer it, or create a new draft FAQ." right={<ExportButton onClick={exportMisses} />}>
       {rows.length === 0 ? <Empty th={th}>🎉 Nothing missing in this period. Every search found an answer.</Empty> : rows.map(r => (
         <div key={r.norm} style={{ padding: '11px 0', borderTop: `1px solid ${th.border}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -115,10 +122,10 @@ function Misses({ th, days, faqs, index }) {
   );
 }
 
-function Quality({ th, days, faqs, index }) {
+function Quality({ th, range, faqs, index }) {
   const [d, setD] = useState(null);
   const [open, setOpen] = useState(null);
-  const load = useCallback(() => api.get('/admin/search/quality', { params: { days } }).then(r => setD(r.data)).catch(e => { setD(false); toast.error(errMsg(e)); }), [days]);
+  const load = useCallback(() => api.get('/admin/search/quality', { params: rangeParams(range) }).then(r => setD(r.data)).catch(e => { setD(false); toast.error(errMsg(e)); }), [range]);
   useEffect(() => { setD(null); load(); }, [load]);
   if (d === null) return <Empty th={th}>Loading…</Empty>;
   if (d === false) return null;
@@ -126,12 +133,23 @@ function Quality({ th, days, faqs, index }) {
   const pc = v => (v == null ? '–' : `${Math.round(v * 100)}%`);
   const noRes = s.searches ? s.noResult / s.searches : null;
 
+  const exportQuality = async () => {
+    try {
+      const q = (await api.get('/admin/search/quality', { params: { ...rangeParams(range), all: 1 } })).data;
+      exportSheets(`answer-quality-${rangeFile(range)}`, [
+        { name: 'Summary', rows: [{ Item: 'Searches', Value: q.summary.searches }, { Item: 'Searches with no answer', Value: q.summary.noResult }, { Item: 'Thumbs up', Value: q.summary.up }, { Item: 'Thumbs down', Value: q.summary.down }, { Item: 'Answers copied', Value: q.summary.copies }, { Item: 'Helpful rate', Value: q.summary.helpfulRate == null ? '' : `${Math.round(q.summary.helpfulRate * 100)}%` }, { Item: 'First answer copied rate', Value: q.summary.firstAnswerRate == null ? '' : `${Math.round(q.summary.firstAnswerRate * 100)}%` }] },
+        { name: 'Copied from below first', rows: q.wrongOrder.map(x => ({ Search: x.query, 'FAQ copied': x.question || `FAQ ${x.faq_id}`, Position: x.position, Times: x.n })) },
+        { name: 'Marked thumbs down', rows: q.notHelpful.map(x => ({ Search: x.query, 'FAQ shown': x.question || `FAQ ${x.faq_id}`, 'Thumbs down': x.downs, 'Thumbs up': x.ups, Position: x.position })) },
+      ]);
+    } catch (e) { toast.error(errMsg(e)); }
+  };
   const addTo = async (row, faq, term) => {
     try { await api.post('/admin/search/add-key-term', { faq_id: faq.id, term, query: row.query }); toast.success(`Added “${term}” to the FAQ`); setOpen(null); load(); }
     catch (e) { toast.error(errMsg(e)); }
   };
   return (
     <>
+      <div style={{ textAlign: 'end', marginBottom: 10 }}><ExportButton onClick={exportQuality} /></div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 12, marginBottom: 14 }}>
         <Kpi th={th} label="Helpful answers" value={pc(s.helpfulRate)} color={s.helpfulRate == null ? th.text : s.helpfulRate >= 0.8 ? GREEN : s.helpfulRate >= 0.6 ? AMBER : RED} sub={`${s.up} 👍 · ${s.down} 👎`} />
         <Kpi th={th} label="Copied the first answer" value={pc(s.firstAnswerRate)} color={s.firstAnswerRate == null ? th.text : s.firstAnswerRate >= 0.8 ? GREEN : AMBER} sub={`of ${s.copies} copied answers`} />
@@ -198,7 +216,7 @@ function Synonyms({ th }) {
   return (
     <>
       <Panel th={th} title="Words that mean the same thing" hint="If agents say it differently from the FAQ, list the words here (separate with commas, any language or spelling). A search for any of them finds FAQs written with the others."
-        right={<Btn th={th} solid onClick={() => setForm({ words: '', note: '', is_active: true })}>+ Add words</Btn>} style={{ marginBottom: 14 }}>
+        right={<div style={{ display: 'flex', gap: 8 }}><ExportButton onClick={() => exportSheets('search-synonyms', [{ name: 'Synonyms', rows: (rows || []).map(r => ({ Words: r.words, Note: r.note, Active: r.is_active ? 'Yes' : 'No' })) }])} /><Btn th={th} solid onClick={() => setForm({ words: '', note: '', is_active: true })}>+ Add words</Btn></div>} style={{ marginBottom: 14 }}>
         {form && (
           <div style={{ background: th.soft, border: `1px solid ${ORANGE}66`, borderRadius: 14, padding: 14, marginBottom: 12 }}>
             <label style={{ fontSize: 12, color: th.sub, fontWeight: 700 }}>Words (comma separated)</label>
@@ -237,7 +255,7 @@ function Synonyms({ th }) {
 export default function SearchInsights({ darkMode }) {
   const th = useTheme(darkMode);
   const [tab, setTab] = useState('misses');
-  const [days, setDays] = useState(30);
+  const [range, setRange] = useState(defaultRange(30));
   const [faqs, setFaqs] = useState([]);
   useEffect(() => { api.get('/faqs/all').then(r => setFaqs(Array.isArray(r.data) ? r.data : [])).catch(() => setFaqs([])); }, []);
   const index = useMemo(() => buildIndex(faqs), [faqs]);
@@ -255,13 +273,11 @@ export default function SearchInsights({ darkMode }) {
         {tabBtn('quality', '👍 Answer quality', GREEN)}
         {tabBtn('synonyms', '🔤 Synonyms', VIOLET)}
         {tab !== 'synonyms' && (
-          <select value={days} onChange={e => setDays(+e.target.value)} aria-label="Period" style={{ marginInlineStart: 'auto', background: th.input, color: th.text, border: `1px solid ${th.border}`, borderRadius: 10, padding: '8px 12px', fontFamily: 'inherit', fontSize: 13 }}>
-            {[[7, 'Last 7 days'], [30, 'Last 30 days'], [90, 'Last 90 days']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
+          <div style={{ marginInlineStart: 'auto' }}><DateRange value={range} onChange={setRange} darkMode={darkMode} /></div>
         )}
       </div>
-      {tab === 'misses' && <Misses th={th} days={days} faqs={faqs} index={index} />}
-      {tab === 'quality' && <Quality th={th} days={days} faqs={faqs} index={index} />}
+      {tab === 'misses' && <Misses th={th} range={range} faqs={faqs} index={index} />}
+      {tab === 'quality' && <Quality th={th} range={range} faqs={faqs} index={index} />}
       {tab === 'synonyms' && <Synonyms th={th} />}
     </div>
   );

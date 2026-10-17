@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { normalizeText } from '../utils/faqSearch';
 import PageHero, { PALETTE } from './PageHero';
+import { ExportButton, exportSheets } from './ReportKit';
 
 // Contact Reasons tree: Level 1 (category) → Level 2 (reason) → Level 3 (detail).
 //  - ContactReasons       : agent page — walk the levels, copy the full path
@@ -228,6 +229,12 @@ export function ContactReasonsAdmin({ darkMode }) {
     try { await api.post(`/contact-reasons/${n.id}/move`, { direction }); load(); } catch { toast.error('Could not move'); }
   };
 
+  const exportTree = () => {
+    const byId = Object.fromEntries(rows.map(r => [r.id, r]));
+    const path = r => (r.parent_id && byId[r.parent_id] ? `${path(byId[r.parent_id])} > ${r.name}` : r.name);
+    exportSheets('contact-reasons', [{ name: 'Contact reasons', rows: rows.map(r => ({ Level: r.level, Path: path(r), Name: r.name, Note: r.note || '', Active: r.is_active === false ? 'No' : 'Yes' })) }]);
+  };
+
   const Row = ({ n, level, index, total }) => {
     const kids = tree.kids(n.id);
     const isOpen = open.has(n.id);
@@ -261,6 +268,7 @@ export function ContactReasonsAdmin({ darkMode }) {
   return (
     <div style={{ maxWidth: 900 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+        <ExportButton onClick={exportTree} />
         <div>
           <div style={{ fontSize: 17, fontWeight: 800, color: th.text }}>Contact Reasons</div>
           <div style={{ fontSize: 13, color: th.sub }}>Three levels: category, reason, detail. Agents see the whole tree under Operations.</div>

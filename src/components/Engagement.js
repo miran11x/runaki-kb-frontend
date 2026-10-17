@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+import { DateRange, ExportButton, defaultRange, rangeQuery, rangeFile, exportSheets, fmtDT } from './ReportKit';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import { track } from '../utils/track';
@@ -160,13 +161,22 @@ function Tabs({ th, tab, setTab, tabs }) {
 function CheckIns({ th }) {
   const [d, setD] = useState(null);
   const [showAll, setShowAll] = useState(false);
-  useEffect(() => { api.get('/admin/engagement/checkins').then(r => setD(r.data)).catch(() => setD({ agents: [], days: [], total: 0, done: 0 })); }, []);
-  if (!d) return <Empty th={th}>Loading…</Empty>;
+  const [range, setRange] = useState(defaultRange(7));
+  useEffect(() => { setD(null); api.get(`/admin/engagement/checkins?${range.kind === 'all' ? 'days=62' : rangeQuery(range)}`).then(r => setD(r.data)).catch(() => setD({ agents: [], days: [], total: 0, done: 0 })); }, [range]);
+  const dark = th.card === '#111827';
+  const bar = (
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <DateRange value={range} onChange={setRange} darkMode={dark} />
+      {d && <ExportButton onClick={() => exportSheets(`daily-check-in-${d.days[0]}_to_${d.days[d.days.length - 1]}`, [{ name: 'Check-ins', rows: d.agents.map(a => ({ Agent: a.name, 'Wave ID': a.wave_id, ...Object.fromEntries(d.days.map((x, i) => [x, a.marks[i] ? 'Yes' : 'No'])), 'Days checked in': a.count, 'Days in period': d.days.length, 'Current streak': a.streak, 'Today (time)': a.today || '' })) }])} />}
+    </div>
+  );
+  if (!d) return <>{bar}<Empty th={th}>Loading…</Empty></>;
   const not = d.agents.filter(a => !a.today);
   const pct = d.total ? Math.round((d.done / d.total) * 100) : 0;
   const list = showAll ? d.agents : not;
   return (
     <>
+      {bar}
       <div style={gridStyle(150)}>
         <Kpi th={th} label="Checked in today" value={`${d.done} / ${d.total}`} sub={`${pct}% of agents`} color={pct >= 90 ? GREEN : pct >= 60 ? AMBER : RED} />
         <Kpi th={th} label="Not yet today" value={not.length} color={not.length ? RED : GREEN} />
@@ -235,14 +245,26 @@ function DisputeCard({ th, x, onDone }) {
 
 function EvalAcks({ th }) {
   const [d, setD] = useState(null);
-  const load = useCallback(() => api.get('/admin/engagement/evals').then(r => setD(r.data)).catch(() => setD({ agents: [], disputes: [], totals: { evals: 0, acked: 0 } })), []);
-  useEffect(() => { load(); }, [load]);
-  if (!d) return <Empty th={th}>Loading…</Empty>;
+  const [range, setRange] = useState({ kind: 'all' });
+  const load = useCallback(() => api.get(`/admin/engagement/evals?${rangeQuery(range)}`).then(r => setD(r.data)).catch(() => setD({ agents: [], disputes: [], totals: { evals: 0, acked: 0 } })), [range]);
+  useEffect(() => { setD(null); load(); }, [load]);
+  const dark = th.card === '#111827';
+  const bar = (
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <DateRange value={range} onChange={setRange} darkMode={dark} />
+      {d && <ExportButton onClick={() => exportSheets(`evaluation-confirmations-${rangeFile(range)}`, [
+        { name: 'Agents', rows: d.agents.map(a => ({ Agent: a.name, 'Wave ID': a.wave_id, Evaluations: a.total, Confirmed: a.acked, Unread: a.unread, 'Oldest unread': fmtDT(a.oldest_unread) })) },
+        { name: 'Disputes', rows: d.disputes.map(x => ({ Agent: x.name, 'Wave ID': x.wave_id, 'Evaluation date': x.eval_date ? String(x.eval_date).slice(0, 10) : '', 'Call date': x.call_date ? String(x.call_date).slice(0, 10) : '', Subject: x.subject, Ticket: x.ticket_ref, 'Final score': x.final_score, 'QA officer': x.qa_officer, 'Dispute sent': fmtDT(x.disputed_at), Dispute: x.dispute_text, Status: x.dispute_status, Reply: x.staff_reply, 'Resolved by': x.resolved_by, 'Resolved at': fmtDT(x.resolved_at) })) },
+      ])} />}
+    </div>
+  );
+  if (!d) return <>{bar}<Empty th={th}>Loading…</Empty></>;
   const withUnread = d.agents.filter(a => a.unread > 0);
   const pct = d.totals.evals ? Math.round((d.totals.acked / d.totals.evals) * 100) : 0;
   const open = d.disputes.filter(x => x.dispute_status === 'open');
   return (
     <>
+      {bar}
       <div style={gridStyle(150)}>
         <Kpi th={th} label="Evaluations confirmed" value={`${pct}%`} sub={`${d.totals.acked} of ${d.totals.evals}`} color={pct >= 80 ? GREEN : pct >= 50 ? AMBER : RED} />
         <Kpi th={th} label="Agents with unread" value={withUnread.length} color={withUnread.length ? AMBER : GREEN} />
@@ -287,14 +309,21 @@ function UsageList({ th, title, rows, empty, unit = 'times' }) {
 }
 
 function Usage({ th }) {
-  const [days, setDays] = useState(30);
+  const [range, setRange] = useState(defaultRange(30));
   const [d, setD] = useState(null);
-  useEffect(() => { setD(null); api.get(`/admin/engagement/usage?days=${days}`).then(r => setD(r.data)).catch(() => setD({ pages: [], links: [], files: [], navSearches: [], navMisses: [], faqs: [], navTotal: 0 })); }, [days]);
+  useEffect(() => { setD(null); api.get(`/admin/engagement/usage?all=1&${rangeQuery(range)}`).then(r => setD(r.data)).catch(() => setD({ pages: [], links: [], files: [], navSearches: [], navMisses: [], faqs: [], navTotal: 0 })); }, [range]);
   return (
     <>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-        <span style={{ fontSize: 12.5, color: th.sub, fontWeight: 700 }}>Period</span>
-        {[7, 30, 90].map(n => <button key={n} onClick={() => setDays(n)} style={{ padding: '5px 12px', borderRadius: 100, border: `1px solid ${days === n ? th.text : th.border}`, background: days === n ? th.text : 'transparent', color: days === n ? th.card : th.text, fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>{n} days</button>)}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <DateRange value={range} onChange={setRange} darkMode={th.card === '#111827'} />
+        {d && <ExportButton onClick={() => exportSheets(`usage-${rangeFile(range)}`, [
+          { name: 'Pages', rows: d.pages.map(x => ({ Page: x.item, Visits: x.n, Agents: x.people })) },
+          { name: 'External links', rows: d.links.map(x => ({ Link: x.item, Clicks: x.n, Agents: x.people })) },
+          { name: 'Folder files', rows: d.files.map(x => ({ File: x.item, Opens: x.n, Agents: x.people })) },
+          { name: 'Go to searches', rows: d.navSearches.map(x => ({ Search: x.item, Times: x.n, Agents: x.people })) },
+          { name: 'Go to found nothing', rows: d.navMisses.map(x => ({ Search: x.item, Times: x.n, Agents: x.people })) },
+          { name: 'Most viewed FAQs', rows: d.faqs.map(x => ({ Question: x.question_en, Category: x.category, Views: x.views })) },
+        ])} />}
       </div>
       {!d ? <Empty th={th}>Loading…</Empty> : (
         <>

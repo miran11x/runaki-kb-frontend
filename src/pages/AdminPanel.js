@@ -20,6 +20,7 @@ import SearchInsights from '../components/SearchInsights';
 import EngagementAdmin from '../components/Engagement';
 import IncidentAdmin from '../components/IncidentAdmin';
 import { FoldersAdmin, SmsAdmin } from '../components/AgentHub';
+import { DateRange, ExportButton, defaultRange, rangeQuery, rangeLabel, rangeFile, exportSheets, fmtDT } from '../components/ReportKit';
 import TranslationReview from '../components/TranslationReview';
 import TranslationQuest from '../components/TranslationQuest';
 
@@ -211,16 +212,15 @@ export default function AdminPanel({ darkMode }) {
 
   const load = useCallback(async () => {
     try {
-      const [s,u,al,act,tf,lb,ph,wt] = await Promise.all([
+      const [s,u,al,tf,ph,wt] = await Promise.all([
         api.get('/users/stats'), api.get('/users'),
-        api.get('/users/active-list'), api.get('/users/activity'),
+        api.get('/users/active-list'),
         api.get('/faqs/top-viewed'),
-        api.get('/users/leaderboard').catch(() => ({ data: [] })),
         api.get('/users/stats/peak-hours').catch(() => ({ data: [] })),
         api.get('/users/stats/weekly').catch(() => ({ data: [] })),
       ]);
       setStats(s.data); setUsers(u.data); setActive(al.data);
-      setActivity(act.data); setTopFAQs(tf.data); setLeaderboard(lb.data);
+      setTopFAQs(tf.data);
       api.get('/callflows/all').then(r => setCallFlows(r.data)).catch(() => {});
       const phFull = Array.from({length:24},(_,i) => {
         const found = ph.data.find(x => parseInt(x.hour) === i);
@@ -248,6 +248,14 @@ export default function AdminPanel({ darkMode }) {
   const deleteUser = async id => { if (!window.confirm('Delete this user?')) return; await api.delete(`/users/${id}`); toast.success('Deleted'); load(); };
 
   const [exporting, setExporting] = useState(false);
+  // Activity log and Leaderboard: any date range + Excel export
+  const [actRange, setActRange] = useState(defaultRange(7));
+  const [lbRange, setLbRange] = useState({ kind: 'all' });
+  useEffect(() => { api.get(`/users/activity?${rangeQuery(actRange)}`).then(r => setActivity(r.data)).catch(() => toast.error('Could not load the activity log')); }, [actRange]);
+  useEffect(() => { api.get(`/users/leaderboard?limit=all&${rangeQuery(lbRange)}`).then(r => setLeaderboard(r.data)).catch(() => setLeaderboard([])); }, [lbRange]);
+  const exportActivity = () => exportSheets(`activity-log-${rangeFile(actRange)}`, [{ name: 'Activity log', rows: activity.map(a => ({ When: fmtDT(a.created_at), User: a.name, Role: a.role, Action: a.action, Details: a.details })) }]);
+  const exportLeaderboard = () => exportSheets(`agent-leaderboard-${rangeFile(lbRange)}`, [{ name: 'Leaderboard', rows: leaderboard.map((a, i) => ({ Rank: i + 1, Agent: a.name, Title: a.title, 'FAQs viewed': Number(a.faqs_viewed) || 0, Bookmarks: Number(a.bookmarks) || 0, 'Helpful ratings': Number(a.helpful_ratings) || 0, 'Last seen': fmtDT(a.last_seen) })) }]);
+  const exportLive = () => exportSheets('online-now', [{ name: 'Online now', rows: activeList.map(u => ({ Name: u.name, Email: u.email, Role: u.role, Title: u.title, 'Last active': fmtDT(u.last_ping) })) }]);
   const exportAccounts = async () => {
     setExporting(true);
     try {
@@ -782,6 +790,7 @@ export default function AdminPanel({ darkMode }) {
                   <div style={{ fontSize:'18px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>Live — {activeList.length} Online</div>
                   <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8', marginTop:'2px' }}>Auto-refreshes every 30 seconds</div>
                 </div>
+                <ExportButton onClick={exportLive} />
               </div>
               {activeList.length === 0 ? <EmptyState text="No agents online right now" /> : (
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:'12px' }}>
@@ -810,8 +819,12 @@ export default function AdminPanel({ darkMode }) {
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
                 <div style={{ fontSize:'18px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>Activity Log</div>
-                <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8', fontWeight:'600' }}>Last 100 actions</div>
+                <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                  <span style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8', fontWeight:'600' }}>{activity.length} actions · {rangeLabel(actRange)}</span>
+                  <ExportButton onClick={exportActivity} />
+                </div>
               </div>
+              <DateRange value={actRange} onChange={setActRange} darkMode={darkMode} style={{ marginBottom:'14px' }} />
               <div style={{ background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', borderRadius:'18px', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', overflow:'hidden', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 4px 24px rgba(11,17,32,0.06)' }}>
                 {activity.map((a,i) => {
                   const colors = { LOGIN:'#10b981',LOGOUT:'#94a3b8',CREATE_FAQ:'#6366f1',UPDATE_FAQ:'#f59e0b',DELETE_FAQ:'#ef4444',CREATE_TIP:'#f97316' };
@@ -838,8 +851,12 @@ export default function AdminPanel({ darkMode }) {
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'18px' }}>
                 <div style={{ fontSize:'18px', fontWeight:'800', color: darkMode?'#f1f5f9':NAVY }}>🏆 Agent Leaderboard</div>
-                <div style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8', fontWeight:'600' }}>Top 20 by FAQ views</div>
+                <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                  <span style={{ fontSize:'12px', color: darkMode?'rgba(255,255,255,0.3)':'#94a3b8', fontWeight:'600' }}>All agents by FAQ views · {rangeLabel(lbRange)}</span>
+                  <ExportButton onClick={exportLeaderboard} />
+                </div>
               </div>
+              <DateRange value={lbRange} onChange={setLbRange} darkMode={darkMode} style={{ marginBottom:'14px' }} />
               <div style={{ background: darkMode?'linear-gradient(145deg,#0f1623,#111827)':'#fff', borderRadius:'18px', border: darkMode?'1px solid rgba(255,255,255,0.07)':'1px solid #e2e8f0', overflow:'hidden', boxShadow: darkMode?'0 4px 24px rgba(0,0,0,0.3)':'0 4px 24px rgba(11,17,32,0.06)' }}>
                 {leaderboard.length === 0 ? <EmptyState text="No agent activity yet" /> : leaderboard.map((agent, i) => {
                   const medals = ['🥇','🥈','🥉'];

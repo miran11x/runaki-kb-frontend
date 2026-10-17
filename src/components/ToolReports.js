@@ -68,12 +68,26 @@ function Dashboard({ th }) {
   }, [range]);
 
   const max = useMemo(() => (d ? Math.max(1, ...d.heatmap.flat()) : 1), [d]);
+  const exportDash = () => {
+    const wb = XLSX.utils.book_new();
+    const add = (name, rows) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows.length ? rows : [{ Note: 'No data' }]), name);
+    add('Summary', [{ From: range.from || 'All time', To: range.to || 'Today', Agents: d.agents, 'Used the tools': d.activeAgents, 'Descriptions copied': d.copies, 'Zone lookups': d.zones }]);
+    add('Categories', (d.topCategories || []).map(x => ({ Category: x.name, Copies: x.count })));
+    add('Agent leaderboard', (d.leaderboard || []).map(x => ({ Agent: x.name, Copies: x.count })));
+    add('Neighborhoods', (d.topZones || []).map(x => ({ Neighborhood: x.name, Lookups: x.count })));
+    add('Daily', (d.trend || []).map(x => ({ Day: x.day, Copies: x.copies, 'Zone lookups': x.zones })));
+    add('Heatmap', DAYS.map((day, i) => Object.fromEntries([['Day', day], ...(d.heatmap[i] || []).map((v, h) => [`${h}:00`, v])])));
+    XLSX.writeFile(wb, `tools-dashboard-${range.from || 'all'}_${range.to || 'now'}.xlsx`);
+  };
   const tick = { fontSize: 11, fill: th.sub };
   const tip = { background: th.card, border: `1px solid ${th.border}`, color: th.text, borderRadius: 8 };
 
   return (
     <div>
-      <RangeBar th={th} range={range} setRange={setRange} />
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <RangeBar th={th} range={range} setRange={setRange} />
+        {d && <button onClick={exportDash} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: ORANGE, color: '#fff', fontWeight: 800, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>⬇ Export to Excel</button>}
+      </div>
       {!d ? <div style={{ color: th.sub }}>Loading…</div> : (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 12, marginBottom: 14 }}>

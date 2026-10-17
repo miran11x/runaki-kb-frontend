@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import * as XLSX from 'xlsx';
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../utils/api';
+import { DateRange, ExportButton, defaultRange, rangeQuery, rangeLabel, rangeFile, exportSheets, fmtDT } from './ReportKit';
 
 // Admin Panel → Overview: what the agents are doing, in one place (team lead only).
 
@@ -66,11 +66,11 @@ const MiniList = ({ th, rows, empty, render }) =>
 /* ------------------------------------------------------------------ */
 /*  Agent detail                                                       */
 /* ------------------------------------------------------------------ */
-function AgentDetail({ th, id, days, onClose }) {
+function AgentDetail({ th, id, range, onClose }) {
   const [d, setD] = useState(null);
   useEffect(() => {
-    api.get(`/admin/agents/${id}?days=${days === 'all' ? 'all' : Math.max(days, 30)}`).then(r => setD(r.data)).catch(() => { toast.error('Could not load this agent'); onClose(); });
-  }, [id, days, onClose]);
+    api.get(`/admin/agents/${id}?${rangeQuery(range.kind === 'days' ? { kind: 'days', days: Math.max(range.days, 30) } : range)}`).then(r => setD(r.data)).catch(() => { toast.error('Could not load this agent'); onClose(); });
+  }, [id, range, onClose]);
 
   const sec = { fontSize: 12.5, fontWeight: 800, color: th.sub, margin: '16px 0 6px' };
   const line = { padding: '6px 0', borderBottom: `1px solid ${th.border}`, fontSize: 13, color: th.text, display: 'flex', justifyContent: 'space-between', gap: 10 };
@@ -82,7 +82,7 @@ function AgentDetail({ th, id, days, onClose }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
           <div>
             <div style={{ fontSize: 19, fontWeight: 900, color: th.text }}>{d ? d.user.name : 'Loading…'}</div>
-            {d && <div style={{ fontSize: 12.5, color: th.sub, marginTop: 2 }}>Wave ID {d.user.wave_id || '—'} · last seen {ago(d.user.last_seen)} · {days === 'all' ? 'all time' : `last ${Math.max(days, 30)} days`}</div>}
+            {d && <div style={{ fontSize: 12.5, color: th.sub, marginTop: 2 }}>Wave ID {d.user.wave_id || '—'} · last seen {ago(d.user.last_seen)} · {range.kind === 'days' ? `last ${Math.max(range.days, 30)} days` : rangeLabel(range)}</div>}
           </div>
           <button onClick={onClose} aria-label="Close" style={{ border: `1px solid ${th.border}`, background: 'transparent', color: th.text, borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>Close</button>
         </div>
@@ -144,7 +144,7 @@ const COLS = [
 
 export function AdminDashboard({ darkMode }) {
   const th = useTheme(darkMode);
-  const [days, setDays] = useState(7);
+  const [range, setRange] = useState(defaultRange(7));
   const [d, setD] = useState(null);
   const [err, setErr] = useState(false);
   const [q, setQ] = useState('');
@@ -154,10 +154,10 @@ export function AdminDashboard({ darkMode }) {
 
   const load = useCallback(async () => {
     try {
-      const r = await api.get(`/admin/dashboard?days=${days}`);
+      const r = await api.get(`/admin/dashboard?${rangeQuery(range)}`);
       setD(r.data); setErr(false); setLoadedAt(new Date());
     } catch { setErr(true); }
-  }, [days]);
+  }, [range]);
 
   useEffect(() => { setD(null); load(); }, [load]);
   useEffect(() => { const t = setInterval(load, 60000); return () => clearInterval(t); }, [load]);
@@ -178,15 +178,36 @@ export function AdminDashboard({ darkMode }) {
     return list;
   }, [d, q, sort]);
 
+  const [busyX, setBusyX] = useState(false);
   const exportXlsx = () => {
-    const data = rows.map(a => ({
-      Agent: a.name, 'Wave ID': a.wave_id, 'Last seen': a.last_seen ? fmt(a.last_seen) : '', [days === 'all' ? 'Logins (all time)' : `Logins (${days}d)`]: a.logins,
-      'Ticket descriptions copied': a.copies, 'Zone lookups': a.zones, Searches: a.searches, 'FAQs read (all time)': a.faqs_viewed,
-      Bookmarks: a.bookmarks, 'Feedback sent': a.feedback, 'Avg evaluation score': a.avg_score, Evaluations: a.evals,
-    }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Agents');
-    XLSX.writeFile(wb, `agent-activity-${days === 'all' ? 'all-time' : `${days}d`}.xlsx`);
+    setBusyX(true);
+    const lbl = rangeLabel(range);
+    const kk = d.kpis;
+    exportSheets(`admin-dashboard-${rangeFile(range)}`, [
+      { name: 'Summary', rows: [
+        { Item: 'Period', Value: lbl }, { Item: 'Agents (active accounts)', Value: kk.agents }, { Item: 'Online now', Value: kk.online },
+        { Item: 'Agents who logged in', Value: kk.activeAgents }, { Item: 'Logins', Value: kk.logins }, { Item: 'Agents with no login for 7 days', Value: kk.inactive7 },
+        { Item: 'Ticket descriptions copied', Value: kk.copies }, { Item: 'Zone lookups', Value: kk.zones }, { Item: 'Searches', Value: kk.searches },
+        { Item: 'Searches that found nothing', Value: kk.noResult }, { Item: 'New feedback (now)', Value: kk.feedbackNew }, { Item: 'Open flags (now)', Value: kk.flagsOpen },
+        { Item: 'Coaching pending (last 60 days)', Value: kk.coachingPending },
+      ] },
+      { name: 'Agents', rows: d.agents.map(a => ({
+        Agent: a.name, 'Wave ID': a.wave_id, Title: a.title, 'Last seen': fmtDT(a.last_seen), Online: a.online ? 'Yes' : 'No', [`Logins (${lbl})`]: a.logins,
+        'Ticket descriptions copied': a.copies, 'Zone lookups': a.zones, Searches: a.searches, 'FAQs read (all time)': a.faqs_viewed,
+        Bookmarks: a.bookmarks, 'Feedback sent': a.feedback, 'Avg evaluation score %': a.avg_score, Evaluations: a.evals })) },
+      { name: 'Logins by day', rows: d.series.logins.map(x => ({ Day: x.day, Logins: x.logins, 'Different agents': x.people })) },
+      { name: 'Tool use by day', rows: d.series.tools.map(x => ({ Day: x.day, 'Ticket descriptions copied': x.copies, 'Zone lookups': x.zones })) },
+      { name: 'Logins by hour', rows: d.series.peak.map(x => ({ Hour: `${String(x.hour).padStart(2, '0')}:00`, Logins: x.logins })) },
+      { name: 'Most read FAQs', rows: d.content.topFaqs.map(x => ({ Question: x.question_en, Category: x.category, Views: x.views })) },
+      { name: 'Never read FAQs', rows: d.content.neverViewed.map(x => ({ Question: x.question_en, Category: x.category })) },
+      { name: 'Unhelpful FAQs', rows: d.content.unhelpful.map(x => ({ Question: x.question_en, Category: x.category, 'Thumbs down': x.down, 'Thumbs up': x.up })) },
+      { name: 'Searches with no result', rows: d.content.noResult.map(x => ({ Search: x.query, Times: x.times, Agents: x.people })) },
+      { name: 'Evaluations by day', rows: d.quality.daily.map(x => ({ Day: x.day, 'Average score %': x.avg, Evaluations: x.n })) },
+      { name: 'Lowest scoring agents', rows: d.quality.lowest.map(x => ({ Agent: x.agent_name, 'Average score %': x.avg, Evaluations: x.n })) },
+      { name: 'No login for 7 days', rows: d.attention.inactive.map(x => ({ Agent: x.name, 'Wave ID': x.wave_id, 'Last seen': fmtDT(x.last_seen) })) },
+      { name: 'New feedback', rows: d.attention.feedback.map(x => ({ From: x.user_name, Rating: x.rating, Message: x.message, Sent: fmtDT(x.created_at) })) },
+    ]);
+    setBusyX(false);
   };
 
   const closeDetail = useCallback(() => setOpenId(null), []);
@@ -208,13 +229,10 @@ export function AdminDashboard({ darkMode }) {
     <div>
       {/* toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {[[1, 'Today'], [7, '7 days'], [30, '30 days'], [90, '90 days'], ['all', 'All time']].map(([n, l]) => (
-            <button key={n} style={rangeBtn(days === n)} onClick={() => setDays(n)}>{l}</button>
-          ))}
-        </div>
+        <DateRange value={range} onChange={setRange} darkMode={darkMode} />
         <div style={{ fontSize: 12, color: th.sub }}>
           {loadedAt ? `Updated ${loadedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · refreshes every minute` : ''}
+          <ExportButton onClick={exportXlsx} busy={busyX} label="Export everything" style={{ marginInlineStart: 10 }} />
           <button onClick={load} style={{ marginInlineStart: 10, padding: '5px 12px', borderRadius: 8, border: `1px solid ${th.border}`, background: 'transparent', color: th.text, cursor: 'pointer', fontFamily: 'inherit' }}>Refresh</button>
         </div>
       </div>
@@ -225,7 +243,7 @@ export function AdminDashboard({ darkMode }) {
         <Kpi th={th} label="Agents" value={k.agents} sub="active accounts" />
         <Kpi th={th} label="Online now" value={k.online} color={GREEN} sub="seen in the last 5 minutes" />
         <Kpi th={th} label="Agents who logged in" value={`${k.activeAgents}`} sub={`${pct}% of agents`} />
-        <Kpi th={th} label="Logins" value={k.logins} sub={days === 'all' ? 'all time' : `in ${days === 1 ? 'the last day' : `${days} days`}`} />
+        <Kpi th={th} label="Logins" value={k.logins} sub={rangeLabel(range)} />
         <Kpi th={th} label="Ticket descriptions copied" value={k.copies} color={ORANGE} />
         <Kpi th={th} label="Zone lookups" value={k.zones} color={BLUE} />
         <Kpi th={th} label="Searches" value={k.searches} sub={k.searches ? `${k.noResult} found nothing` : 'logging started'} />
@@ -315,7 +333,7 @@ export function AdminDashboard({ darkMode }) {
       <Panel
         th={th}
         title="Every agent"
-        hint={`Activity ${days === 'all' ? 'over all time' : `in the last ${days === 1 ? 'day' : `${days} days`}`}. Click a column to sort, click an agent to see everything they did.`}
+        hint={`Activity for ${rangeLabel(range)}. Click a column to sort, click an agent to see everything they did.`}
         style={{ marginBottom: 14 }}
         right={(
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -399,7 +417,7 @@ export function AdminDashboard({ darkMode }) {
         </Panel>
       </div>
 
-      {openId && <AgentDetail th={th} id={openId} days={days} onClose={closeDetail} />}
+      {openId && <AgentDetail th={th} id={openId} range={range} onClose={closeDetail} />}
     </div>
   );
 }

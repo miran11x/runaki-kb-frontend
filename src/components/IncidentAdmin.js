@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { useTheme, Panel, Empty, ORANGE, RED } from './qaUi';
 import { SEV } from './IncidentBanner';
+import { DateRange, ExportButton, exportSheets, inRange, rangeFile, defaultRange, fmtDT } from './ReportKit';
 
 const DURATIONS = [[30, '30 minutes'], [60, '1 hour'], [120, '2 hours'], [240, '4 hours'], [720, '12 hours'], [1440, '1 day']];
 const when = d => { try { return new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch { return ''; } };
@@ -14,6 +15,7 @@ export default function IncidentAdmin({ darkMode }) {
   const [mins, setMins] = useState(120);
   const [d, setD] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [range, setRange] = useState({ kind: 'all' });
   const load = useCallback(() => api.get('/admin/incident/history').then(r => setD(r.data)).catch(() => toast.error('Could not load incidents')), []);
   useEffect(() => { load(); }, [load]);
 
@@ -54,7 +56,11 @@ export default function IncidentAdmin({ darkMode }) {
       </Panel>
 
       <Panel th={th} title="🕘 Recent lines">
-        {!d ? <Empty th={th}>Loading…</Empty> : !d.rows.length ? <Empty th={th}>Nothing posted yet.</Empty> : d.rows.map(r => {
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <DateRange value={range} onChange={setRange} darkMode={darkMode} />
+          <ExportButton onClick={() => exportSheets(`incidents-${rangeFile(range)}`, [{ name: 'Incident lines', rows: ((d && d.rows) || []).filter(r => inRange(range, r.created_at)).map(r => ({ Posted: fmtDT(r.created_at), By: r.by || 'Staff', Severity: r.severity, Message: r.message, Expires: fmtDT(r.expires_at), Ended: fmtDT(r.ended_at), State: r.ended_at ? 'ended' : new Date(r.expires_at) > new Date() ? 'live' : 'expired' })) }])} />
+        </div>
+        {!d ? <Empty th={th}>Loading…</Empty> : !d.rows.filter(r => inRange(range, r.created_at)).length ? <Empty th={th}>Nothing posted in this period.</Empty> : d.rows.filter(r => inRange(range, r.created_at)).map(r => {
           const s = SEV[r.severity] || SEV.warning;
           const state = r.ended_at ? 'ended' : new Date(r.expires_at) > new Date() ? 'live' : 'expired';
           return (

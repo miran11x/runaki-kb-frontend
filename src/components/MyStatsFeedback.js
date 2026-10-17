@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import PageHero from './PageHero';
+import { DateRange, inRange } from './ReportKit';
 import api from '../utils/api';
 
 // From the old "Agent Call Description Tool":
@@ -185,6 +186,7 @@ export function FeedbackAdmin({ darkMode }) {
   const [rows, setRows] = useState([]);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState('all');
+  const [range, setRange] = useState({ kind: 'all' });
 
   const load = useCallback(async () => {
     try { setRows((await api.get('/td/feedback')).data || []); } catch { toast.error('Could not load feedback'); }
@@ -194,9 +196,9 @@ export function FeedbackAdmin({ darkMode }) {
   const newCount = rows.filter(r => r.status === 'new').length;
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return rows.filter(r => (filter === 'all' || r.status === filter) &&
+    return rows.filter(r => (filter === 'all' || r.status === filter) && inRange(range, r.created_at) &&
       (!s || [r.user_name, r.message, r.category_request].some(v => (v || '').toLowerCase().includes(s))));
-  }, [rows, q, filter]);
+  }, [rows, q, filter, range]);
 
   const setStatus = async (r, status) => {
     try { await api.patch(`/td/feedback/${r.id}`, { status }); load(); } catch { toast.error('Could not update'); }
@@ -214,6 +216,7 @@ export function FeedbackAdmin({ darkMode }) {
     <div style={{ maxWidth: 900 }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>💬 Agent Feedback</div>
       <div style={{ fontSize: 13, color: th.sub, marginBottom: 16 }}>Ratings, comments and missing-description requests sent by agents.</div>
+      <DateRange value={range} onChange={setRange} darkMode={darkMode} style={{ marginBottom: 12 }} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
         <input style={{ ...inp, flex: '1 1 220px' }} placeholder="Search by agent or message…" value={q} onChange={e => setQ(e.target.value)} />
         <button style={pill(filter === 'all')} onClick={() => setFilter('all')}>All</button>

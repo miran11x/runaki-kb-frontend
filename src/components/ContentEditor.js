@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
+import { ExportButton, exportSheets } from './ReportKit';
 import { SCRIPTS_DEFAULT, HOLD_DEFAULT, KYC_DEFAULT } from './OpsPages';
 
 const ORANGE = '#FF6B35';
@@ -327,7 +328,10 @@ export function ExternalToolsAdmin({ darkMode }) {
 
   return (
     <div style={{ maxWidth: 900 }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>🔗 External Links</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>🔗 External Links</div>
+        <ExportButton onClick={() => exportSheets('external-links', [{ name: 'External links', rows: tools.map(t => ({ Name: t.name, URL: t.url, Visible: t.is_active === false ? 'No' : 'Yes' })) }])} />
+      </div>
       <div style={{ fontSize: 13, color: th.sub, marginBottom: 18, lineHeight: 1.7 }}>
         Add a website here (CRM, billing system, portals) and it appears as a button under <b>Tools → External Links</b>.
         Agents click it and it opens in a new browser tab. Use <b>Visible / Hidden</b> to switch a link on or off, and <b>Remove</b> to delete it.
