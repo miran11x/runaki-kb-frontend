@@ -164,35 +164,101 @@ export function FoldersAdmin({ darkMode }) {
 
 /* ───────────────────────── SMS templates (agent) ───────────────────────── */
 const LANGS = [['en', 'English'], ['ku', 'Sorani'], ['ba', 'Badini'], ['ar', 'Arabic']];
+// Contact-reason helpers: the CRM level an agent must pick for each SMS (Level 1 › Level 2 › Level 3)
+const crPath = (tree, id) => { const by = new Map((tree || []).map(n => [n.id, n])); const out = []; let n = by.get(id); while (n) { out.unshift(n.name); n = n.parent_id ? by.get(n.parent_id) : null; } return out; };
+const smsLevel = (t, tree) => { const live = t.reason_id ? crPath(tree, t.reason_id) : []; return live.length ? live : (t.reason_path ? t.reason_path.split('>').map(x => x.trim()).filter(Boolean) : []); };
+const smsMatches = (t, q) => { const w = q.trim().toLowerCase().replace(/^#/, ''); if (!w) return true; if (/^\d+$/.test(w) && t.code != null) return String(t.code) === w; return [t.title, t.body_en, t.body_ku, t.body_ba, t.body_ar].some(x => String(x || '').toLowerCase().includes(w)); };
+
+function LevelChip({ levels, th }) {
+  if (!levels.length) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: `${ORANGE}12`, border: `1px solid ${ORANGE}55`, borderRadius: 10, padding: '7px 10px', marginBottom: 8 }}>
+      <span style={{ fontSize: 12, fontWeight: 800, color: ORANGE }}>📍 Select in CRM</span>
+      {levels.map((l, k) => (
+        <React.Fragment key={k}>
+          {k > 0 && <span style={{ color: th.sub, fontWeight: 800 }}>›</span>}
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: th.text, background: th.card, border: `1px solid ${th.border}`, borderRadius: 100, padding: '2px 10px' }}><span style={{ color: th.sub, fontWeight: 600 }}>L{k + 1} </span>{l}</span>
+        </React.Fragment>
+      ))}
+      <button onClick={() => copy(levels.join(' > '), 'Level copied')} style={{ marginInlineStart: 'auto', background: 'none', border: `1px solid ${ORANGE}`, color: ORANGE, borderRadius: 100, padding: '2px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>Copy</button>
+    </div>
+  );
+}
+
 export function SmsTemplates({ darkMode }) {
   const th = useTheme(darkMode);
   const [types, setTypes] = useState(null);
+  const [tree, setTree] = useState([]);
   const [tid, setTid] = useState(null);
   const [lang, setLang] = useState('en');
-  useEffect(() => { api.get('/sms').then(r => { const list = (r.data || []).filter(t => (t.templates || []).length); setTypes(list); setTid(list[0]?.id || null); }).catch(() => setTypes([])); }, []);
+  const [q, setQ] = useState('');
+  useEffect(() => {
+    api.get('/sms').then(r => { const list = (r.data || []).filter(t => (t.templates || []).length); setTypes(list); setTid(list[0]?.id || null); }).catch(() => setTypes([]));
+    api.get('/contact-reasons').then(r => setTree(r.data || [])).catch(() => {});
+  }, []);
   if (!types) return <Empty th={th}>Loading…</Empty>;
   if (!types.length) return <Empty th={th}>No SMS templates yet.</Empty>;
   const cur = types.find(t => t.id === tid) || types[0];
   const body = t => t[`body_${lang}`] || t.body_en || t.body_ku || t.body_ba || t.body_ar || '';
+  const searching = q.trim().length > 0;
+  const shown = searching ? types.flatMap(t => t.templates).filter(m => smsMatches(m, q)) : cur.templates;
   return (
     <div style={{ maxWidth: 940 }}>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-        {types.map(t => <button key={t.id} onClick={() => setTid(t.id)} style={{ padding: '8px 16px', borderRadius: 100, border: `1px solid ${cur.id === t.id ? ORANGE : th.border}`, background: cur.id === t.id ? ORANGE : th.card, color: cur.id === t.id ? '#fff' : th.text, fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>{t.icon} {t.name}</button>)}
-      </div>
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by SMS number or words (for example 3, bill, KYC)…" style={{ ...inputStyle(th), width: '100%', boxSizing: 'border-box', marginBottom: 10, padding: '11px 14px', fontSize: 14 }} />
+      {!searching && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+          {types.map(t => <button key={t.id} onClick={() => setTid(t.id)} style={{ padding: '8px 16px', borderRadius: 100, border: `1px solid ${cur.id === t.id ? ORANGE : th.border}`, background: cur.id === t.id ? ORANGE : th.card, color: cur.id === t.id ? '#fff' : th.text, fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>{t.icon} {t.name}</button>)}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
         <span style={{ fontSize: 12.5, color: th.sub, fontWeight: 700 }}>🌐 Language</span>
         {LANGS.map(([k, n]) => <button key={k} onClick={() => setLang(k)} style={{ padding: '5px 12px', borderRadius: 100, border: `1px solid ${lang === k ? th.text : th.border}`, background: lang === k ? th.text : 'transparent', color: lang === k ? th.card : th.text, fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>{n}</button>)}
       </div>
-      {!cur.templates.length ? <Empty th={th}>No templates in this type yet.</Empty> : cur.templates.map(t => (
+      {!shown.length ? <Empty th={th}>{searching ? `No SMS found for “${q}”.` : 'No templates in this type yet.'}</Empty> : shown.map(t => (
         <div key={t.id} style={{ background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, padding: '14px 16px', marginBottom: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
-            <div style={{ fontWeight: 800, color: th.text, fontSize: 14.5 }}>{t.title}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              {t.code != null && <span style={{ background: ORANGE, color: '#fff', fontWeight: 900, fontSize: 13, borderRadius: 8, padding: '2px 9px' }}>#{t.code}</span>}
+              <div style={{ fontWeight: 800, color: th.text, fontSize: 14.5 }}>{t.title}</div>
+            </div>
             <button onClick={() => copy(body(t), 'SMS copied')} style={btn(ORANGE, { padding: '7px 14px', fontSize: 12.5 })}>📋 Copy SMS</button>
           </div>
+          <LevelChip levels={smsLevel(t, tree)} th={th} />
           <div dir={lang === 'en' ? 'ltr' : 'rtl'} style={{ whiteSpace: 'pre-wrap', color: th.text, background: th.soft, border: `1px solid ${th.border}`, borderRadius: 10, padding: '12px 14px', fontSize: 14, lineHeight: 1.85, overflowWrap: 'anywhere' }}>{body(t)}</div>
           {!t[`body_${lang}`] && <div style={{ fontSize: 11.5, color: th.sub, marginTop: 6 }}>No {LANGS.find(l => l[0] === lang)[1]} text yet, showing another language.</div>}
         </div>
       ))}
+    </div>
+  );
+}
+
+
+// Cascading selects (Level 1 → Level 2 → Level 3) that store the CRM contact reason the agent must choose for this SMS
+function LevelPicker({ th, inp, tree, edit, setEdit }) {
+  const kids = pid => tree.filter(n => (n.parent_id || null) === pid && n.is_active !== false).sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
+  const chain = edit.reason_id ? (() => { const by = new Map(tree.map(n => [n.id, n])); const out = []; let n = by.get(edit.reason_id); while (n) { out.unshift(n); n = n.parent_id ? by.get(n.parent_id) : null; } return out; })() : [];
+  const pick = (level, val) => {
+    const keep = chain.slice(0, level);
+    const node = val ? tree.find(n => n.id === +val) : null;
+    const next = node ? [...keep, node] : keep;
+    const last = next[next.length - 1];
+    setEdit({ ...edit, reason_id: last ? last.id : null, reason_path: next.map(n => n.name).join(' > ') });
+  };
+  const sels = [kids(null)];
+  chain.forEach(n => sels.push(kids(n.id)));
+  const legacy = !chain.length && edit.reason_path;
+  return (
+    <div style={{ flex: 1, minWidth: 260 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: th.sub, marginBottom: 4 }}>CRM level the agent selects (contact reason)</div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {sels.slice(0, 3).map((opts, lv) => (opts.length || chain[lv]) ? (
+          <select key={lv} style={{ ...inp, flex: '1 1 150px' }} value={chain[lv] ? chain[lv].id : ''} onChange={e => pick(lv, e.target.value)}>
+            <option value="">{lv === 0 ? 'Level 1 (none)' : `Level ${lv + 1} (none)`}</option>
+            {opts.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
+          </select>
+        ) : null)}
+      </div>
+      {legacy && <div style={{ fontSize: 11.5, color: th.sub, marginTop: 4 }}>Saved as “{edit.reason_path}” (not found in the contact reasons list). Pick the right levels above to link it.</div>}
     </div>
   );
 }
@@ -203,6 +269,9 @@ export function SmsAdmin({ darkMode }) {
   const [types, setTypes] = useState([]);
   const [nt, setNt] = useState({ name: '', icon: '💬' });
   const [edit, setEdit] = useState(null); // {id?, type_id, title, body_*}
+  const [tree, setTree] = useState([]);
+  const [showArch, setShowArch] = useState({});
+  useEffect(() => { api.get('/contact-reasons?all=1').then(r => setTree(r.data || [])).catch(() => {}); }, []);
   const load = useCallback(() => api.get('/sms?all=1').then(r => setTypes(r.data || [])).catch(() => toast.error('Could not load SMS templates')), []);
   useEffect(() => { load(); }, [load]);
   const run = async (fn, ok) => { try { await fn(); if (ok) toast.success(ok); load(); return true; } catch (e) { toast.error(errMsg(e, 'Something went wrong')); return false; } };
@@ -210,10 +279,26 @@ export function SmsAdmin({ darkMode }) {
   const area = (k, label, rtl) => (
     <div style={{ flex: '1 1 300px' }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: th.sub, marginBottom: 4 }}>{label}</div>
-      <textarea rows={4} dir={rtl ? 'rtl' : 'ltr'} style={{ ...inp, width: '100%', boxSizing: 'border-box', lineHeight: 1.8, resize: 'vertical' }} value={edit[k] || ''} onChange={e => setEdit({ ...edit, [k]: e.target.value })} />
+      <textarea rows={10} dir={rtl ? 'rtl' : 'ltr'} style={{ ...inp, width: '100%', boxSizing: 'border-box', lineHeight: 1.8, resize: 'vertical' }} value={edit[k] || ''} onChange={e => setEdit({ ...edit, [k]: e.target.value })} />
       <div style={{ fontSize: 11, color: th.sub, textAlign: 'end' }}>{(edit[k] || '').length} characters</div>
     </div>
   );
+  const row = m => {
+    const lv = smsLevel(m, tree);
+    return (
+      <div key={m.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: `1px solid ${th.border}`, opacity: m.is_active && !m.is_archived ? 1 : 0.65 }}>
+        <span style={{ minWidth: 38, textAlign: 'center', background: m.code != null ? ORANGE : th.soft, color: m.code != null ? '#fff' : th.sub, fontWeight: 900, fontSize: 12.5, borderRadius: 8, padding: '3px 8px' }}>{m.code != null ? `#${m.code}` : 'no #'}</span>
+        <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+          <div style={{ fontWeight: 700, color: th.text, fontSize: 13.5 }}>{m.title}{m.is_archived && <span style={{ marginInlineStart: 8, fontSize: 11, color: th.sub }}>archived</span>}</div>
+          <div style={{ color: th.sub, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lv.length ? `📍 ${lv.join(' › ')}` : 'No CRM level set'} · {[m.body_en && 'EN', m.body_ku && 'KU', m.body_ba && 'BA', m.body_ar && 'AR'].filter(Boolean).join(' ')}</div>
+        </div>
+        <button style={mini(th, '#38bdf8')} onClick={() => setEdit({ ...m })}>Edit</button>
+        {!m.is_archived && <button style={mini(th, m.is_active ? GREEN : '#64748b')} title="Hidden templates are not shown to agents" onClick={() => run(() => api.put(`/admin/sms-templates/${m.id}`, { ...m, is_active: !m.is_active }))}>{m.is_active ? 'Visible' : 'Hidden'}</button>}
+        <button style={mini(th, m.is_archived ? GREEN : '#a16207')} onClick={() => run(() => api.put(`/admin/sms-templates/${m.id}`, { ...m, is_archived: !m.is_archived }), m.is_archived ? 'Restored' : 'Archived')}>{m.is_archived ? 'Restore' : 'Archive'}</button>
+        <button style={mini(th, RED)} onClick={() => window.confirm(`Delete “${m.title}” for good? Use Archive to keep it.`) && run(() => api.delete(`/admin/sms-templates/${m.id}`), 'Template deleted')}>✕</button>
+      </div>
+    );
+  };
   return (
     <div style={{ maxWidth: 980 }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: th.text, marginBottom: 4 }}>💬 SMS Templates</div>
@@ -225,6 +310,13 @@ export function SmsAdmin({ darkMode }) {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
             <select style={inp} value={edit.type_id} onChange={e => setEdit({ ...edit, type_id: +e.target.value })}>{types.map(t => <option key={t.id} value={t.id}>{t.icon} {t.name}</option>)}</select>
             <input style={{ ...inp, flex: '1 1 240px' }} placeholder="Title (e.g. Bill sent by SMS)" value={edit.title || ''} onChange={e => setEdit({ ...edit, title: e.target.value })} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 10 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: th.sub, marginBottom: 4 }}>SMS number</div>
+              <input type="number" min="1" style={{ ...inp, width: 100 }} placeholder="e.g. 3" value={edit.code ?? ''} onChange={e => setEdit({ ...edit, code: e.target.value === '' ? null : e.target.value })} />
+            </div>
+            <LevelPicker th={th} inp={inp} tree={tree} edit={edit} setEdit={setEdit} />
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>{area('body_en', 'English', false)}{area('body_ku', 'Sorani · سۆرانی', true)}{area('body_ba', 'Badini · بادینی', true)}{area('body_ar', 'Arabic · العربية', true)}</div>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
@@ -239,20 +331,16 @@ export function SmsAdmin({ darkMode }) {
             <input style={{ ...inp, width: 56, textAlign: 'center' }} defaultValue={t.icon} onBlur={e => e.target.value !== t.icon && run(() => api.put(`/admin/sms-types/${t.id}`, { ...t, icon: e.target.value }))} />
             <input style={{ ...inp, flex: '1 1 200px', fontWeight: 800 }} defaultValue={t.name} onBlur={e => e.target.value.trim() && e.target.value !== t.name && run(() => api.put(`/admin/sms-types/${t.id}`, { ...t, name: e.target.value }))} />
             <button style={mini(th, t.is_active ? GREEN : '#64748b')} onClick={() => run(() => api.put(`/admin/sms-types/${t.id}`, { ...t, is_active: !t.is_active }))}>{t.is_active ? 'Visible' : 'Hidden'}</button>
-            <button style={mini(th, ORANGE)} onClick={() => setEdit({ type_id: t.id, title: '', body_en: '', body_ku: '', body_ba: '', body_ar: '', sort_order: t.templates.length + 1 })}>＋ Add template</button>
+            <button style={mini(th, ORANGE)} onClick={() => setEdit({ type_id: t.id, title: '', body_en: '', body_ku: '', body_ba: '', body_ar: '', code: null, reason_id: null, reason_path: '', sort_order: t.templates.length + 1 })}>＋ Add template</button>
             <button style={mini(th, RED)} onClick={() => window.confirm(`Delete the type “${t.name}” and all its templates?`) && run(() => api.delete(`/admin/sms-types/${t.id}`), 'Type deleted')}>✕</button>
           </div>
-          {t.templates.map(m => (
-            <div key={m.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: `1px solid ${th.border}`, opacity: m.is_active ? 1 : 0.65 }}>
-              <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                <div style={{ fontWeight: 700, color: th.text, fontSize: 13.5 }}>{m.title}</div>
-                <div style={{ color: th.sub, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.body_en || m.body_ku || m.body_ba || m.body_ar}</div>
-              </div>
-              <button style={mini(th, '#38bdf8')} onClick={() => setEdit({ ...m })}>Edit</button>
-              <button style={mini(th, m.is_active ? GREEN : '#64748b')} onClick={() => run(() => api.put(`/admin/sms-templates/${m.id}`, { ...m, is_active: !m.is_active }))}>{m.is_active ? 'Visible' : 'Hidden'}</button>
-              <button style={mini(th, RED)} onClick={() => window.confirm(`Delete “${m.title}”?`) && run(() => api.delete(`/admin/sms-templates/${m.id}`), 'Template deleted')}>✕</button>
+          {t.templates.filter(m => !m.is_archived).map(m => row(m))}
+          {t.templates.some(m => m.is_archived) && (
+            <div style={{ marginTop: 6 }}>
+              <button style={mini(th, '#64748b')} onClick={() => setShowArch(a => ({ ...a, [t.id]: !a[t.id] }))}>🗄 Archived ({t.templates.filter(m => m.is_archived).length}) {showArch[t.id] ? '▴' : '▾'}</button>
+              {showArch[t.id] && t.templates.filter(m => m.is_archived).map(m => row(m))}
             </div>
-          ))}
+          )}
           {!t.templates.length && <div style={{ fontSize: 12.5, color: th.sub }}>No templates yet.</div>}
         </Panel>
       ))}
@@ -370,7 +458,7 @@ function AttachPicker({ faqs, th, picked, onPick, onClose }) {
         out.push({ key: `folder-${f.id}`, type: 'folder', id: f.id, icon: f.icon || '📁', label: f.name, sub: '', group: 'Folders', words: f.description || '' });
         (f.links || []).forEach(l => out.push({ key: `file-${l.id}`, type: 'file', id: l.id, folder_id: f.id, icon: l.has_file ? fileIcon(l.file_name) : '📄', label: l.title, sub: f.name, group: 'Files', words: `${f.name} ${l.description || ''}` }));
       });
-      src.sms.forEach(t => (t.templates || []).forEach(m => out.push({ key: `sms-${m.id}`, type: 'sms', id: m.id, icon: t.icon || '✉️', label: m.title, sub: t.name, group: 'Message types (SMS)', words: `${t.name} ${String(m.body_en || '').slice(0, 160)}` })));
+      src.sms.forEach(t => (t.templates || []).filter(m => !m.is_archived).forEach(m => out.push({ key: `sms-${m.id}`, type: 'sms', id: m.id, icon: t.icon || '✉️', label: m.title, sub: t.name, group: 'Message types (SMS)', words: `${t.name} ${String(m.body_en || '').slice(0, 160)}` })));
       src.tools.forEach(t => out.push({ key: `tool-${t.id}`, type: 'tool', id: t.id, icon: t.icon || '🔗', label: t.name, sub: '', group: 'External links', words: '' }));
     }
     NAV_ITEMS.forEach(n => out.push({ key: `page-${n.key}`, type: 'page', id: n.key, icon: n.icon, label: n.label, sub: '', group: 'Pages', words: n.words }));
