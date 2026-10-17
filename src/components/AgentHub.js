@@ -167,31 +167,38 @@ const LANGS = [['en', 'English'], ['ku', 'Sorani'], ['ba', 'Badini'], ['ar', 'Ar
 // Contact-reason helpers: the CRM level an agent must pick for each SMS (Level 1 › Level 2 › Level 3)
 const crPath = (tree, id) => { const by = new Map((tree || []).map(n => [n.id, n])); const out = []; let n = by.get(id); while (n) { out.unshift(n.name); n = n.parent_id ? by.get(n.parent_id) : null; } return out; };
 const smsLevel = (t, tree) => { const live = t.reason_id ? crPath(tree, t.reason_id) : []; return live.length ? live : (t.reason_path ? t.reason_path.split('>').map(x => x.trim()).filter(Boolean) : []); };
-const smsMatches = (t, q) => { const w = q.trim().toLowerCase().replace(/^#/, ''); if (!w) return true; if (/^\d+$/.test(w) && t.code != null) return String(t.code) === w; return [t.title, t.body_en, t.body_ku, t.body_ba, t.body_ar].some(x => String(x || '').toLowerCase().includes(w)); };
+const smsMatches = (t, q) => { const w = q.trim().toLowerCase().replace(/^#/, ''); if (!w) return true; if (/^\d+$/.test(w) && t.code != null) return Number(w) === t.code; return [t.title, t.body_en, t.body_ku, t.body_ba, t.body_ar].some(x => String(x || '').toLowerCase().includes(w)); };
 
-function LevelChip({ levels, th }) {
+const pad3 = n => String(n).padStart(3, '0');
+// {placeholders} are highlighted so agents see what the system fills in
+const withPlaceholders = text => String(text || '').split(/(\{[^}]+\})/g).map((p, i) => (/^\{[^}]+\}$/.test(p) ? <span key={i} style={{ color: ORANGE, fontWeight: 800, background: `${ORANGE}14`, borderRadius: 5, padding: '0 3px' }}>{p}</span> : <React.Fragment key={i}>{p}</React.Fragment>));
+
+function LevelChip({ levels, th, canCopy }) {
   if (!levels.length) return null;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: `${ORANGE}12`, border: `1px solid ${ORANGE}55`, borderRadius: 10, padding: '7px 10px', marginBottom: 8 }}>
-      <span style={{ fontSize: 12, fontWeight: 800, color: ORANGE }}>📍 Select in CRM</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: `${ORANGE}12`, border: `1px solid ${ORANGE}55`, borderRadius: 10, padding: '8px 12px', marginBottom: 10 }}>
+      <span style={{ fontSize: 12, fontWeight: 800, color: ORANGE }}>🎫 Select in Freshdesk</span>
       {levels.map((l, k) => (
         <React.Fragment key={k}>
           {k > 0 && <span style={{ color: th.sub, fontWeight: 800 }}>›</span>}
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: th.text, background: th.card, border: `1px solid ${th.border}`, borderRadius: 100, padding: '2px 10px' }}><span style={{ color: th.sub, fontWeight: 600 }}>L{k + 1} </span>{l}</span>
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: th.text, background: th.card, border: `1px solid ${th.border}`, borderRadius: 100, padding: '2px 10px' }}><span style={{ color: th.sub, fontWeight: 600 }}>Level {k + 1}: </span>{l}</span>
         </React.Fragment>
       ))}
-      <button onClick={() => copy(levels.join(' > '), 'Level copied')} style={{ marginInlineStart: 'auto', background: 'none', border: `1px solid ${ORANGE}`, color: ORANGE, borderRadius: 100, padding: '2px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>Copy</button>
+      {canCopy && <button onClick={() => copy(levels.join(' > '), 'Level copied')} style={{ marginInlineStart: 'auto', background: 'none', border: `1px solid ${ORANGE}`, color: ORANGE, borderRadius: 100, padding: '2px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>Copy</button>}
     </div>
   );
 }
 
 export function SmsTemplates({ darkMode }) {
   const th = useTheme(darkMode);
+  const { user } = useAuth();
+  const staff = ['team_lead', 'qa_officer'].includes(String(user?.role || '').trim().toLowerCase());
   const [types, setTypes] = useState(null);
   const [tree, setTree] = useState([]);
   const [tid, setTid] = useState(null);
   const [lang, setLang] = useState('en');
   const [q, setQ] = useState('');
+  const [openId, setOpenId] = useState(null);
   useEffect(() => {
     api.get('/sms').then(r => { const list = (r.data || []).filter(t => (t.templates || []).length); setTypes(list); setTid(list[0]?.id || null); }).catch(() => setTypes([]));
     api.get('/contact-reasons').then(r => setTree(r.data || [])).catch(() => {});
@@ -199,39 +206,63 @@ export function SmsTemplates({ darkMode }) {
   if (!types) return <Empty th={th}>Loading…</Empty>;
   if (!types.length) return <Empty th={th}>No SMS templates yet.</Empty>;
   const cur = types.find(t => t.id === tid) || types[0];
+  const all = types.flatMap(t => t.templates);
+  const open = openId ? all.find(m => m.id === openId) : null;
   const body = t => t[`body_${lang}`] || t.body_en || t.body_ku || t.body_ba || t.body_ar || '';
   const searching = q.trim().length > 0;
-  const shown = searching ? types.flatMap(t => t.templates).filter(m => smsMatches(m, q)) : cur.templates;
+  const shown = searching ? all.filter(m => smsMatches(m, q)) : cur.templates;
+  const noCopy = staff ? {} : { userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' };
+  const block = staff ? {} : { onCopy: e => e.preventDefault(), onCut: e => e.preventDefault(), onContextMenu: e => e.preventDefault(), onDragStart: e => e.preventDefault() };
+
+  if (open) {
+    const lv = smsLevel(open, tree);
+    return (
+      <div style={{ maxWidth: 860 }}>
+        <button onClick={() => setOpenId(null)} style={{ ...mini(th, ORANGE), marginBottom: 12 }}>← All SMS</button>
+        <div style={{ background: th.card, border: `1px solid ${th.border}`, borderRadius: 16, padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+            {open.code != null && <span style={{ background: ORANGE, color: '#fff', fontWeight: 900, fontSize: 20, borderRadius: 10, padding: '4px 14px', letterSpacing: 1 }}>{pad3(open.code)}</span>}
+            <div style={{ fontWeight: 800, color: th.text, fontSize: 19 }}>{open.title}</div>
+            {staff && <button onClick={() => copy(body(open), 'SMS copied')} style={{ ...btn(ORANGE, { padding: '7px 14px', fontSize: 12.5 }), marginInlineStart: 'auto' }}>📋 Copy SMS</button>}
+          </div>
+          <LevelChip levels={lv} th={th} canCopy={staff} />
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', margin: '4px 0 12px' }}>
+            <span style={{ fontSize: 12.5, color: th.sub, fontWeight: 700 }}>🌐 Language</span>
+            {LANGS.map(([k, n]) => <button key={k} onClick={() => setLang(k)} style={{ padding: '5px 12px', borderRadius: 100, border: `1px solid ${lang === k ? th.text : th.border}`, background: lang === k ? th.text : 'transparent', color: lang === k ? th.card : th.text, fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', opacity: open[`body_${k}`] ? 1 : 0.5 }}>{n}</button>)}
+          </div>
+          <div dir={lang === 'en' ? 'ltr' : 'rtl'} {...block} style={{ whiteSpace: 'pre-wrap', color: th.text, background: th.soft, border: `1px solid ${th.border}`, borderRadius: 12, padding: '14px 16px', fontSize: 15, lineHeight: 1.9, overflowWrap: 'anywhere', ...noCopy }}>{withPlaceholders(body(open))}</div>
+          {!open[`body_${lang}`] && <div style={{ fontSize: 11.5, color: th.sub, marginTop: 6 }}>No {LANGS.find(l => l[0] === lang)[1]} text yet, showing another language.</div>}
+          <div style={{ fontSize: 12, color: th.sub, marginTop: 10 }}>The words in <b style={{ color: ORANGE }}>{'{orange}'}</b> are filled in automatically by the system.</div>
+        </div>
+      </div>
+    );
+  }
   return (
-    <div style={{ maxWidth: 940 }}>
-      <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by SMS number or words (for example 3, bill, KYC)…" style={{ ...inputStyle(th), width: '100%', boxSizing: 'border-box', marginBottom: 10, padding: '11px 14px', fontSize: 14 }} />
+    <div style={{ maxWidth: 980 }}>
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by SMS number or name (for example 001 or bill)…" style={{ ...inputStyle(th), width: '100%', boxSizing: 'border-box', marginBottom: 10, padding: '11px 14px', fontSize: 14 }} />
       {!searching && (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
           {types.map(t => <button key={t.id} onClick={() => setTid(t.id)} style={{ padding: '8px 16px', borderRadius: 100, border: `1px solid ${cur.id === t.id ? ORANGE : th.border}`, background: cur.id === t.id ? ORANGE : th.card, color: cur.id === t.id ? '#fff' : th.text, fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>{t.icon} {t.name}</button>)}
         </div>
       )}
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
-        <span style={{ fontSize: 12.5, color: th.sub, fontWeight: 700 }}>🌐 Language</span>
-        {LANGS.map(([k, n]) => <button key={k} onClick={() => setLang(k)} style={{ padding: '5px 12px', borderRadius: 100, border: `1px solid ${lang === k ? th.text : th.border}`, background: lang === k ? th.text : 'transparent', color: lang === k ? th.card : th.text, fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>{n}</button>)}
-      </div>
-      {!shown.length ? <Empty th={th}>{searching ? `No SMS found for “${q}”.` : 'No templates in this type yet.'}</Empty> : shown.map(t => (
-        <div key={t.id} style={{ background: th.card, border: `1px solid ${th.border}`, borderRadius: 14, padding: '14px 16px', marginBottom: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              {t.code != null && <span style={{ background: ORANGE, color: '#fff', fontWeight: 900, fontSize: 13, borderRadius: 8, padding: '2px 9px' }}>#{t.code}</span>}
-              <div style={{ fontWeight: 800, color: th.text, fontSize: 14.5 }}>{t.title}</div>
-            </div>
-            <button onClick={() => copy(body(t), 'SMS copied')} style={btn(ORANGE, { padding: '7px 14px', fontSize: 12.5 })}>📋 Copy SMS</button>
-          </div>
-          <LevelChip levels={smsLevel(t, tree)} th={th} />
-          <div dir={lang === 'en' ? 'ltr' : 'rtl'} style={{ whiteSpace: 'pre-wrap', color: th.text, background: th.soft, border: `1px solid ${th.border}`, borderRadius: 10, padding: '12px 14px', fontSize: 14, lineHeight: 1.85, overflowWrap: 'anywhere' }}>{body(t)}</div>
-          {!t[`body_${lang}`] && <div style={{ fontSize: 11.5, color: th.sub, marginTop: 6 }}>No {LANGS.find(l => l[0] === lang)[1]} text yet, showing another language.</div>}
+      {!shown.length ? <Empty th={th}>{searching ? `No SMS found for “${q}”.` : 'No templates in this type yet.'}</Empty> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 12 }}>
+          {shown.map(t => {
+            const lv = smsLevel(t, tree);
+            return (
+              <button key={t.id} onClick={() => setOpenId(t.id)} style={{ textAlign: 'start', background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: '16px 16px 14px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: 8, minHeight: 130, transition: 'transform .12s, border-color .12s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = ORANGE; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = th.border; e.currentTarget.style.transform = 'none'; }}>
+                <span style={{ alignSelf: 'flex-start', background: t.code != null ? ORANGE : th.soft, color: t.code != null ? '#fff' : th.sub, fontWeight: 900, fontSize: 17, borderRadius: 9, padding: '2px 11px', letterSpacing: 1 }}>{t.code != null ? pad3(t.code) : '—'}</span>
+                <span style={{ fontWeight: 800, color: th.text, fontSize: 15, lineHeight: 1.35 }}>{t.title}</span>
+                {lv.length > 0 && <span style={{ fontSize: 11.5, color: th.sub, marginTop: 'auto' }}>🎫 {lv[lv.length - 1]}</span>}
+              </button>
+            );
+          })}
         </div>
-      ))}
+      )}
     </div>
   );
 }
-
 
 // Cascading selects (Level 1 → Level 2 → Level 3) that store the CRM contact reason the agent must choose for this SMS
 function LevelPicker({ th, inp, tree, edit, setEdit }) {
@@ -249,7 +280,7 @@ function LevelPicker({ th, inp, tree, edit, setEdit }) {
   const legacy = !chain.length && edit.reason_path;
   return (
     <div style={{ flex: 1, minWidth: 260 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: th.sub, marginBottom: 4 }}>CRM level the agent selects (contact reason)</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: th.sub, marginBottom: 4 }}>Freshdesk level the agent selects (contact reason)</div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {sels.slice(0, 3).map((opts, lv) => (opts.length || chain[lv]) ? (
           <select key={lv} style={{ ...inp, flex: '1 1 150px' }} value={chain[lv] ? chain[lv].id : ''} onChange={e => pick(lv, e.target.value)}>
@@ -287,10 +318,10 @@ export function SmsAdmin({ darkMode }) {
     const lv = smsLevel(m, tree);
     return (
       <div key={m.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: `1px solid ${th.border}`, opacity: m.is_active && !m.is_archived ? 1 : 0.65 }}>
-        <span style={{ minWidth: 38, textAlign: 'center', background: m.code != null ? ORANGE : th.soft, color: m.code != null ? '#fff' : th.sub, fontWeight: 900, fontSize: 12.5, borderRadius: 8, padding: '3px 8px' }}>{m.code != null ? `#${m.code}` : 'no #'}</span>
+        <span style={{ minWidth: 38, textAlign: 'center', background: m.code != null ? ORANGE : th.soft, color: m.code != null ? '#fff' : th.sub, fontWeight: 900, fontSize: 12.5, borderRadius: 8, padding: '3px 8px' }}>{m.code != null ? pad3(m.code) : 'no #'}</span>
         <div style={{ flex: '1 1 220px', minWidth: 0 }}>
           <div style={{ fontWeight: 700, color: th.text, fontSize: 13.5 }}>{m.title}{m.is_archived && <span style={{ marginInlineStart: 8, fontSize: 11, color: th.sub }}>archived</span>}</div>
-          <div style={{ color: th.sub, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lv.length ? `📍 ${lv.join(' › ')}` : 'No CRM level set'} · {[m.body_en && 'EN', m.body_ku && 'KU', m.body_ba && 'BA', m.body_ar && 'AR'].filter(Boolean).join(' ')}</div>
+          <div style={{ color: th.sub, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lv.length ? `📍 ${lv.join(' › ')}` : 'No Freshdesk level set'} · {[m.body_en && 'EN', m.body_ku && 'KU', m.body_ba && 'BA', m.body_ar && 'AR'].filter(Boolean).join(' ')}</div>
         </div>
         <button style={mini(th, '#38bdf8')} onClick={() => setEdit({ ...m })}>Edit</button>
         {!m.is_archived && <button style={mini(th, m.is_active ? GREEN : '#64748b')} title="Hidden templates are not shown to agents" onClick={() => run(() => api.put(`/admin/sms-templates/${m.id}`, { ...m, is_active: !m.is_active }))}>{m.is_active ? 'Visible' : 'Hidden'}</button>}
@@ -313,8 +344,8 @@ export function SmsAdmin({ darkMode }) {
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 10 }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: th.sub, marginBottom: 4 }}>SMS number</div>
-              <input type="number" min="1" style={{ ...inp, width: 100 }} placeholder="e.g. 3" value={edit.code ?? ''} onChange={e => setEdit({ ...edit, code: e.target.value === '' ? null : e.target.value })} />
+              <div style={{ fontSize: 12, fontWeight: 700, color: th.sub, marginBottom: 4 }}>SMS number (shows as 001, 002…)</div>
+              <input type="number" min="1" style={{ ...inp, width: 100 }} placeholder="e.g. 1 (shows as 001)" value={edit.code ?? ''} onChange={e => setEdit({ ...edit, code: e.target.value === '' ? null : e.target.value })} />
             </div>
             <LevelPicker th={th} inp={inp} tree={tree} edit={edit} setEdit={setEdit} />
           </div>
