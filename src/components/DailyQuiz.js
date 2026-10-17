@@ -48,7 +48,7 @@ export default function DailyQuiz({ darkMode, onOpenFaq }) {
   const total = q.questions.length;
   const finish = async list => {
     setBusy(true);
-    try { const r = await api.post('/quiz/answer', { answers: list }); setRes(r.data); load(); }
+    try { const r = await api.post('/quiz/answer', { answers: list }); setRes(r.data); load(); window.dispatchEvent(new Event('rk-quiz-done')); }
     catch (e) { setErr(e.response?.data?.error || 'Could not send your answers.'); }
     setBusy(false);
   };

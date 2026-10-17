@@ -25,6 +25,7 @@ import { FolderPage, SmsTemplates, ExternalLinks, UpdatesChannel, UpdatesBubble 
 import Leaderboard from '../components/Leaderboard';
 import IncidentBanner from '../components/IncidentBanner';
 import DailyQuiz from '../components/DailyQuiz';
+import { QuizReminder } from '../components/QuizReminder';
 import KnowledgeAssistant from '../components/KnowledgeAssistant';
   import { MyStats, SendFeedback } from '../components/MyStatsFeedback';
   import { ExternalToolView } from '../components/ContentEditor';
@@ -392,6 +393,8 @@ const isSpecial = String(panel).startsWith('_tool_') || String(panel).startsWith
           <div className="rk-content" style={S.content}>
 
             {String(user?.role || '').toLowerCase() === 'agent' && <DailyCheckIn onOpenChat={() => { setSearch(''); setPanel('_channel'); }} />}
+
+            <QuizReminder enabled={String(user?.role || '').toLowerCase() === 'agent' && panel !== '_quiz'} onOpen={() => { setSearch(''); setPanel('_quiz'); }} />
 
             <IncidentBanner darkMode={darkMode} />
 

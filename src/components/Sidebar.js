@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
+import { useQuizDue } from './QuizReminder';
 import React, { useState, useEffect, useMemo } from 'react';
 import LogoLight from '../assets/runaki-light.svg';
 import LogoDark from '../assets/runaki-dark.svg';
@@ -67,6 +68,7 @@ export default function Sidebar({
   const [foldersOpen, setFoldersOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [evalUnread, setEvalUnread] = useState(0);
+  const quizDue = useQuizDue(String(user?.role || '').toLowerCase() === 'agent').due;
   useEffect(() => {
     const load = () => api.get('/qa/unread-count').then(r => setEvalUnread(r.data.n || 0)).catch(() => {});
     load();
@@ -689,6 +691,9 @@ folder
         gap:'6px',
       }}
     >
+      {quizDue && !personalOpen && evalUnread === 0 && (
+        <span title="Daily quiz waiting" style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10, background: '#7c3aed', color: '#fff', fontSize: 11, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', animation: 'rkPulse 1.8s infinite' }}>!</span>
+      )}
       {evalUnread > 0 && !personalOpen && (
         <span title="New evaluations" style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10, background: '#ef4444', color: '#fff', fontSize: 11, fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', animation: 'rkPulse 1.8s infinite' }}>{evalUnread}</span>
       )}
@@ -736,6 +741,7 @@ folder
     />
 
     <NI sub icon="🧠" label="Daily Quiz" collapsed={collapsed}
+      badge={quizDue ? '!' : undefined}
       darkMode={darkMode}
       active={panel === '_quiz'}
       onClick={() => go('_quiz')}
