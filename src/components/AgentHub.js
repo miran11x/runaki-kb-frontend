@@ -4,6 +4,7 @@ import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import { track } from '../utils/track';
 import { useTheme, Panel, Empty, ORANGE, GREEN, RED } from './qaUi';
+import { NAV_ITEMS, searchNav } from '../utils/navItems';
 
 // Folders (links to shared files), SMS templates, External links and the Updates channel.
 // The agent pages and the admin editors live together because they share the same data.
@@ -324,7 +325,88 @@ const linkify = text => String(text).split(/(https?:\/\/[^\s]+)/g).map((p, i) =>
 const when = d => { const t = new Date(d); const same = t.toDateString() === new Date().toDateString(); return (same ? '' : t.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' · ') + t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
 const dayLabel = d => { const t = new Date(d), n = new Date(); const y = new Date(n); y.setDate(n.getDate() - 1); return t.toDateString() === n.toDateString() ? 'Today' : t.toDateString() === y.toDateString() ? 'Yesterday' : t.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }); };
 
-export function UpdatesChannel({ darkMode }) {
+
+/* ───────────── Attachments: the QA team attaches an FAQ, call flow, file... to a message; agents tap the chip to jump there ───────────── */
+const TYPE_NAME = { faq: 'FAQ', flow: 'Call flow', folder: 'Folder', file: 'File', sms: 'SMS template', tool: 'Link', page: 'Page' };
+const attLabel = a => a.label || TYPE_NAME[a.type] || 'Item';
+
+function AttachmentChips({ items, onOpen, onRemove, th }) {
+  if (!items || !items.length) return null;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+      {items.map((a, i) => (
+        <span key={`${a.type}-${a.id}-${i}`} style={{ display: 'inline-flex', alignItems: 'stretch', maxWidth: '100%' }}>
+          <button type="button" onClick={() => onOpen && onOpen(a)} disabled={!onOpen} title={onOpen ? 'Open it' : ''}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textAlign: 'start', padding: '8px 12px', borderRadius: onRemove ? '12px 0 0 12px' : 12, border: `1.5px solid ${ORANGE}88`, background: `${ORANGE}14`, color: th.text, cursor: onOpen ? 'pointer' : 'default', fontFamily: 'inherit', maxWidth: '100%', minWidth: 0 }}>
+            <span style={{ fontSize: 20, flexShrink: 0 }}>{a.icon || '📎'}</span>
+            <span style={{ minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 11, fontWeight: 800, color: ORANGE }}>{TYPE_NAME[a.type] || 'Item'}{a.sub ? ` · ${a.sub}` : ''}</span>
+              <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700, lineHeight: 1.4, overflowWrap: 'anywhere' }}>{attLabel(a)}</span>
+            </span>
+            {onOpen && <span style={{ color: ORANGE, fontWeight: 900, fontSize: 16, flexShrink: 0 }}>›</span>}
+          </button>
+          {onRemove && <button type="button" onClick={() => onRemove(i)} title="Remove" style={{ border: `1.5px solid ${ORANGE}88`, borderInlineStart: 'none', borderRadius: '0 12px 12px 0', background: `${ORANGE}14`, color: th.sub, cursor: 'pointer', padding: '0 10px', fontSize: 14, fontFamily: 'inherit' }}>✕</button>}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function AttachPicker({ faqs, th, picked, onPick, onClose }) {
+  const [q, setQ] = useState('');
+  const [src, setSrc] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    const g = (u) => api.get(u).then(r => r.data || []).catch(() => []);
+    Promise.all([g('/callflows'), g('/folders?all=1'), g('/sms?all=1'), g('/external-tools')]).then(([flows, folders, sms, tools]) => { if (alive) setSrc({ flows, folders, sms, tools }); });
+    return () => { alive = false; };
+  }, []);
+  const all = React.useMemo(() => {
+    const out = [];
+    (faqs || []).forEach(f => out.push({ key: `faq-${f.id}`, type: 'faq', id: f.id, icon: f.is_shortlisted ? '📌' : '❓', label: f.question_en || `FAQ ${f.id}`, sub: f.is_shortlisted ? "Shortlisted" : (f.category || ''), group: f.is_shortlisted ? "Shortlisted FAQ's" : 'FAQs', words: `${f.category || ''} ${f.subcategory || ''} ${f.third_level || ''} ${String(f.answer_en || '').slice(0, 200)}` }));
+    if (src) {
+      src.flows.forEach(x => out.push({ key: `flow-${x.id}`, type: 'flow', id: x.id, icon: x.icon || '📞', label: x.title, sub: '', group: 'Call flows', words: x.description || '' }));
+      src.folders.forEach(f => {
+        out.push({ key: `folder-${f.id}`, type: 'folder', id: f.id, icon: f.icon || '📁', label: f.name, sub: '', group: 'Folders', words: f.description || '' });
+        (f.links || []).forEach(l => out.push({ key: `file-${l.id}`, type: 'file', id: l.id, folder_id: f.id, icon: l.has_file ? fileIcon(l.file_name) : '📄', label: l.title, sub: f.name, group: 'Files', words: `${f.name} ${l.description || ''}` }));
+      });
+      src.sms.forEach(t => (t.templates || []).forEach(m => out.push({ key: `sms-${m.id}`, type: 'sms', id: m.id, icon: t.icon || '✉️', label: m.title, sub: t.name, group: 'Message types (SMS)', words: `${t.name} ${String(m.body_en || '').slice(0, 160)}` })));
+      src.tools.forEach(t => out.push({ key: `tool-${t.id}`, type: 'tool', id: t.id, icon: t.icon || '🔗', label: t.name, sub: '', group: 'External links', words: '' }));
+    }
+    NAV_ITEMS.forEach(n => out.push({ key: `page-${n.key}`, type: 'page', id: n.key, icon: n.icon, label: n.label, sub: '', group: 'Pages', words: n.words }));
+    return out;
+  }, [faqs, src]);
+  const results = q.trim() ? searchNav(all, q, 10) : [];
+  const isPicked = r => picked.some(a => a.type === r.type && String(a.id) === String(r.id));
+  const pick = r => { if (!isPicked(r)) onPick({ type: r.type, id: String(r.id), folder_id: r.folder_id != null ? String(r.folder_id) : undefined, label: r.label, icon: r.icon, sub: r.sub }); onClose(); };
+  return (
+    <div style={{ border: `1px solid ${th.border}`, background: th.soft, borderRadius: 14, padding: 10, marginBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Search a FAQ, call flow, folder, file, message type, link or page…" style={{ ...inputStyle(th), flex: 1 }} />
+        <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: th.sub, cursor: 'pointer', fontSize: 16 }}>✕</button>
+      </div>
+      {!src && <div style={{ fontSize: 12, color: th.sub, marginTop: 6 }}>Loading items…</div>}
+      {q.trim() && !results.length && <div style={{ fontSize: 13, color: th.sub, padding: '10px 4px' }}>Nothing found for “{q}”.</div>}
+      {!q.trim() && <div style={{ fontSize: 12, color: th.sub, padding: '8px 4px 2px' }}>Type a few words. You can attach up to 6 items.</div>}
+      {results.length > 0 && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 280, overflowY: 'auto' }}>
+          {results.map(r => (
+            <button type="button" key={r.key} onClick={() => pick(r)} style={{ display: 'flex', alignItems: 'center', gap: 10, textAlign: 'start', padding: '8px 10px', borderRadius: 10, border: `1px solid ${th.border}`, background: th.card, color: th.text, cursor: 'pointer', fontFamily: 'inherit', opacity: isPicked(r) ? 0.5 : 1 }}>
+              <span style={{ fontSize: 18 }}>{r.icon}</span>
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700, overflowWrap: 'anywhere' }}>{r.label}</span>
+                <span style={{ display: 'block', fontSize: 11.5, color: th.sub }}>{r.group}{r.sub && r.group !== r.sub ? ` · ${r.sub}` : ''}</span>
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: ORANGE }}>{isPicked(r) ? 'Added' : 'Attach'}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function UpdatesChannel({ darkMode, faqs, onOpenAttachment }) {
   const th = useTheme(darkMode);
   const { user } = useAuth();
   const [d, setD] = useState(null);
@@ -335,15 +417,18 @@ export function UpdatesChannel({ darkMode }) {
   const posted = useRef(0);
   const [editId, setEditId] = useState(null);
   const [editText, setEditText] = useState('');
+  const [atts, setAtts] = useState([]);
+  const [editAtts, setEditAtts] = useState([]);
+  const [picking, setPicking] = useState(false);
   const [seenFor, setSeenFor] = useState(null);
   const [seenData, setSeenData] = useState(null);
   const load = useCallback(() => api.get('/channel').then(r => { setD(r.data); const ms = r.data.messages; if (ms.length && ms[ms.length - 1].id > posted.current) { posted.current = ms[ms.length - 1].id; api.post('/channel/seen', { last_id: posted.current }).catch(() => {}); } if (ms.length) { try { localStorage.setItem('rk_chan_seen', String(ms[ms.length - 1].id)); window.dispatchEvent(new Event('rk-channel-seen')); } catch {} } }).catch(() => setD(x => x || { messages: [], emoji: [], canPost: false })), []);
   useEffect(() => { load(); const t = setInterval(load, 20000); return () => clearInterval(t); }, [load]);
   useEffect(() => { if (d && endRef.current) endRef.current.scrollIntoView({ behavior: first.current ? 'auto' : 'smooth', block: 'end' }); if (d) first.current = false; }, [d && d.messages.length]); // eslint-disable-line
   const react = async (id, emoji) => { try { await api.post(`/channel/${id}/react`, { emoji }); load(); } catch { toast.error('Could not react'); } };
-  const send = async () => { if (!text.trim() || busy) return; setBusy(true); try { await api.post('/channel', { body: text }); setText(''); await load(); } catch (e) { toast.error(errMsg(e, 'Could not send')); } setBusy(false); };
+  const send = async () => { if ((!text.trim() && !atts.length) || busy) return; setBusy(true); try { await api.post('/channel', { body: text, attachments: atts }); setText(''); setAtts([]); setPicking(false); await load(); } catch (e) { toast.error(errMsg(e, 'Could not send')); } setBusy(false); };
   const del = async m => { if (!window.confirm('Delete this message for everyone?')) return; try { await api.delete(`/channel/${m.id}`); load(); } catch { toast.error('Could not delete'); } };
-  const saveEdit = async () => { if (!editText.trim()) return; try { await api.put(`/channel/${editId}`, { body: editText }); setEditId(null); load(); } catch (e) { toast.error(errMsg(e, 'Could not save')); } };
+  const saveEdit = async () => { if (!editText.trim() && !editAtts.length) return; try { await api.put(`/channel/${editId}`, { body: editText, attachments: editAtts }); setEditId(null); load(); } catch (e) { toast.error(errMsg(e, 'Could not save')); } };
   const pin = async m => { try { const r = await api.post(`/channel/${m.id}/pin`); toast.success(r.data.pinned ? 'Pinned to the top' : 'Unpinned'); load(); } catch { toast.error('Could not pin'); } };
   const showSeen = async m => { if (seenFor === m.id) { setSeenFor(null); return; } setSeenFor(m.id); setSeenData(null); try { setSeenData((await api.get(`/channel/${m.id}/seen`)).data); } catch { setSeenData({ seen: [], unseen: [] }); } };
   const delAll = async () => { if (!window.confirm('Delete ALL your messages in this chat for everyone? This cannot be undone.')) return; try { const r = await api.delete('/channel'); toast.success(`${r.data.deleted} message${r.data.deleted === 1 ? '' : 's'} deleted`); load(); } catch { toast.error('Could not delete'); } };
@@ -358,6 +443,7 @@ export function UpdatesChannel({ darkMode }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 11.5, fontWeight: 800, color: ORANGE, marginBottom: 2 }}>Pinned by {d.pinned.author_name}</div>
             <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.65, overflowWrap: 'anywhere', maxHeight: 110, overflowY: 'auto' }}>{linkify(d.pinned.body)}</div>
+            <AttachmentChips items={d.pinned.attachments} onOpen={onOpenAttachment} th={th} />
           </div>
           {d.canPost && <button onClick={() => pin(d.pinned)} style={{ background: 'none', border: `1px solid ${ORANGE}`, color: ORANGE, borderRadius: 100, padding: '3px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>Unpin</button>}
         </div>
@@ -382,18 +468,24 @@ export function UpdatesChannel({ darkMode }) {
                   {m.author_title && <span style={{ fontSize: 11.5, color: th.sub }}>{m.author_title}</span>}
                   <span style={{ marginInlineStart: 'auto', fontSize: 11.5, color: th.sub }}>{when(m.created_at)}</span>
                   {d.canPost && <button onClick={() => pin(m)} title={m.pinned ? 'Unpin' : 'Pin to the top'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: m.pinned ? ORANGE : th.sub, fontSize: 14, opacity: m.pinned ? 1 : 0.7 }}>📌</button>}
-                  {d.canPost && (m.mine || d.isLead) && <button onClick={() => { setEditId(m.id); setEditText(m.body); }} title="Edit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: th.sub, fontSize: 14 }}>✏️</button>}
+                  {d.canPost && (m.mine || d.isLead) && <button onClick={() => { setEditId(m.id); setEditText(m.body); setEditAtts(m.attachments || []); }} title="Edit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: th.sub, fontSize: 14 }}>✏️</button>}
                   {d.canPost && <button onClick={() => del(m)} title="Delete" style={{ background: 'none', border: 'none', cursor: 'pointer', color: th.sub, fontSize: 14 }}>🗑</button>}
                 </div>
                 {editId === m.id ? (
                   <div>
                     <textarea rows={4} value={editText} onChange={e => setEditText(e.target.value)} style={{ ...inputStyle(th), width: '100%', boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.6 }} />
+                    <AttachmentChips items={editAtts} onRemove={i => setEditAtts(a => a.filter((_, j) => j !== i))} th={th} />
                     <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                      <button onClick={saveEdit} disabled={!editText.trim()} style={btn(ORANGE, { padding: '6px 14px', fontSize: 12.5 })}>Save</button>
+                      <button onClick={saveEdit} disabled={!editText.trim() && !editAtts.length} style={btn(ORANGE, { padding: '6px 14px', fontSize: 12.5 })}>Save</button>
                       <button onClick={() => setEditId(null)} style={btn('#64748b', { padding: '6px 14px', fontSize: 12.5 })}>Cancel</button>
                     </div>
                   </div>
-                ) : <div style={{ whiteSpace: 'pre-wrap', color: th.text, fontSize: 14.5, lineHeight: 1.75, overflowWrap: 'anywhere' }}>{linkify(m.body)}{m.edited_at && <span style={{ fontSize: 11.5, color: th.sub, marginInlineStart: 6 }}>(edited)</span>}</div>}
+                ) : (
+                  <>
+                    {(m.body || m.edited_at) && <div style={{ whiteSpace: 'pre-wrap', color: th.text, fontSize: 14.5, lineHeight: 1.75, overflowWrap: 'anywhere' }}>{linkify(m.body)}{m.edited_at && <span style={{ fontSize: 11.5, color: th.sub, marginInlineStart: 6 }}>(edited)</span>}</div>}
+                    <AttachmentChips items={m.attachments} onOpen={onOpenAttachment} th={th} />
+                  </>
+                )}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
                   {d.emoji.map(e => { const r = m.reactions.find(x => x.emoji === e); return (
                     <button key={e} onClick={() => react(m.id, e)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 100, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, border: `1px solid ${r && r.mine ? ORANGE : th.border}`, background: r && r.mine ? `${ORANGE}1f` : 'transparent', color: th.text, opacity: r ? 1 : 0.55 }}>
@@ -424,9 +516,14 @@ export function UpdatesChannel({ darkMode }) {
         <div ref={endRef} />
       </div>
       {d.canPost ? (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', paddingTop: 8, borderTop: `1px solid ${th.border}` }}>
+        <div style={{ paddingTop: 8, borderTop: `1px solid ${th.border}` }}>
+        {picking && <AttachPicker faqs={faqs} th={th} picked={atts} onPick={a => setAtts(x => (x.length >= 6 ? x : [...x, a]))} onClose={() => setPicking(false)} />}
+        <AttachmentChips items={atts} onRemove={i => setAtts(a => a.filter((_, j) => j !== i))} th={th} />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginTop: atts.length ? 8 : 0 }}>
+          <button type="button" onClick={() => setPicking(v => !v)} disabled={atts.length >= 6} title="Attach an FAQ, call flow, folder, file..." style={{ ...btn(picking ? '#64748b' : '#fff', { padding: '12px 14px' }), color: picking ? '#fff' : ORANGE, border: `1.5px solid ${ORANGE}` }}>📎 Attach</button>
           <textarea rows={2} placeholder={`Write an update for all agents, ${user?.name?.split(' ')[0] || ''}…`} value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send(); }} style={{ ...inputStyle(th), flex: 1, resize: 'vertical', lineHeight: 1.6 }} />
-          <button onClick={send} disabled={!text.trim() || busy} style={btn(ORANGE, { opacity: text.trim() && !busy ? 1 : 0.5, padding: '12px 20px' })}>Send</button>
+          <button onClick={send} disabled={(!text.trim() && !atts.length) || busy} style={btn(ORANGE, { opacity: (text.trim() || atts.length) && !busy ? 1 : 0.5, padding: '12px 20px' })}>Send</button>
+        </div>
         </div>
       ) : (
         <div style={{ textAlign: 'center', fontSize: 12.5, color: th.sub, paddingTop: 10, borderTop: `1px solid ${th.border}` }}>Only the QA team can post here. Tap an emoji to react, so we know you have seen the update.</div>
@@ -452,7 +549,7 @@ export function UpdatesBubble({ onOpen, hidden }) {
         lastPreviewed.current = String(u.last);
         const m = (await api.get('/channel')).data.messages;
         const latest = m[m.length - 1];
-        if (latest) { setPreview({ id: latest.id, name: latest.author_name, text: latest.body }); clearTimeout(timer.current); timer.current = setTimeout(() => setPreview(null), 14000); }
+        if (latest) { setPreview({ id: latest.id, name: latest.author_name, text: latest.body || ((latest.attachments || [])[0] ? `📎 ${latest.attachments[0].label}` : '') }); clearTimeout(timer.current); timer.current = setTimeout(() => setPreview(null), 14000); }
       }
     } catch {}
   }, []);

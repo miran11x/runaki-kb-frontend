@@ -48,6 +48,9 @@ import KnowledgeAssistant from '../components/KnowledgeAssistant';
     'New Updates':        { color:'#f97316', bg:'#fff7ed', grad:'linear-gradient(135deg,#f97316,#ea580c)' },
   };
 
+  // set when an agent taps a call-flow attachment in the Updates Chat; the Call Flows page opens that flow
+  const pendingFlow = { id: null };
+
   const PANEL_FILTER = {
   inquiries: f => f.category === 'Inquiries' && !f.is_shortlisted,
   billing: f => f.category === 'Billing Complaints' && !f.is_shortlisted,
@@ -232,6 +235,27 @@ setFaqs(fr.data);
       if (isOpening) {
         api.patch(`/faqs/${id}/view`).catch(() => {});
       }
+    };
+
+    // tapping an attachment in the Updates Chat takes the agent to that item
+    useEffect(() => { if (panel !== '_callflows') pendingFlow.id = null; }, [panel]);
+    const openAttachment = a => {
+      const t = a.type, id = String(a.id);
+      setSearch('');
+      if (t === 'faq') {
+        const f = faqs.find(x => String(x.id) === id);
+        if (!f) { toast.error('This FAQ is no longer available'); return; }
+        const key = f.is_shortlisted ? '_shortlisted' : (Object.keys(PANEL_FILTER).find(k => !k.startsWith('_') && PANEL_FILTER[k](f)) || 'inquiries');
+        setPanel(key); setOpen(p => ({ ...p, [f.id]: true }));
+        let tries = 0;
+        const go = () => { const el = document.getElementById(`faq-${f.id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); else if (tries++ < 10) setTimeout(go, 150); };
+        setTimeout(go, 150);
+      } else if (t === 'flow') { pendingFlow.id = id; setPanel('_callflows'); }
+      else if (t === 'folder') setPanel(`_folder_${id}`);
+      else if (t === 'file') setPanel(`_folder_${a.folder_id || id}`);
+      else if (t === 'sms') setPanel('_sms');
+      else if (t === 'tool') setPanel(`_tool_${id}`);
+      else if (t === 'page') setPanel(id);
     };
 
     const toggleBookmark = async (faqId) => {
@@ -460,7 +484,7 @@ const isSpecial = String(panel).startsWith('_tool_') || String(panel).startsWith
             {/* Special panels */}
             {String(panel).startsWith('_tool_') && <ExternalToolView toolId={String(panel).slice(6)} DM={DM} />}
             {panel === '_evaluations' && <MyQaEvaluations darkMode={darkMode} faqs={faqs} onOpen={p => { setSearch(''); setPanel(p); }} onSearch={q => setSearch(q)} />}
-            {panel === '_channel' && <UpdatesChannel darkMode={darkMode} />}
+            {panel === '_channel' && <UpdatesChannel darkMode={darkMode} faqs={faqs} onOpenAttachment={openAttachment} />}
             {panel === '_sms' && <SmsTemplates darkMode={darkMode} />}
             {panel === '_extlinks' && <ExternalLinks darkMode={darkMode} />}
             {String(panel).startsWith('_folder_') && <FolderPage folderId={String(panel).slice(8)} darkMode={darkMode} />}
@@ -614,12 +638,14 @@ const isSpecial = String(panel).startsWith('_tool_') || String(panel).startsWith
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(min(340px,100%),1fr))', gap:'12px' }}>
                       {subItems.map(f => (
-                        <FAQCard key={f.id} faq={f} lang={lang} isOpen={open[f.id]} onToggle={() => tog(f.id)}
+                        <div key={f.id} id={`faq-${f.id}`} style={{ minWidth:0 }}>
+                        <FAQCard faq={f} lang={lang} isOpen={open[f.id]} onToggle={() => tog(f.id)}
                           isBookmarked={bookmarks.includes(f.id)} onBookmark={() => toggleBookmark(f.id)}
                           canShortlist={user?.role === 'qa_officer' || user?.role === 'team_lead'}
                           isShortlisted={!!f.is_shortlisted} onShortlist={() => toggleShortlist(f.id)}
                           myRating={ratings[f.id]} onRate={h => rateFaq(f.id, h)}
                           darkMode={darkMode} DM={DM} />
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -937,7 +963,7 @@ const isSpecial = String(panel).startsWith('_tool_') || String(panel).startsWith
     const BRANCH_COLOR = '#8b5cf6';
 
     React.useEffect(() => {
-      api.get('/callflows').then(r => { setFlows(r.data); setLoading(false); }).catch(() => setLoading(false));
+      api.get('/callflows').then(r => { setFlows(r.data); setLoading(false); const i = pendingFlow.id ? r.data.findIndex(x => String(x.id) === String(pendingFlow.id)) : -1; if (i >= 0) { setOpenFlow(i); setTimeout(() => { const el = document.getElementById(`flow-${r.data[i].id}`); if (el) el.scrollIntoView({ behavior:'smooth', block:'start' }); }, 250); } }).catch(() => setLoading(false));
     }, []);
 
     const typeStyle = (type) => {
@@ -969,7 +995,7 @@ const isSpecial = String(panel).startsWith('_tool_') || String(panel).startsWith
           {flows.map((flow, fi) => {
             const steps = typeof flow.steps === 'string' ? JSON.parse(flow.steps) : flow.steps;
             return (
-              <div key={flow.id} style={{ background: DM.cardBg, borderRadius: '18px', overflow: 'hidden', border: `1.5px solid ${openFlow === fi ? flow.color + '60' : DM.border}`, transition: 'all .2s' }}>
+              <div key={flow.id} id={`flow-${flow.id}`} style={{ background: DM.cardBg, borderRadius: '18px', overflow: 'hidden', border: `1.5px solid ${openFlow === fi ? flow.color + '60' : DM.border}`, transition: 'all .2s' }}>
                 <button onClick={() => togFlow(fi)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '14px', padding: '18px 22px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                   <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: `linear-gradient(135deg,${flow.color},${flow.color}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>{flow.icon}</div>
                   <div style={{ flex: 1, textAlign: 'left' }}>
